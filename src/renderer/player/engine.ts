@@ -57,7 +57,7 @@ const ERRORS_BEFORE_GIVING_UP = 2;
 /** the SDK reports a state only while this computer is the one playing */
 let localActive = false;
 
-export function currentPosition(state: PlaybackState, now = Date.now()): number {
+export function currentPosition(state: Pick<PlaybackState, "paused" | "positionMs" | "durationMs" | "updatedAt">, now = Date.now()): number {
   if (state.paused) return state.positionMs;
   return Math.min(state.durationMs || Infinity, state.positionMs + (now - state.updatedAt));
 }
@@ -515,10 +515,10 @@ export function playContext(contextUri: string, trackUri?: string): Promise<void
   return start({ context_uri: contextUri, ...(trackUri ? { offset: { uri: trackUri } } : {}) });
 }
 
-export function playTracks(uris: string[], index = 0): Promise<void> {
+export function playTracks(uris: string[], index = 0, positionMs?: number): Promise<void> {
   // Spotify takes at most 100 uris: send the hundred around the one asked for
   const first = Math.max(0, Math.min(index - 50, uris.length - 100));
-  return start({ uris: uris.slice(first, first + 100), offset: { position: index - first } });
+  return start({ uris: uris.slice(first, first + 100), offset: { position: index - first }, ...(positionMs ? { position_ms: Math.round(positionMs) } : {}) });
 }
 
 export async function transferTo(deviceId: string): Promise<void> {

@@ -4,10 +4,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
 import { BrowserPlayer, parseCommand } from "./browserPlayer";
+import { cliCommand } from "./cli";
 import { Desktop, HIDDEN_ARG, type DesktopNowPlaying } from "./desktop";
 import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
 import type { NowPlaying } from "./discordProtocol";
+import { addPlay, clearHistory, exportHistory, extendPlay, historyEnabled, listPlays, setHistoryEnabled } from "./history";
 import { fetchLyrics } from "./lyrics";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
@@ -158,9 +160,21 @@ function registerIpc(): void {
   handle("desktop:get", () => desktop.settings());
   handle("desktop:set", (raw) => {
     const input = (raw ?? {}) as Record<string, unknown>;
-    return desktop.setSettings({ closeToTray: input.closeToTray === true, notifications: input.notifications === true, openAtLogin: input.openAtLogin === true });
+    return desktop.setSettings({
+      closeToTray: input.closeToTray === true,
+      notifications: input.notifications === true,
+      openAtLogin: input.openAtLogin === true,
+      globalShortcuts: input.globalShortcuts === true,
+    });
   });
   handle("desktop:update", (raw) => desktop.update(desktopNowPlaying(raw)));
+  handle("history:add", (play) => addPlay(play));
+  handle("history:extend", (at, playedMs) => extendPlay(at, playedMs));
+  handle("history:list", () => listPlays());
+  handle("history:clear", () => clearHistory());
+  handle("history:export", () => exportHistory(mainWindow));
+  handle("history:enabled", () => historyEnabled());
+  handle("history:set-enabled", (on) => setHistoryEnabled(on === true));
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
 
   handle("discord:get", () => discordInfo());
@@ -233,7 +247,12 @@ function setMini(on: boolean): boolean {
   return on;
 }
 
-app.on("second-instance", () => showWindow());
+// started again: a command (vitrine --next, --flow…) goes to this Vitrine, a plain start shows it
+app.on("second-instance", (_event, argv) => {
+  const command = cliCommand(argv);
+  if (command) desktop.command(command);
+  else showWindow();
+});
 
 app.on("before-quit", () => browserPlayer?.stop());
 
@@ -257,6 +276,9 @@ void app.whenReady().then(async () => {
   mainWindow = createWindow();
   desktop.start();
   desktop.attach(mainWindow);
+  // a first start with a command runs it once the page is there
+  const command = cliCommand(process.argv);
+  if (command) mainWindow.webContents.once("did-finish-load", () => setTimeout(() => desktop.command(command), 1500));
   const settings = readConfig().discord;
   if (settings) discord.configure(settings.enabled, settings.appId);
   startUpdater(() => mainWindow);

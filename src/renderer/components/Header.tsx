@@ -1,4 +1,4 @@
-import { BarChart3, Download, Home, Library, LogOut, Palette, Search, Settings, X } from "lucide-react";
+import { BarChart3, Download, Home, Library, LogOut, Palette, Search, Settings, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
 import type { Profile } from "../lib/spotify";
@@ -9,6 +9,7 @@ import { navigate, ui, type Route } from "../lib/ui";
 
 const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
   { label: "Accueil", route: { name: "home" }, icon: Home },
+  { label: "Flow", route: { name: "flow" }, icon: Sparkles },
   { label: "Bibliothèque", route: { name: "library" }, icon: Library },
   { label: "Stats", route: { name: "stats" }, icon: BarChart3 },
 ];

@@ -13,12 +13,15 @@ export interface DesktopSettings {
   closeToTray: boolean;
   notifications: boolean;
   openAtLogin: boolean;
+  /** Ctrl+Alt+Space and the others, wherever the focus is */
+  globalShortcuts: boolean;
 }
 
 export interface Config {
   clientId?: string;
   discord?: DiscordSettings;
   desktop?: Partial<DesktopSettings>;
+  history?: { enabled: boolean };
 }
 
 const file = () => path.join(app.getPath("userData"), "config.json");

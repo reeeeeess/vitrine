@@ -1,8 +1,10 @@
 // What makes Vitrine feel at home on the desktop: an icon in the notification area with playback
 // controls, closing into it instead of quitting, the Windows taskbar preview buttons, a notification
-// when the track changes, and starting with the session. Settings live in config.json ("desktop").
-import { app, BrowserWindow, Menu, nativeImage, net, Notification, Tray, type NativeImage } from "electron";
+// when the track changes, starting with the session, and keyboard shortcuts that work from any app.
+// Settings live in config.json ("desktop").
+import { app, BrowserWindow, globalShortcut, Menu, nativeImage, net, Notification, Tray, type NativeImage } from "electron";
 import path from "node:path";
+import { GLOBAL_SHORTCUTS, type DesktopCommand } from "./cli";
 import { readConfig, updateConfig, type DesktopSettings } from "./config";
 
 export type { DesktopSettings };
@@ -14,7 +16,7 @@ export interface DesktopNowPlaying {
   paused: boolean;
 }
 
-const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false };
+const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false, globalShortcuts: true };
 /** passed when Windows or macOS starts Vitrine with the session: it opens straight into the tray */
 export const HIDDEN_ARG = "--hidden";
 
@@ -30,6 +32,8 @@ export class Desktop {
   private nowPlaying: DesktopNowPlaying | null = null;
   private lastNotified = "";
   private icons: Record<"play" | "pause" | "next" | "previous", NativeImage> | null = null;
+  /** the shortcuts another app already holds */
+  takenShortcuts: string[] = [];
 
   constructor(
     private readonly window: () => BrowserWindow | null,
@@ -40,7 +44,9 @@ export class Desktop {
     app.on("before-quit", () => {
       this.quitting = true;
     });
+    app.on("will-quit", () => globalShortcut.unregisterAll());
     this.applyLoginItem(desktopSettings().openAtLogin);
+    this.applyShortcuts(desktopSettings().globalShortcuts);
     this.createTray();
   }
 
@@ -55,14 +61,21 @@ export class Desktop {
     this.updateThumbar();
   }
 
-  settings(): DesktopSettings {
-    return desktopSettings();
+  settings(): DesktopSettings & { takenShortcuts: string[] } {
+    return { ...desktopSettings(), takenShortcuts: this.takenShortcuts };
   }
 
-  setSettings(next: DesktopSettings): DesktopSettings {
+  setSettings(next: DesktopSettings): DesktopSettings & { takenShortcuts: string[] } {
     updateConfig({ desktop: next });
     this.applyLoginItem(next.openAtLogin);
-    return desktopSettings();
+    this.applyShortcuts(next.globalShortcuts);
+    return this.settings();
+  }
+
+  /** A command from the tray, the taskbar, a shortcut or the command line, for the page to run. */
+  command(command: DesktopCommand): void {
+    if (command === "flow") this.showWindow();
+    this.window()?.webContents.send("desktop:command", command);
   }
 
   /** What the page says plays: refreshes the tray, the taskbar buttons and maybe notifies. */
@@ -80,8 +93,18 @@ export class Desktop {
     }
   }
 
-  private send(command: "toggle" | "next" | "previous"): void {
-    this.window()?.webContents.send("desktop:command", command);
+  private send(command: DesktopCommand): void {
+    this.command(command);
+  }
+
+  private applyShortcuts(on: boolean): void {
+    globalShortcut.unregisterAll();
+    this.takenShortcuts = [];
+    if (!on) return;
+    for (const { accelerator, command } of GLOBAL_SHORTCUTS) {
+      // false when another app holds it: Vitrine goes without that one
+      if (!globalShortcut.register(accelerator, () => this.command(command))) this.takenShortcuts.push(accelerator);
+    }
   }
 
   private applyLoginItem(openAtLogin: boolean): void {

@@ -3,6 +3,7 @@ import { createStore } from "./store";
 
 export type Route =
   | { name: "home" }
+  | { name: "flow" }
   | { name: "search"; query?: string }
   | { name: "library" }
   | { name: "stats" }

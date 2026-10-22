@@ -26,6 +26,8 @@ export interface Collection {
   description?: string;
   image?: string;
   total?: number;
+  /** albums only: "2026-06-21", or just the year or month when Spotify knows no more */
+  releaseDate?: string;
   /** playlists only: who owns it, and whether others may add to it */
   ownerId?: string;
   collaborative?: boolean;
@@ -50,6 +52,17 @@ type Raw = Record<string, unknown> | null | undefined;
 const str = (value: unknown): string => (typeof value === "string" ? value : "");
 const obj = (value: unknown): Record<string, unknown> | undefined =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : undefined;
+
+/** "Mon titre (feat. X) - Remix" and "Mon titre" are one song for lists that should not repeat a song. */
+export function songKey(track: Pick<Track, "name" | "artists">): string {
+  const name = track.name
+    .toLowerCase()
+    .replace(/\s*[([].*?[)\]]/g, "")
+    .replace(/\s+-\s+.*$/, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+  return `${name}|${(track.artists[0] ?? "").toLowerCase()}`;
+}
 
 /** The smallest image at least `size` wide, or the largest there is. */
 export function pickImage(images: unknown, size = 300): string | undefined {
@@ -113,6 +126,7 @@ export function mapAlbum(raw: Raw): Collection | null {
     subtitle: [artists.join(", "), year].filter(Boolean).join(" · "),
     image: pickImage(raw.images, 640),
     total: typeof raw.total_tracks === "number" ? raw.total_tracks : undefined,
+    releaseDate: str(raw.release_date) || undefined,
   };
 }
 

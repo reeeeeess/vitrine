@@ -43,8 +43,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   officiel de Spotify dans Microsoft Edge (présent sur tout Windows) ou Google Chrome, hors de l'écran ; leur DRM est
   reconnu par Spotify. L'appareil reste « Vitrine (cet ordinateur) ». Vitrine lui envoie directement ses commandes et
   affiche son état réel (l'API de Spotify fige la position de ce type d'appareil). Vérifié avec votre compte sous
-  Chrome (11/11, deux fois) puis sous Microsoft Edge avec le son enregistré et mesuré (11/11) ; à confirmer à
-  l'oreille sur votre PC Windows
+  Chrome (11/11, deux fois) puis sous Microsoft Edge avec le son enregistré et mesuré (11/11), et **confirmé à
+  l'oreille sur votre PC Windows** (v0.4.1)
 - 🧪 En dernier recours (ni Edge ni Chrome), Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y
   envoie la lecture
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
@@ -57,10 +57,22 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - 🧪 Titres likés : page dédiée (pochette cœur, lecture, aléatoire), en tête de la Bibliothèque et de l'accueil
 - ✅ Recherche (titres, albums, playlists, artistes)
 - ✅ Pages playlist et album avec liste des titres et lecture en un clic
-- 🧪 Pages artiste (abonnés, genres, titres populaires, albums et singles), artistes cliquables partout
+- ✅ Pages artiste (titres populaires, albums et singles), artistes cliquables partout. Spotify a fermé aux applis en
+  mode développement les « titres populaires » d'un artiste, ses genres et son nombre d'abonnés : depuis la v0.5.0,
+  Vitrine retrouve ses titres les plus connus par la recherche (8 titres pour EsDeeKid sur votre compte)
 - 🧪 Ajouter / retirer un titre des titres likés (cœur dans la barre et le plein écran)
 - 🧪 Créer une playlist (Bibliothèque ou fenêtre d'ajout) et y ajouter des titres (« + » sur chaque titre, bouton dans le
   lecteur plein écran) ; demande deux autorisations Spotify de plus : une session ouverte avant la v0.2 doit se reconnecter
+
+### Flow — la découverte façon TikTok *(v0.5.0, vérifié sur votre compte : 12/12)*
+- ✅ Un titre par écran, en plein écran vertical ; molette, flèches, J/K ou glissé pour passer au suivant
+- ✅ Démarrage au refrain (estimé à un tiers du titre, jamais dans les 30 dernières secondes), désactivable
+- ✅ Le fil : nouveautés et dernières sorties de vos artistes, titres « autour » d'eux (featurings, collaborations),
+  pépites oubliées de vos titres likés ; jamais deux fois la même chanson, les titres déjà vus passent après
+- ✅ Double-clic = j'aime (cœur animé) ; barre d'actions : J'aime, Playlist, À suivre, Artiste, Story, Pas pour moi
+- ✅ Sous-titres : la ligne de paroles du moment sous la pochette, comme les légendes d'une vidéo
+- ✅ « Pas pour moi » écarte le titre pour toujours ; le fil se recharge seul avant la fin
+- ✅ Le lecteur de la barre et Flow restent synchronisés (le titre suivant fait défiler le fil)
 
 ### Immersion (l'esprit Vitrine)
 - ✅ Lecteur plein écran avec pochette géante et fond coloré tiré de la pochette
@@ -76,6 +88,12 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 
 ### Statistiques
 - ✅ Top titres et top artistes sur 4 semaines, 6 mois, depuis toujours
+- ✅ **Sur cet ordinateur** (inspiré de Swiftify) : chaque titre écouté 30 s (ou la moitié d'un titre court) est noté
+  sur le PC, jamais envoyé ; vérifié en réel. Temps d'écoute, nombre d'écoutes, jours d'écoute, série en cours,
+  carte « quand vous écoutez » (jour × heure), vos titres et artistes, dernières écoutes ; 7 jours / 30 jours / tout
+- ✅ Export CSV de l'historique (Excel, Google Sheets), effacement, désactivation dans Réglages
+- ✅ **Story** 1080 × 1920 du titre en cours (pochette, titre, artistes, ligne de paroles du moment) depuis Flow et le
+  lecteur plein écran, à publier sur TikTok, Instagram ou Snapchat ; vérifiée en réel (« Get It Together »)
 - 🧪 Récap partageable : image 1080 × 1350 (top 5 titres, top 3 artistes) aux couleurs et polices du thème,
   depuis la page Stats, pour les 3 périodes
 
@@ -85,6 +103,10 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - 🧪 Mises à jour automatiques sous Windows depuis les Releases GitHub (téléchargement en arrière-plan, bouton
   « Installer » dans l'en-tête) ; macOS exige une signature Apple, prévue plus tard
 - 🧪 Page Réglages : thème, état du lecteur, Discord, mises à jour, compte, à propos
+- ✅ Raccourcis clavier globaux, actifs depuis n'importe quelle appli : Ctrl+Alt+Espace (lecture/pause), Ctrl+Alt+→/←,
+  Ctrl+Alt+L (liker), Ctrl+Alt+F (Flow) ; désactivables, et Vitrine signale ceux qu'une autre appli occupe
+- ✅ Commandes en ligne (comme Swiftify) : `Vitrine.exe --next`, `--previous`, `--play-pause`, `--like`, `--flow`,
+  transmises à la fenêtre déjà ouverte ; utilisables dans un raccourci Windows ou un Stream Deck
 - ⬜ Langues : français (par défaut), anglais
 
 ---
@@ -103,7 +125,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   vérifié hors GitHub : 109 Mo, 104 fichiers, sans dépendance superflue ; guide : docs/GITHUB.md)
 - **Critère de sortie** : un utilisateur Premium installe l'appli, se connecte et écoute une playlist
   avec paroles en moins de 3 minutes
-- Reste à faire : écoute réelle sur un PC Windows (le test automatique a validé la lecture, pas le son)
+- Écoute réelle sur un PC Windows : **confirmée** (v0.4.1, lecture via Edge)
 
 ### Phase 2 — Bêta v0.2 *(en cours)*
 - **Sprint 1 (fait)** : file d'attente, touches multimédia et contrôles système, pages artiste, titres likés
@@ -115,12 +137,15 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   récap partageable
 - **Sprint 5 (fait, v0.4.0)** : lecture via Edge/Chrome, zone de notification, boutons de la barre des tâches,
   notifications, démarrage avec la session, minuteur de sommeil, accent tiré de la pochette
-- **v0.4.1 (fait)** : lecture via Edge/Chrome réellement pilotable — barre de progression, pause et avance exactes
+- **v0.4.1 (fait, publiée sur GitHub)** : lecture via Edge/Chrome réellement pilotable — barre de progression,
+  pause et avance exactes ; confirmée à l'oreille sur votre PC Windows
+- **Sprint 6 (fait, v0.5.0)** : Flow (découverte façon TikTok), story à partager, historique d'écoute local et
+  stats « Sur cet ordinateur », raccourcis globaux, commandes en ligne, titres populaires d'artiste rétablis
 - **Bloquant côté castlabs** : la création du compte EVS a échoué (« LimitExceededException » : quota d'e-mails du jour
   de castlabs atteint) ; à relancer le lendemain
-- **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
-  d'attente, titres likés, pages artiste, contrôles système), puis envoi sur GitHub pour produire
-  l'installateur Windows et écouter sur un vrai PC
+- **Sprint 7 (prochain, v0.6.0)** : un Flow qui apprend (vos « j'aime » et « pas pour moi » pèsent sur le fil),
+  playlist automatique « Trouvé dans Flow », paroles en surimpression sur le bureau, calendrier annuel des écoutes,
+  thème « Verre » ; puis tests de bout en bout dans la CI
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -146,16 +171,17 @@ aperçus de 30 s ne sont plus ouverts aux nouvelles applis depuis fin 2024 : rie
 | | Notifications natives au changement de titre (pochette, titre, artiste) | S | 🧪 v0.4.0 |
 | | Lancer Vitrine au démarrage de Windows, directement dans la barre | S | 🧪 v0.4.0 |
 | | Minuteur de sommeil (15 à 60 min, ou fin du titre) | S | 🧪 v0.4.0 |
-| | Raccourcis clavier globaux personnalisables (hors des touches multimédia) | S | ⬜ |
+| | Raccourcis clavier globaux (hors des touches multimédia) et commandes en ligne | S | ✅ v0.5.0 |
+| | Choisir ses propres combinaisons de touches | S | ⬜ |
 | **Personnalisation** | Couleur d'accent tirée de la pochette en cours, en direct | S | 🧪 v0.4.0 |
 | | Éditeur de thème (couleurs, polices, rayons) et thèmes partageables | M | ⬜ |
 | | Fond animé « particules » façon mysticsaba.com dans le lecteur plein écran | M | ⬜ |
-| **Paroles** | Partager une ligne de paroles en image (carte aux couleurs de la pochette) | S | ⬜ |
+| **Paroles** | Partager une ligne de paroles en image (story aux couleurs de la pochette) | S | ✅ v0.5.0 |
 | | Mode karaoké mot par mot quand LRCLIB fournit l'horodatage par mot | M | ⬜ |
 | | Traduction des paroles (service de traduction au choix de l'utilisateur) | M | ⬜ |
-| **Découverte** | « Mix Vitrine » maison : titres de vos artistes du moment et de leurs albums, sans API de recommandation | M | ⬜ |
-| | Historique d'écoute local illimité (Spotify n'en donne que 50) et minutes écoutées | M | ⬜ |
-| | Récap animé (format story) en plus de l'image | M | ⬜ |
+| **Découverte** | « Mix Vitrine » maison sans API de recommandation : c'est Flow | M | ✅ v0.5.0 |
+| | Historique d'écoute local illimité (Spotify n'en donne que 50) et minutes écoutées | M | ✅ v0.5.0 |
+| | Récap animé (vidéo au format story) en plus de l'image | M | ⬜ |
 | **Social** | Écoute à plusieurs entre utilisateurs de Vitrine, synchronisée (petit serveur de salons) | L | ⬜ |
 | | Scrobbling Last.fm (clé personnelle) | S | ⬜ |
 | **Qualité** | Tests de bout en bout automatiques sur compte de test, à chaque version | M | 🟡 scripts prêts, à intégrer à la CI |
@@ -166,6 +192,35 @@ aperçus de 30 s ne sont plus ouverts aux nouvelles applis depuis fin 2024 : rie
 | | Notarisation Apple (compte développeur 99 $/an) + mises à jour automatiques macOS | S + coût | ⬜ |
 | | Version Linux (AppImage) | S | ⬜ |
 | | Demande de quota étendu Spotify (au-delà de 25 utilisateurs) | démarches | ⬜ |
+
+### Inspirations — ce que les autres projets font, et ce que Vitrine en reprend
+
+Repris de l'analyse de Swiftify, Liner (tryliner), Movix, Vitrine iOS et des usages de TikTok. Toujours dans le cadre de
+l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès le départ).
+
+| Source | Ce qu'ils font | Pour Vitrine | Effort | Statut |
+|---|---|---|---|---|
+| **TikTok** | Fil vertical « Pour toi », un contenu par écran | **Flow** | M | ✅ v0.5.0 |
+| | Double-tap pour aimer, légendes sur la vidéo | Double-clic = j'aime, paroles en sous-titres | S | ✅ v0.5.0 |
+| | Partage en story | Story 1080 × 1920 avec la ligne de paroles | S | ✅ v0.5.0 |
+| | « Pas intéressé » | « Pas pour moi » | S | ✅ v0.5.0 |
+| | Le fil apprend de chaque geste | Pondérer les sources de Flow selon vos j'aime, sauts rapides et « pas pour moi » (calcul local) | M | ⬜ v0.6 |
+| | Favoris / « sons » enregistrés | Playlist automatique « Trouvé dans Flow » remplie par vos j'aime dans Flow | S | ⬜ v0.6 |
+| | Extrait en boucle | Mode « refrain en boucle » : 20 s répétées pour se décider | S | ⬜ |
+| | Tendances | « Tendances Vitrine » : les titres les plus likés dans Flow par les utilisateurs (petit serveur, anonyme) | L | ⬜ |
+| **Swiftify** | Stats locales, « cet ordinateur » | Historique local, carte jour × heure, export CSV | M | ✅ v0.5.0 |
+| | Calendrier d'une année, classement par écoutes ou par temps | Calendrier annuel façon GitHub, bascule écoutes / temps | S | ⬜ v0.6 |
+| | Import stats.fm | Fusionner un historique stats.fm (profil public) | M | ⬜ |
+| | Ligne de commande pour les raccourcis | `--next`, `--play-pause`, `--like`, `--flow` | S | ✅ v0.5.0 |
+| | Visualiseurs audio | Visualiseur à partir de la sortie son du PC (capture système, Windows) | M | ⬜ à étudier |
+| **Liner** | Paroles en surimpression sur le bureau | Fenêtre transparente, toujours au premier plan, la ligne en cours par-dessus tout | M | ⬜ v0.6 |
+| | Fond animé WebGL (kawarp) | Fond « liquide » animé aux couleurs de la pochette dans le plein écran et Flow | M | ⬜ |
+| | Touch Bar, raccourcis | Touch Bar des MacBook (commandes, pochette) | S | ⬜ |
+| **Movix** | WatchParty (regarder ensemble, synchronisé) | « Écouter ensemble » : salons où chacun entend le même titre au même moment, sur son Premium | L | ⬜ |
+| | Profils, appli TV | Mode salon (interface « 10 pieds » plein écran, pilotable au clavier ou à la télécommande) | M | ⬜ |
+| | PreMid (présence Discord) | Discord Rich Presence | S | 🧪 v0.2 |
+| **Vitrine iOS** | Liquid Glass | Thème « Verre » : panneaux translucides, flou d'arrière-plan | S | ⬜ v0.6 |
+| | Live Activity sur l'écran verrouillé | Mini-lecteur toujours visible ; widget de bureau | S | 🧪 v0.2 / ⬜ |
 
 ---
 
@@ -230,6 +285,28 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Barre figée à 0:00 et bouton lecture/pause faux en lecture via navigateur | L'API de Spotify renvoie, pour ce type d'appareil, la position et la pause du début du titre | Le lecteur du navigateur transmet son propre état à Vitrine, qui l'affiche |
 | Pause et avance sans effet (le titre suivant, lui, marchait) | Chrome met au ralenti sa fenêtre placée hors de l'écran | Commandes envoyées directement au lecteur, et Chrome/Edge lancés sans mise au ralenti des fenêtres cachées |
 
+**22 octobre 2026, nuit — v0.5.0 sur votre compte, appli Electron réelle, lecture via Microsoft Edge (12/12)**
+
+| Test | Résultat |
+|---|---|
+| Flow se charge avec vos données | ✅ « Nouveauté · EsDeeKid », « À découvrir · Drake », « Dernière sortie · Luidji »… |
+| Le premier titre démarre seul, au refrain, avec du son | ✅ « Néons rouges - Live » à 39 s, niveau sonore 2 900 |
+| Flèche bas : le titre suivant du fil joue | ✅ « Get It Together » à 75 s, niveau 8 659 |
+| Historique : l'écoute est notée après 30 s | ✅ |
+| Story 1080 × 1920 avec la ligne de paroles du moment | ✅ |
+| « Pas pour moi » : la carte disparaît, la suivante joue | ✅ |
+| Page artiste : « Populaires » rempli malgré la fermeture de l'API | ✅ 8 titres |
+| Raccourcis globaux (vraies frappes clavier) et commandes en ligne (`--flow`, `--next`, `--play-pause`, `--previous`, `--like`) | ✅ profil de test séparé |
+
+**Défaut trouvé et corrigé** : l'API renvoie parfois 0:00 un instant pour le lecteur du navigateur ; l'historique y voyait
+une nouvelle écoute et repartait de zéro. Seule une vraie relecture (après la fin du titre) compte désormais comme une
+nouvelle écoute.
+
+**Points d'accès Spotify vérifiés le 22 octobre 2026** (mode développement) : ouverts — vos tops, titres likés, playlists,
+sorties d'un artiste (10 par page), albums, recherche (10 résultats par page) ; **fermés** — titres populaires d'un artiste,
+artistes similaires, recommandations, nouveautés globales, lectures par lot (`?ids=`), caractéristiques audio, et les
+champs genres / popularité / abonnés des artistes.
+
 ---
 
 ## 5. Risques et points d'attention
@@ -239,7 +316,7 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Spotify limite les applis en mode développement (nombre d'utilisateurs autorisés) | Diffusion bloquée au-delà d'une bêta | Demander le quota étendu ; en attendant chaque utilisateur peut saisir son propre Client ID |
 | La lecture locale exige Premium + Widevine | Utilisateurs gratuits sans son sur PC | Mode télécommande automatique ; message clair |
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
-| Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`), suivi du changelog Spotify |
+| Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`, titres d'artiste par la recherche), Flow bâti uniquement sur des points d'accès ouverts, vérification en réel à chaque version, suivi du changelog Spotify |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |

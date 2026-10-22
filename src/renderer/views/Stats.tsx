@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Loader2, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
+import { LocalListening } from "../components/LocalListening";
 import { run } from "../components/NowPlayingBar";
 import { cn } from "../lib/cn";
 import * as api from "../lib/spotify";
@@ -124,6 +125,7 @@ export function Stats() {
           </section>
         </div>
       )}
+      <LocalListening />
     </div>
   );
 }

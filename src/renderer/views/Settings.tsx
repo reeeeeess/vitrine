@@ -1,4 +1,4 @@
-import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import type { AppInfo, DesktopSettings, DiscordInfo } from "../global";
 import { cn } from "../lib/cn";
@@ -162,15 +162,23 @@ function UpdateSettings({ version }: { version?: string }) {
   );
 }
 
+const SHORTCUTS = [
+  ["Ctrl+Alt+Espace", "lecture / pause"],
+  ["Ctrl+Alt+→ / ←", "titre suivant / précédent"],
+  ["Ctrl+Alt+L", "liker le titre"],
+  ["Ctrl+Alt+F", "ouvrir Flow"],
+];
+
 function DesktopSettingsLines() {
-  const [settings, setSettings] = useState<DesktopSettings>();
+  const [settings, setSettings] = useState<DesktopSettings & { takenShortcuts?: string[] }>();
   useEffect(() => {
     void window.vitrine.desktop?.get().then(setSettings, () => undefined);
   }, []);
   if (!settings) return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
   const change = async (patch: Partial<DesktopSettings>) => {
     try {
-      setSettings(await window.vitrine.desktop.set({ ...settings, ...patch }));
+      const { takenShortcuts: _taken, ...current } = settings;
+      setSettings(await window.vitrine.desktop.set({ ...current, ...patch }));
     } catch (error) {
       notify(errorMessage(error), "error");
     }
@@ -185,6 +193,55 @@ function DesktopSettingsLines() {
       </Line>
       <Line label="Lancer Vitrine au démarrage" hint="Vitrine s'ouvre directement dans la zone de notification (version installée).">
         <Switch on={settings.openAtLogin} onChange={(on) => void change({ openAtLogin: on })} label="Lancer au démarrage" />
+      </Line>
+      <Line
+        label="Raccourcis clavier globaux"
+        hint={
+          <>
+            Depuis n'importe quelle appli : {SHORTCUTS.map(([keys, what]) => `${keys} ${what}`).join(" · ")} (⌘ au lieu de Ctrl sur Mac).
+            {settings.globalShortcuts && settings.takenShortcuts?.length ? ` Déjà pris par une autre appli : ${settings.takenShortcuts.join(", ")}.` : ""}
+          </>
+        }
+      >
+        <Switch on={settings.globalShortcuts} onChange={(on) => void change({ globalShortcuts: on })} label="Raccourcis clavier globaux" />
+      </Line>
+    </>
+  );
+}
+
+function HistorySettings() {
+  const [enabled, setEnabled] = useState<boolean>();
+  useEffect(() => {
+    void window.vitrine.history?.enabled().then(setEnabled, () => undefined);
+  }, []);
+  if (enabled === undefined) return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
+  const act = async (action: () => Promise<unknown>, done?: string) => {
+    try {
+      await action();
+      if (done) notify(done);
+    } catch (error) {
+      notify(errorMessage(error), "error");
+    }
+  };
+  return (
+    <>
+      <Line label="Noter mes écoutes sur ce PC" hint="Chaque titre écouté 30 secondes (ou la moitié d'un titre court), pour la section « Sur cet ordinateur » des Stats. Rien ne quitte votre ordinateur.">
+        <Switch on={enabled} onChange={(on) => void act(async () => setEnabled(await window.vitrine.history.setEnabled(on)))} label="Historique d'écoute" />
+      </Line>
+      <Line label="Mon historique" hint="Un fichier CSV s'ouvre dans Excel ou Google Sheets.">
+        <div className="flex shrink-0 gap-2">
+          <button onClick={() => void act(async () => (await window.vitrine.history.export()) && notify("Historique exporté."))} className="btn-ghost min-h-0 px-4 py-2 text-sm">
+            <Download className="h-4 w-4" />
+            Exporter
+          </button>
+          <button
+            onClick={() => window.confirm("Effacer tout l'historique d'écoute de ce PC ?") && void act(() => window.vitrine.history.clear(), "Historique effacé.")}
+            className="btn-ghost min-h-0 px-4 py-2 text-sm"
+          >
+            <Trash2 className="h-4 w-4" />
+            Effacer
+          </button>
+        </div>
       </Line>
     </>
   );
@@ -245,6 +302,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
             </button>
           )}
         </Line>
+      </Section>
+
+      <Section title="Historique d'écoute">
+        <HistorySettings />
       </Section>
 
       <Section title="Discord">

@@ -1,5 +1,5 @@
 // Spotify's official Web API, with the access token the main process hands out.
-import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, uniqueById, type Artist, type Collection, type Track } from "./types";
+import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, songKey, uniqueById, type Artist, type Collection, type Track } from "./types";
 
 const BASE = "https://api.spotify.com/v1";
 
@@ -146,6 +146,12 @@ export async function savedAlbums(max = 100): Promise<Collection[]> {
   return items.map((item) => mapAlbum((item as Json).album as Json)).filter((c): c is Collection => c !== null);
 }
 
+/** One page of Liked Songs, from `offset` (newest first), and how many there are in all. */
+export async function likedPage(offset = 0, limit = 50): Promise<{ tracks: Track[]; total: number }> {
+  const page = await request<{ items?: unknown[]; total?: number }>(`/me/tracks?limit=${limit}&offset=${Math.max(0, Math.floor(offset))}`);
+  return { tracks: asTracks(page.items ?? [], "track"), total: typeof page.total === "number" ? page.total : 0 };
+}
+
 /** Liked Songs, newest first; `total` counts them all even when fewer were loaded. */
 export async function likedTracks(max = 1000): Promise<{ tracks: Track[]; total: number }> {
   const first = await request<{ items?: unknown[]; next?: string | null; total?: number }>("/me/tracks?limit=50");
@@ -199,6 +205,13 @@ export async function search(query: string): Promise<{ tracks: Track[]; albums: 
     playlists: items("playlists").map(mapPlaylist).filter((c): c is Collection => c !== null),
     artists: items("artists").map(mapArtist).filter((a): a is Artist => a !== null),
   };
+}
+
+/** Tracks only, ten at a time (the most Spotify gives an app in development mode). */
+export async function searchTracks(query: string, offset = 0): Promise<Track[]> {
+  const params = new URLSearchParams({ q: query, type: "track", limit: "10", offset: String(offset) });
+  const raw = await request<{ tracks?: { items?: unknown[] } }>(`/search?${params.toString()}`);
+  return asTracks(raw.tracks?.items ?? []);
 }
 
 // ── playback ──────────────────────────────────────────────────────────────
@@ -262,7 +275,9 @@ const withDevice = (path: string, deviceId?: string, extra: Record<string, strin
   return query ? `${path}?${query}` : path;
 };
 
-export type PlayBody = { context_uri: string; offset?: { uri: string } | { position: number } } | { uris: string[]; offset?: { position: number } };
+export type PlayBody = ({ context_uri: string; offset?: { uri: string } | { position: number } } | { uris: string[]; offset?: { position: number } }) & {
+  position_ms?: number;
+};
 
 export const play = (deviceId?: string, body?: PlayBody) =>
   request(withDevice("/me/player/play", deviceId), { method: "PUT", body: body ? JSON.stringify(body) : undefined });
@@ -298,20 +313,31 @@ export async function artist(id: string): Promise<{ artist: Artist; topTracks: T
   const [info, top, albums] = await Promise.allSettled([
     request(path),
     request<{ tracks?: unknown[] }>(`${path}/top-tracks?market=from_token`),
-    request<{ items?: Json[] }>(`${path}/albums?include_groups=album,single&limit=10`),
+    artistReleases(id),
   ]);
   if (info.status === "rejected") throw info.reason;
   const mapped = mapArtist(info.value);
   if (!mapped) throw new SpotifyApiError(404, "Artiste introuvable");
   // top tracks and releases are extras: an endpoint Spotify closes to an app leaves the page standing
-  return {
-    artist: mapped,
-    topTracks: top.status === "fulfilled" ? asTracks(top.value.tracks ?? []).slice(0, 10) : [],
-    releases:
-      albums.status === "fulfilled"
-        ? (albums.value.items ?? []).map(mapAlbum).filter((c): c is Collection => c !== null)
-        : [],
-  };
+  let topTracks = top.status === "fulfilled" ? asTracks(top.value.tracks ?? []).slice(0, 10) : [];
+  // Spotify closed top tracks to apps in development mode: search finds the artist's best known
+  if (topTracks.length === 0) topTracks = await artistTracksBySearch(mapped).catch(() => []);
+  return { artist: mapped, topTracks, releases: albums.status === "fulfilled" ? albums.value : [] };
+}
+
+/** The artist's albums and singles, newest first, with their release dates. */
+export async function artistReleases(id: string): Promise<Collection[]> {
+  const page = await request<{ items?: Json[] }>(`/artists/${encodeURIComponent(id)}/albums?include_groups=album,single&limit=10`);
+  return (page.items ?? []).map(mapAlbum).filter((c): c is Collection => c !== null);
+}
+
+/** Tracks search ranks first for the artist's name, kept when the artist is on them. */
+export async function artistTracksBySearch(artist: Pick<Artist, "id" | "name">): Promise<Track[]> {
+  const pages = await Promise.allSettled([searchTracks(`artist:"${artist.name}"`), searchTracks(artist.name), searchTracks(artist.name, 10)]);
+  const tracks = pages.flatMap((page) => (page.status === "fulfilled" ? page.value : []));
+  const mine = uniqueById(tracks.filter((track) => track.artistIds.includes(artist.id)));
+  // a song shows once, even when it is on the album and on the single
+  return mine.filter((track, index) => mine.findIndex((other) => songKey(other) === songKey(track)) === index).slice(0, 10);
 }
 
 // ── liked songs ───────────────────────────────────────────────────────────

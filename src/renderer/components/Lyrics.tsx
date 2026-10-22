@@ -1,39 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { LyricsResult } from "../global";
+import { useEffect, useRef } from "react";
 import { cn } from "../lib/cn";
-import { errorMessage } from "../lib/format";
-import { activeLineIndex, parseLrc } from "../lib/lrc";
+import { activeLineIndex } from "../lib/lrc";
 import type { Track } from "../lib/types";
 import * as engine from "../player/engine";
 import { usePosition } from "../player/hooks";
+import { useLyrics } from "../player/useLyrics";
 import { run } from "./NowPlayingBar";
 
 /** lines light up a little ahead, as the singer breathes in */
 const LEAD_MS = 250;
 
-type LyricsState = { status: "loading" } | { status: "done"; result: LyricsResult | null } | { status: "error"; message: string };
-
 export function Lyrics({ track }: { track: Track }) {
-  const [state, setState] = useState<LyricsState>({ status: "loading" });
+  const { state, lines } = useLyrics(track);
   const position = usePosition();
   const container = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    let current = true;
-    setState({ status: "loading" });
-    window.vitrine.lyrics
-      .get({ track: track.name, artist: track.artists[0] ?? "", album: track.albumName, durationMs: track.durationMs })
-      .then(
-        (result) => current && setState({ status: "done", result }),
-        (error: unknown) => current && setState({ status: "error", message: errorMessage(error) }),
-      );
-    return () => {
-      current = false;
-    };
-    // the poll hands over a new Track object every few seconds: only a new song fetches again
-  }, [track.uri]);
-
-  const lines = useMemo(() => (state.status === "done" && state.result?.synced ? parseLrc(state.result.synced) : []), [state]);
   const active = activeLineIndex(lines, position + LEAD_MS);
 
   useEffect(() => {

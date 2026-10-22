@@ -33,6 +33,15 @@ const api = {
       return () => ipcRenderer.removeListener("desktop:command", forward);
     },
   },
+  history: {
+    add: (play: unknown) => ipcRenderer.invoke("history:add", play),
+    extend: (at: string, playedMs: number) => ipcRenderer.invoke("history:extend", at, playedMs),
+    list: () => ipcRenderer.invoke("history:list"),
+    clear: () => ipcRenderer.invoke("history:clear"),
+    export: () => ipcRenderer.invoke("history:export"),
+    enabled: () => ipcRenderer.invoke("history:enabled"),
+    setEnabled: (on: boolean) => ipcRenderer.invoke("history:set-enabled", on),
+  },
   browserPlayer: {
     status: () => ipcRenderer.invoke("browser-player:status"),
     start: () => ipcRenderer.invoke("browser-player:start"),

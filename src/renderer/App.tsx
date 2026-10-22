@@ -16,11 +16,13 @@ import { notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
 import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
+import { connectHistory } from "./player/history";
 import { connectDynamicAccent } from "./player/dynamicAccent";
 import { connectMediaSession } from "./player/mediaSession";
 import { connectUpdates } from "./lib/updates";
 import { ArtistView } from "./views/Artist";
 import { CollectionView } from "./views/Collection";
+import { Flow } from "./views/Flow";
 import { Home } from "./views/Home";
 import { Library } from "./views/Library";
 import { LikedView } from "./views/Liked";
@@ -48,6 +50,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectDesktop((error) => notify(errorMessage(error), "error")), []);
   useEffect(() => connectDynamicAccent(), []);
   useEffect(() => connectUpdates(), []);
+  useEffect(() => connectHistory(), []);
 
   // space plays and pauses, except while typing
   useEffect(() => {
@@ -66,6 +69,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   switch (route.name) {
     case "home":
       view = <Home name={profile?.name} />;
+      break;
+    case "flow":
+      view = <Flow />;
       break;
     case "search":
       view = <Search query={route.query} />;
@@ -95,7 +101,11 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
 
   return (
     <div className="relative h-full">
-      <Header profile={profile} scrolled={scrolled} onLogout={onLogout} />
+      <Header profile={profile} scrolled={scrolled || route.name === "flow"} onLogout={onLogout} />
+      {/* Flow takes the whole height between the header and the player bar, and scrolls on its own */}
+      {route.name === "flow" ? (
+        view
+      ) : (
       <main
         className="main scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24"
         onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}
@@ -103,6 +113,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       >
         <div className="mx-auto max-w-[1800px]">{view}</div>
       </main>
+      )}
       <NowPlayingBar />
       <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>

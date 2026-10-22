@@ -8,6 +8,7 @@ import { playback } from "../player/engine";
 import { Artwork } from "./Artwork";
 import { Lyrics } from "./Lyrics";
 import { LikeButton } from "./LikeButton";
+import { StoryButton } from "./StoryButton";
 import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
 
 /** The immersive player: giant artwork, a backdrop of its colours, and synced lyrics. */
@@ -74,6 +75,7 @@ export function FullPlayer() {
                     >
                       <ListPlus className="h-6 w-6" />
                     </button>
+                    <StoryButton track={track} />
                     <LikeButton track={track} size="h-6 w-6" />
                   </div>
                 </div>

@@ -5,13 +5,13 @@ import type { Artist, Track } from "./types";
 const WIDTH = 1080;
 const HEIGHT = 1350;
 
-function cssVar(name: string): string {
+export function cssVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-const rgb = (triplet: string, alpha = 1) => `rgb(${triplet} / ${alpha})`;
+export const rgb = (triplet: string, alpha = 1) => `rgb(${triplet} / ${alpha})`;
 
-function loadImage(url: string | undefined): Promise<HTMLImageElement | null> {
+export function loadImage(url: string | undefined): Promise<HTMLImageElement | null> {
   if (!url) return Promise.resolve(null);
   return new Promise((resolve) => {
     const image = new Image();
@@ -22,7 +22,7 @@ function loadImage(url: string | undefined): Promise<HTMLImageElement | null> {
   });
 }
 
-function roundedImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | null, x: number, y: number, size: number, radius: number): void {
+export function roundedImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | null, x: number, y: number, size: number, radius: number): void {
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, size, size, radius);
@@ -36,7 +36,7 @@ function roundedImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | n
 }
 
 /** Shortens a text with an ellipsis until it fits. */
-function fit(ctx: CanvasRenderingContext2D, text: string, width: number): string {
+export function fit(ctx: CanvasRenderingContext2D, text: string, width: number): string {
   if (ctx.measureText(text).width <= width) return text;
   let cut = text;
   while (cut.length > 1 && ctx.measureText(`${cut}…`).width > width) cut = cut.slice(0, -1);

@@ -31,10 +31,20 @@ export interface VitrineBridge {
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
   desktop: {
-    get(): Promise<DesktopSettings>;
-    set(settings: DesktopSettings): Promise<DesktopSettings>;
+    get(): Promise<DesktopSettings & { takenShortcuts: string[] }>;
+    set(settings: DesktopSettings): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean } | null): Promise<void>;
-    onCommand(listener: (command: "toggle" | "next" | "previous") => void): () => void;
+    onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow") => void): () => void;
+  };
+  history: {
+    add(play: HistoryPlay): Promise<void>;
+    extend(at: string, playedMs: number): Promise<void>;
+    list(): Promise<HistoryPlay[]>;
+    clear(): Promise<void>;
+    /** false when the person cancelled the "Save as" dialog */
+    export(): Promise<boolean>;
+    enabled(): Promise<boolean>;
+    setEnabled(on: boolean): Promise<boolean>;
   };
   browserPlayer: {
     status(): Promise<BrowserPlayerStatus | undefined>;
@@ -68,6 +78,22 @@ export interface DesktopSettings {
   closeToTray: boolean;
   notifications: boolean;
   openAtLogin: boolean;
+  globalShortcuts: boolean;
+}
+
+/** A play kept in this computer's listening history (electron/historyFile.ts). */
+export interface HistoryPlay {
+  at: string;
+  id: string;
+  uri: string;
+  name: string;
+  artists: string[];
+  artistIds: string[];
+  album: string;
+  albumId?: string;
+  image?: string;
+  durationMs: number;
+  playedMs: number;
 }
 
 export interface AppInfo {

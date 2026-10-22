@@ -16,6 +16,25 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Flow : la découverte façon TikTok
+
+Un titre par écran, qui démarre au refrain ; la molette, les flèches ou un glissé passent au suivant.
+Double-clic pour liker (avec le cœur), sous-titres tirés des paroles synchronisées, et à droite : playlist,
+file d'attente, artiste, story à partager, « Pas pour moi ». Le fil mélange les nouveautés de vos artistes,
+des titres autour d'eux et des pépites oubliées de vos titres likés, sans l'API de recommandation que Spotify
+a fermée aux nouvelles applis.
+
+<p align="center">
+  <img src="docs/screenshots/20-flow.png" width="49%" alt="Flow">
+  <img src="docs/screenshots/23-stats-ordinateur.png" width="49%" alt="Statistiques de cet ordinateur">
+</p>
+
+La **story** (1080 × 1920, pour TikTok, Instagram ou Snapchat) reprend la pochette, le titre et la ligne de
+paroles du moment. La page Stats a gagné une section **Sur cet ordinateur** (inspirée de Swiftify) :
+temps d'écoute, carte des heures d'écoute, séries de jours, export CSV ; l'historique reste sur le PC.
+**Raccourcis globaux** : Ctrl+Alt+Espace (lecture/pause), Ctrl+Alt+→ / ← , Ctrl+Alt+L (liker),
+Ctrl+Alt+F (Flow), et les mêmes en ligne de commande : `Vitrine.exe --next`, `--play-pause`, `--like`, `--flow`.
+
 ### Deux thèmes
 
 Un bouton dans l'en-tête bascule entre **Movix** (noir et rouge) et **Mystic**, d'après
@@ -71,12 +90,19 @@ electron/            processus principal (Node)
   auth.ts            connexion Spotify (PKCE, navigateur système), jetons chiffrés par le trousseau
   pkce.ts            fonctions pures de l'OAuth PKCE (testées)
   lyrics.ts          paroles depuis LRCLIB, côté processus principal
+  browserPlayer.ts   lecture via Edge ou Chrome quand Spotify refuse le DRM d'Electron
+  desktop.ts         zone de notification, barre des tâches, notifications, raccourcis globaux
+  history.ts         historique d'écoute de ce PC (JSONL), export CSV
+  cli.ts             commandes en ligne (--next, --flow…) passées à l'instance ouverte
   preload.ts         le seul pont vers la page (contextBridge)
 src/renderer/        interface (React 18, Tailwind CSS, framer-motion, lucide-react, Embla)
   lib/spotify.ts     Web API officielle
+  lib/flow.ts        le fil de Flow (nouveautés, autour de vos artistes, pépites oubliées)
+  lib/story.ts       la story 1080 × 1920 du titre en cours
   player/engine.ts   lecture : SDK local (cet ordinateur) ou télécommande Spotify Connect
+  player/history.ts  ce qui compte comme une écoute (30 s, ou la moitié d'un titre court)
   components/        en-tête, bandeau, cartes, rangées, lecteur, paroles, appareils
-  views/             connexion, accueil, recherche, bibliothèque, statistiques, playlist/album
+  views/             connexion, accueil, Flow, recherche, bibliothèque, statistiques, playlist/album
 tests/               tests unitaires
 ```
 
