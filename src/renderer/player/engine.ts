@@ -162,7 +162,7 @@ let appVersion = "";
 // remembered for this version only: the next version, perhaps signed, tries again by itself.
 const REFUSED_KEY = "vitrine.localPlaybackRefused";
 const REFUSED_MESSAGE =
-  "Spotify refuse la lecture dans cette version de Vitrine (protection DRM non reconnue : signature castlabs manquante). Vitrine joue la musique dans l'appli Spotify officielle, qu'elle ouvre en arrière-plan si besoin.";
+  "Spotify refuse le lecteur intégré de cette version (signature DRM castlabs manquante). Vitrine joue sur cet ordinateur via Microsoft Edge ou Google Chrome, ou à défaut dans l'appli Spotify officielle.";
 
 function refusedVersion(): string | null {
   try {
@@ -188,6 +188,7 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
   started = true;
   void poll();
   setInterval(() => void poll(), POLL_MS);
+  watchBrowserPlayer();
   document.addEventListener("visibilitychange", () => !document.hidden && void poll());
 
   if (!widevine) {
@@ -199,6 +200,7 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
   appVersion = version;
   if (version && refusedVersion() === version) {
     playback.set({ sdk: "off", sdkMessage: REFUSED_MESSAGE });
+    void ensureBrowserPlayer();
     return;
   }
   playback.set({ sdk: "loading", sdkMessage: undefined });
@@ -359,7 +361,80 @@ async function giveUpLocalPlayback(): Promise<void> {
     device: state.device?.local ? undefined : state.device,
     paused: true,
   }));
-  notify("Spotify refuse la lecture dans Vitrine (DRM). La musique passe par l'appli Spotify officielle : relancez la lecture.", "error");
+  if (await ensureBrowserPlayer()) {
+    notify("Le lecteur intégré est refusé par Spotify (DRM) : Vitrine joue désormais via votre navigateur. Relancez la lecture.");
+  } else {
+    notify("Spotify refuse la lecture dans Vitrine (DRM). La musique passe par l'appli Spotify officielle : relancez la lecture.", "error");
+  }
+}
+
+// ── playing through Edge or Chrome ────────────────────────────────────────
+
+let browserFailed = false;
+let browserErrors: number[] = [];
+
+/**
+ * Starts the player hosted by Microsoft Edge or Google Chrome (main process, browserPlayer.ts) and
+ * makes it this computer's device. Returns false when no such browser is installed or it failed.
+ */
+export function ensureBrowserPlayer(): Promise<boolean> {
+  browserStarting ??= startBrowserPlayer().finally(() => {
+    browserStarting = null;
+  });
+  return browserStarting;
+}
+
+let browserStarting: Promise<boolean> | null = null;
+let viaBrowser = false;
+
+async function startBrowserPlayer(): Promise<boolean> {
+  const bridge = window.vitrine.browserPlayer;
+  if (browserFailed || !bridge) return false;
+  const known = await bridge.status().catch(() => undefined);
+  if (!known?.browser) {
+    browserFailed = true;
+    return false;
+  }
+  // already running: start() answers at once; closed meanwhile: it opens the browser again
+  if (known.state !== "ready") playback.set({ sdk: "loading", sdkMessage: `Démarrage du lecteur via ${known.browser}…` });
+  const status = await bridge.start().catch(() => undefined);
+  if (status?.state !== "ready" || !status.deviceId) {
+    browserFailed = true;
+    viaBrowser = false;
+    playback.set({ sdk: "error", localDeviceId: undefined, sdkMessage: `${REFUSED_MESSAGE} (${status?.detail ?? "lecteur navigateur indisponible"})` });
+    return false;
+  }
+  viaBrowser = true;
+  playback.set({
+    sdk: "ready",
+    localDeviceId: status.deviceId,
+    sdkMessage: `Lecture sur cet ordinateur via ${status.browser} : son lecteur DRM est reconnu par Spotify.`,
+  });
+  return true;
+}
+
+/** The browser's player failing in a row, or closed: step aside, as with the built-in player. */
+function watchBrowserPlayer(): void {
+  window.vitrine.browserPlayer?.onEvent(({ type, message }) => {
+    if (type === "not_ready") return;
+    const now = Date.now();
+    browserErrors = [...browserErrors.filter((time) => now - time < ERROR_WINDOW_MS), now];
+    if (type === "playback_error" && browserErrors.length < ERRORS_BEFORE_GIVING_UP) {
+      notify(`Titre sauté : Spotify a interrompu la lecture (${message}).`, "error");
+      return;
+    }
+    browserFailed = true;
+    viaBrowser = false;
+    void window.vitrine.browserPlayer.stop();
+    playback.set((state) => ({
+      sdk: "error",
+      sdkMessage: `Le lecteur via navigateur a échoué (${message || type}). Vitrine joue dans l'appli Spotify officielle.`,
+      localDeviceId: undefined,
+      device: state.device?.local ? undefined : state.device,
+      paused: true,
+    }));
+    notify("Le lecteur via navigateur a échoué : la musique passe par l'appli Spotify officielle.", "error");
+  });
 }
 
 const LAUNCH_WAIT_MS = 25_000;
@@ -379,6 +454,11 @@ async function launchSpotifyAndWait(): Promise<string | undefined> {
 }
 
 async function start(body: api.PlayBody): Promise<void> {
+  // the built-in player is refused or missing: this computer still plays, through Edge or Chrome,
+  // unless the person picked another device on purpose
+  const state = playback.get();
+  const chose = Boolean(chosenDevice && state.device?.id === chosenDevice);
+  if (!chose && (viaBrowser || state.sdk === "off" || state.sdk === "error" || browserStarting)) await ensureBrowserPlayer();
   const device = startTarget(playback.get(), chosenDevice) ?? (await otherDevice()) ?? (await launchSpotifyAndWait());
   if (!device) throw new NoDeviceError();
   // the click that started playback also unlocks audio for the SDK

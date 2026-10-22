@@ -30,6 +30,12 @@ export interface VitrineBridge {
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
+  browserPlayer: {
+    status(): Promise<BrowserPlayerStatus | undefined>;
+    start(): Promise<BrowserPlayerStatus | undefined>;
+    stop(): Promise<void>;
+    onEvent(listener: (event: { type: string; message: string }) => void): () => void;
+  };
   discord: {
     get(): Promise<DiscordInfo>;
     set(settings: { enabled: boolean; appId: string }): Promise<DiscordInfo>;
@@ -41,6 +47,13 @@ export interface VitrineBridge {
     install(): Promise<void>;
     subscribe(listener: (state: UpdateState) => void): () => void;
   };
+}
+
+export interface BrowserPlayerStatus {
+  state: "off" | "starting" | "ready" | "error";
+  browser: "Microsoft Edge" | "Google Chrome" | null;
+  deviceId?: string;
+  detail?: string;
 }
 
 export interface AppInfo {

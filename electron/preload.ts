@@ -22,6 +22,17 @@ const api = {
   },
   info: () => ipcRenderer.invoke("app:info"),
   launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
+  browserPlayer: {
+    status: () => ipcRenderer.invoke("browser-player:status"),
+    start: () => ipcRenderer.invoke("browser-player:start"),
+    stop: () => ipcRenderer.invoke("browser-player:stop"),
+    /** Errors the browser's player reports; returns the function that stops listening. */
+    onEvent: (listener: (event: unknown) => void) => {
+      const forward = (_event: unknown, payload: unknown) => listener(payload);
+      ipcRenderer.on("browser-player:event", forward);
+      return () => ipcRenderer.removeListener("browser-player:event", forward);
+    },
+  },
   discord: {
     get: () => ipcRenderer.invoke("discord:get"),
     set: (settings: unknown) => ipcRenderer.invoke("discord:set", settings),

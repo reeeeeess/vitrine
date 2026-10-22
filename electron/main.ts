@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, net, protocol, screen, shell, type IpcMain
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
+import { BrowserPlayer } from "./browserPlayer";
 import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
 import type { NowPlaying } from "./discordProtocol";
@@ -29,6 +30,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 
 const auth = new AuthManager();
 const discord = new DiscordPresence();
+let browserPlayer: BrowserPlayer | null = null;
 let mainWindow: BrowserWindow | null = null;
 let drm: DrmStatus = { widevine: false, detail: "Vérification de Widevine…" };
 
@@ -118,7 +120,10 @@ function handle(channel: string, listener: (...args: unknown[]) => unknown): voi
 function registerIpc(): void {
   handle("auth:status", () => auth.status());
   handle("auth:login", (clientId) => auth.login(typeof clientId === "string" ? clientId : ""));
-  handle("auth:logout", () => auth.logout());
+  handle("auth:logout", () => {
+    browserPlayer?.stop();
+    return auth.logout();
+  });
   handle("auth:token", (force) => auth.accessToken(force === true));
   handle("drm:status", () => drm);
   handle("lyrics:get", (query) => fetchLyrics(query));
@@ -127,6 +132,9 @@ function registerIpc(): void {
   });
   handle("window:mini", (on) => setMini(on === true));
   handle("spotify:launch", () => launchSpotify());
+  handle("browser-player:status", () => browserPlayer?.status);
+  handle("browser-player:start", () => browserPlayer?.start());
+  handle("browser-player:stop", () => browserPlayer?.stop());
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
 
   handle("discord:get", () => discordInfo());
@@ -197,6 +205,8 @@ app.on("second-instance", () => {
   mainWindow.focus();
 });
 
+app.on("before-quit", () => browserPlayer?.stop());
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
@@ -209,6 +219,7 @@ void app.whenReady().then(async () => {
   registerIpc();
   if (!DEV_SERVER_URL) serveRenderer();
   [drm] = await Promise.all([prepareWidevine(), auth.load()]);
+  browserPlayer = new BrowserPlayer(() => auth.accessToken(), path.join(app.getPath("userData"), "browser-player"), () => mainWindow);
   mainWindow = createWindow();
   const settings = readConfig().discord;
   if (settings) discord.configure(settings.enabled, settings.appId);
