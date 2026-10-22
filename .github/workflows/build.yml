@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Fetch GitHub dependencies over HTTPS
+        run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
       - run: npm ci
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
@@ -48,6 +50,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Fetch GitHub dependencies over HTTPS
+        run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/
       - run: npm ci
       - name: Sign in to castlabs EVS
         if: ${{ env.EVS_ACCOUNT_NAME != '' }}

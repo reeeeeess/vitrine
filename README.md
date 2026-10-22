@@ -45,6 +45,7 @@ En mode développement, Spotify limite l'application aux comptes que vous ajoute
 
 Les installateurs sont produits par GitHub Actions à chaque envoi sur `main`
 (onglet **Actions** → dernière exécution **Build** → artefacts `vitrine-win` et `vitrine-mac`).
+Mise en place pas à pas, secrets et coûts : **[docs/GITHUB.md](docs/GITHUB.md)**.
 
 - **Windows** : `Vitrine-Setup-x.y.z.exe`. Sans certificat de signature, Windows SmartScreen affiche
   un avertissement : *Informations complémentaires → Exécuter quand même*.

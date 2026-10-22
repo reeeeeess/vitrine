@@ -82,7 +82,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 ### Phase 1 — MVP v0.1 *(faite — testée sur un vrai compte Premium : 26/27)*
 - Connexion sécurisée, lecture locale + télécommande, accueil, recherche, bibliothèque,
   playlists/albums, lecteur plein écran avec paroles, statistiques
-- Construction automatique Windows + macOS par GitHub Actions
+- Construction automatique Windows + macOS par GitHub Actions (installateur Windows déjà fabriqué et
+  vérifié hors GitHub : 109 Mo, 104 fichiers, sans dépendance superflue ; guide : docs/GITHUB.md)
 - **Critère de sortie** : un utilisateur Premium installe l'appli, se connecte et écoute une playlist
   avec paroles en moins de 3 minutes
 - Reste à faire : écoute réelle sur un PC Windows (le test automatique a validé la lecture, pas le son)
