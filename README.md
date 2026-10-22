@@ -16,6 +16,19 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Deux thèmes
+
+Un bouton dans l'en-tête bascule entre **Movix** (noir et rouge) et **Mystic**, d'après
+[mysticsaba.com](https://mysticsaba.com) : noir chaud, crème, dégradé ambre → rouge, polices Clash Display,
+Satoshi et JetBrains Mono. Les polices Clash Display et Satoshi viennent de [Fontshare](https://www.fontshare.com)
+et sont chargées depuis leurs serveurs (licence ITF Free Font License, à vérifier avant toute diffusion) ;
+hors ligne, Archivo Black et Inter les remplacent.
+
+<p align="center">
+  <img src="docs/screenshots/mystic/2-home.png" width="49%" alt="Thème Mystic : accueil">
+  <img src="docs/screenshots/mystic/7-fullplayer.png" width="49%" alt="Thème Mystic : lecteur plein écran">
+</p>
+
 ## Ce qu'il faut
 
 - **Spotify Premium** pour écouter sur l'ordinateur (sinon Vitrine pilote un autre appareil : téléphone, enceinte, appli officielle).

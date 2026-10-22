@@ -37,7 +37,7 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
         <div className="flex items-end gap-8">
           <Artwork src={collection.image} className="h-56 w-56 shrink-0 rounded-2xl shadow-2xl shadow-black/50 ring-1 ring-white/10" />
           <div className="min-w-0 pb-1">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/90">
+            <span className="kicker inline-flex rounded-full border border-white/20 bg-white/15 px-3 py-1 font-medium text-white/90">
               {kind === "album" ? "Album" : "Playlist"}
             </span>
             <h1 className="mt-4 line-clamp-2 font-display text-5xl leading-[1.05] tracking-tight">{collection.name}</h1>
@@ -50,7 +50,7 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
         <div className="mt-8 flex items-center gap-3">
           <button
             onClick={() => run(() => engine.playContext(collection.uri))}
-            className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-red-600 px-7 py-3 font-semibold shadow-lg shadow-red-900/40 transition-colors hover:bg-red-500"
+            className="btn-primary"
           >
             <Play className="h-5 w-5 fill-current" />
             Lecture
@@ -62,7 +62,7 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
                 if (!engine.playback.get().shuffle) await engine.toggleShuffle();
               })
             }
-            className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/20 bg-white/15 px-6 py-3 font-medium transition-colors hover:bg-white/25"
+            className="btn-ghost"
           >
             <Shuffle className="h-5 w-5" />
             Aléatoire

@@ -1,8 +1,9 @@
-import { BarChart3, Home, Library, LogOut, Search, X } from "lucide-react";
+import { BarChart3, Home, Library, LogOut, Palette, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
 import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
+import { setTheme, theme } from "../lib/theme";
 import { navigate, ui, type Route } from "../lib/ui";
 
 const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
@@ -14,9 +15,25 @@ const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
 export function Logo() {
   return (
     <span className="flex items-center gap-2 font-display text-xl tracking-tight">
-      <span className="h-2.5 w-2.5 rounded-full bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)]" />
+      <span className="h-2.5 w-2.5 rounded-full accent-bg shadow-[0_0_12px_rgb(var(--c-red-600)/0.9)]" />
       VITRINE
     </span>
+  );
+}
+
+/** Switches between the Movix look and the mysticsaba.com one. */
+export function ThemeToggle() {
+  const current = useStore(theme, (s) => s.current);
+  const next = current === "movix" ? "mystic" : "movix";
+  return (
+    <button
+      onClick={() => setTheme(next)}
+      className="kicker flex items-center gap-2 rounded-btn border border-white/10 px-3 py-2 text-gray-400 transition-colors hover:border-red-500/60 hover:text-white"
+      title={`Passer au thème ${next === "mystic" ? "Mystic" : "Movix"}`}
+    >
+      <Palette className="h-4 w-4" />
+      {current === "mystic" ? "Mystic" : "Movix"}
+    </button>
   );
 }
 
@@ -99,6 +116,8 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
           </button>
         )}
       </div>
+
+      <ThemeToggle />
 
       {profile && (
         <div className="flex shrink-0 items-center gap-2">

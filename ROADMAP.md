@@ -55,7 +55,9 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Cartes qui prennent la couleur de leur pochette au survol
 - ⬜ Fond animé (pochette floutée en mouvement), mode « mini-lecteur » toujours au premier plan
 - ⬜ Paroles traduites
-- ⬜ Thème « Mystic » inspiré de mysticsaba.com (noir chaud, ambre, polices Clash Display / Satoshi), au choix avec le thème Movix actuel
+- 🧪 Deux thèmes au choix (bouton dans l'en-tête et sur l'écran de connexion) :
+  « Movix » (noir, rouge, Inter / Archivo Black) et « Mystic » d'après mysticsaba.com
+  (noir chaud, crème, dégradé ambre → rouge, Clash Display / Satoshi / JetBrains Mono, boutons pilule)
 
 ### Statistiques
 - ✅ Top titres et top artistes sur 4 semaines, 6 mois, depuis toujours
@@ -86,7 +88,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 ### Phase 2 — Bêta v0.2 *(en cours)*
 - **Sprint 1 (fait)** : file d'attente, touches multimédia et contrôles système, pages artiste, titres likés
   — vérifiés sur données fictives, à valider sur compte réel avec le volume
-- **Sprint 2 (en cours)** : thème « Mystic » (mysticsaba.com) en option, mini-lecteur
+- **Sprint 2** : thème « Mystic » (mysticsaba.com) en option *(fait)*, mini-lecteur *(en cours)*
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -133,4 +135,5 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`), suivi du changelog Spotify |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
+| Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |

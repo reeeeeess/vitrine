@@ -25,7 +25,7 @@ export function Library() {
             <button
               key={value}
               onClick={() => setTab(value)}
-              className={cn("rounded-xl px-4 py-1.5 text-sm font-medium transition-colors", tab === value ? "bg-red-600 text-white" : "text-gray-400 hover:text-white")}
+              className={cn("rounded-xl px-4 py-1.5 text-sm font-medium transition-colors", tab === value ? "accent-bg" : "text-gray-400 hover:text-white")}
             >
               {value === "playlists" ? `Playlists${data ? ` · ${data.playlists.length}` : ""}` : `Albums${data ? ` · ${data.albums.length}` : ""}`}
             </button>

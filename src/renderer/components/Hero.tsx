@@ -42,7 +42,7 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
           transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-red-500/40 bg-red-600/25 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100">
+            <span className="kicker inline-flex items-center rounded-full border border-red-500/40 bg-red-600/25 px-3 py-1 font-semibold text-red-100">
               {slide.kicker}
             </span>
             {slide.tags.map((tag) => (
@@ -57,7 +57,7 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
             {slide.onPlay && (
               <button
                 onClick={slide.onPlay}
-                className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-red-600 px-7 py-3 text-base font-semibold text-white shadow-lg shadow-red-900/40 transition-colors hover:bg-red-500"
+                className="btn-primary text-base"
               >
                 <Play className="h-5 w-5 fill-current" />
                 Lecture
@@ -66,7 +66,7 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
             {slide.onOpen && (
               <button
                 onClick={slide.onOpen}
-                className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/20 bg-white/15 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-white/25"
+                className="btn-ghost text-base"
               >
                 <Info className="h-5 w-5" />
                 Voir

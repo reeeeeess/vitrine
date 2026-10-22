@@ -40,7 +40,7 @@ export function ArtistView({ id }: { id: string }) {
         <div className="flex items-end gap-8">
           <Artwork src={artist.image} round className="h-56 w-56 shrink-0 shadow-2xl shadow-black/50 ring-1 ring-white/10" />
           <div className="min-w-0 pb-2">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/90">Artiste</span>
+            <span className="kicker inline-flex rounded-full border border-white/20 bg-white/15 px-3 py-1 font-medium text-white/90">Artiste</span>
             <h1 className="mt-4 line-clamp-2 font-display text-6xl leading-[1.05] tracking-tight">{artist.name}</h1>
             <p className="mt-3 text-sm text-white/70">
               {[artist.followers != null ? `${followers.format(artist.followers)} abonnés` : "", artist.genres.slice(0, 3).join(", ")].filter(Boolean).join(" · ")}
@@ -49,7 +49,7 @@ export function ArtistView({ id }: { id: string }) {
         </div>
         <button
           onClick={() => run(() => engine.playContext(artist.uri))}
-          className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-red-600 px-7 py-3 font-semibold shadow-lg shadow-red-900/40 transition-colors hover:bg-red-500"
+          className="btn-primary mt-8"
         >
           <Play className="h-5 w-5 fill-current" />
           Lecture

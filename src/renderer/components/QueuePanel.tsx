@@ -30,7 +30,7 @@ export function QueuePanel() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-      className="fixed bottom-[112px] right-4 top-20 z-30 flex w-[360px] flex-col rounded-3xl border border-white/10 bg-[#111114]/95 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl"
+      className="fixed bottom-[112px] right-4 top-20 z-30 flex w-[360px] flex-col rounded-3xl border border-white/10 bg-panel/95 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl"
       aria-label="File d'attente"
     >
       <header className="flex items-center justify-between px-2 pb-3">
@@ -48,13 +48,13 @@ export function QueuePanel() {
           <>
             {data.current && (
               <>
-                <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">En cours</p>
+                <p className="kicker px-2 pb-1 font-semibold text-gray-500">En cours</p>
                 <ul>
                   <Row track={data.current} current />
                 </ul>
               </>
             )}
-            <p className="px-2 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-gray-500">À suivre</p>
+            <p className="kicker px-2 pb-1 pt-4 font-semibold text-gray-500">À suivre</p>
             {data.next.length === 0 ? (
               <p className="px-2 py-2 text-sm text-gray-400">Rien à suivre pour l'instant.</p>
             ) : (

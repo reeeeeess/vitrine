@@ -9,7 +9,7 @@ const CSP = [
   "script-src 'self' https://sdk.scdn.co",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
+  "font-src 'self' data: https://cdn.fontshare.com",
   "connect-src 'self' https: wss:",
   "media-src 'self' blob: https:",
   "frame-src https://sdk.scdn.co https://*.spotify.com",

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type { AuthStatus, DrmStatus } from "../global";
-import { Logo } from "../components/Header";
+import { Logo, ThemeToggle } from "../components/Header";
 import { errorMessage } from "../lib/format";
 
 const REDIRECT_URI = "http://127.0.0.1:8898/callback";
@@ -29,6 +29,9 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
   return (
     <div className="relative flex h-full items-center justify-center overflow-hidden">
       <div className="drag absolute inset-x-0 top-0 h-16" />
+      <div className={window.vitrine.platform === "darwin" ? "absolute right-6 top-4 z-10" : "absolute right-40 top-4 z-10"}>
+        <ThemeToggle />
+      </div>
       <div className="pointer-events-none absolute -left-40 top-1/4 h-[480px] w-[480px] rounded-full bg-red-600/25 blur-[140px]" />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-[420px] w-[420px] rounded-full bg-indigo-600/20 blur-[140px]" />
 
@@ -42,7 +45,7 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
         <h1 className="mt-8 font-display text-4xl leading-tight tracking-tight">
           Votre musique,
           <br />
-          <span className="text-red-500">en vitrine.</span>
+          <span className="text-accent-gradient">en vitrine.</span>
         </h1>
         <p className="mt-3 text-sm text-gray-400">Connectez votre compte Spotify. La lecture sur cet ordinateur nécessite Spotify Premium.</p>
 
@@ -75,7 +78,7 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
         <button
           onClick={() => void login()}
           disabled={busy || (needsClientId && clientId.trim().length === 0)}
-          className="mt-6 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 font-semibold shadow-lg shadow-red-900/40 transition-colors hover:bg-red-500 disabled:opacity-50"
+          className="btn-primary mt-6 w-full"
         >
           {busy && <Loader2 className="h-5 w-5 animate-spin" />}
           {busy ? "Terminez la connexion dans votre navigateur…" : "Se connecter avec Spotify"}

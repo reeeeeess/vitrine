@@ -46,7 +46,7 @@ export function DevicesMenu() {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10 }}
       transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-      className="absolute bottom-[calc(100%+12px)] right-0 z-50 w-80 rounded-2xl border border-white/10 bg-[#141418]/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-xl"
+      className="absolute bottom-[calc(100%+12px)] right-0 z-50 w-80 rounded-2xl border border-white/10 bg-panel/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-xl"
     >
       <div className="flex items-center justify-between px-2 pb-2 pt-1">
         <span className="text-sm font-semibold">Écouter sur</span>

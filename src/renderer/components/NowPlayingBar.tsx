@@ -71,7 +71,7 @@ export function TransportControls({ large = false }: { large?: boolean }) {
         onClick={() => run(engine.togglePlay)}
         disabled={!hasTrack}
         className={cn(
-          "flex items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105 disabled:opacity-40",
+          "btn-play flex items-center justify-center rounded-full transition-transform hover:scale-105 disabled:opacity-40",
           large ? "h-16 w-16" : "h-10 w-10",
         )}
         aria-label={paused ? "Lecture" : "Pause"}

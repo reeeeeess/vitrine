@@ -37,7 +37,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: 
 
   return (
     <div className="mt-6" role="table" aria-label="Titres">
-      <div className={cn("grid items-center gap-4 border-b border-white/10 px-4 pb-2 text-xs uppercase tracking-wider text-gray-500", columns)} role="row">
+      <div className={cn("kicker grid items-center gap-4 border-b border-white/10 px-4 pb-2 text-gray-500", columns)} role="row">
         <span className="text-right">#</span>
         <span>Titre</span>
         {showAlbum && <span>Album</span>}

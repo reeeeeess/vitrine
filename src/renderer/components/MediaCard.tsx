@@ -33,7 +33,7 @@ export function MediaCard({ title, subtitle, image, round, index = 0, onOpen, on
           {!round && <div className="media-wash pointer-events-none absolute inset-0" />}
           {onPlay && (
             <button
-              className="absolute bottom-2 right-2 z-10 flex h-11 w-11 translate-y-2 items-center justify-center rounded-full bg-red-600 text-white opacity-0 shadow-lg shadow-black/40 transition-all duration-200 hover:scale-105 hover:bg-red-500 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100"
+              className="absolute bottom-2 right-2 z-10 flex h-11 w-11 translate-y-2 items-center justify-center rounded-full accent-bg opacity-0 shadow-lg shadow-black/40 transition-all duration-200 hover:scale-105 hover:brightness-110 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100"
               aria-label={`Lire ${title}`}
               onClick={(event) => {
                 event.stopPropagation();

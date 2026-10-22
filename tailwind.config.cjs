@@ -1,18 +1,32 @@
 const path = require("node:path");
 
-// The look of Movix (by mysticsaba): black, white at low opacity for surfaces, red for actions,
-// Inter for text and Archivo Black for display titles, and the same entrance animations.
+// Two looks, both by mysticsaba: "movix" (black, red, Inter and Archivo Black) and "mystic"
+// (mysticsaba.com: warm black, cream, amber to red, Clash Display, Satoshi and JetBrains Mono).
+// As in Movix, the colours the components use are read from CSS variables that each theme sets
+// (src/renderer/styles.css), so a theme changes them without touching a component.
+const themable = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+const shades = (family, steps) => Object.fromEntries(steps.map((step) => [step, themable(`${family}-${step}`)]));
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [path.join(__dirname, "src/renderer/**/*.{ts,tsx,html}")],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-        display: ["Archivo Black", "Inter", "sans-serif"],
+        sans: ["var(--font-body)"],
+        display: ["var(--font-display)"],
+        mono: ["var(--font-mono)"],
       },
       colors: {
-        gray: { 950: "#030712" },
+        white: themable("white"),
+        black: themable("black"),
+        gray: shades("gray", [300, 400, 500, 600, 700, 800, 950]),
+        red: shades("red", [100, 200, 300, 400, 500, 600, 900]),
+        panel: themable("panel"),
+        "accent-fg": themable("accent-fg"),
+      },
+      borderRadius: {
+        btn: "var(--radius-btn)",
       },
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",

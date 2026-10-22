@@ -2,13 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── themes ───────────────────────────────────────────────────────────────
+   Colours are "r g b" triplets so Tailwind can add opacity (bg-white/10). */
+:root {
+  --c-white: 255 255 255;
+  --c-black: 0 0 0;
+  --c-gray-300: 209 213 219;
+  --c-gray-400: 156 163 175;
+  --c-gray-500: 107 114 128;
+  --c-gray-600: 75 85 99;
+  --c-gray-700: 55 65 81;
+  --c-gray-800: 31 41 55;
+  --c-gray-950: 3 7 18;
+  --c-red-100: 254 226 226;
+  --c-red-200: 254 202 202;
+  --c-red-300: 252 165 165;
+  --c-red-400: 248 113 113;
+  --c-red-500: 239 68 68;
+  --c-red-600: 220 38 38;
+  --c-red-900: 127 29 29;
+  --c-panel: 20 20 24;
+  --c-accent-fg: 255 255 255;
+  --accent-from: 220 38 38;
+  --accent-to: 220 38 38;
+  --play-bg: 255 255 255;
+  --play-fg: 0 0 0;
+  --radius-btn: 1rem;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Archivo Black", "Inter", sans-serif;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* mysticsaba.com */
+:root[data-theme="mystic"] {
+  --c-white: 237 232 221;
+  --c-black: 10 9 8;
+  --c-gray-300: 205 199 186;
+  --c-gray-400: 185 179 164;
+  --c-gray-500: 131 126 111;
+  --c-gray-600: 96 92 81;
+  --c-gray-700: 60 56 48;
+  --c-gray-800: 33 29 22;
+  --c-gray-950: 18 16 8;
+  --c-red-100: 255 236 210;
+  --c-red-200: 255 220 175;
+  --c-red-300: 247 190 110;
+  --c-red-400: 245 178 85;
+  --c-red-500: 242 163 60;
+  --c-red-600: 255 61 46;
+  --c-red-900: 120 50 10;
+  --c-panel: 21 18 13;
+  --c-accent-fg: 10 9 8;
+  --accent-from: 242 163 60;
+  --accent-to: 255 61 46;
+  --play-bg: 242 163 60;
+  --play-fg: 10 9 8;
+  --radius-btn: 999px;
+  --font-body: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-display: "Clash Display", "Archivo Black", "Satoshi", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer components {
+  /* the main call to action: plain red in Movix, the amber-to-red of mysticsaba.com in Mystic */
+  .btn-primary {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-btn px-7 py-3 font-semibold transition-[filter,transform] hover:brightness-110 active:scale-[0.98] disabled:opacity-50;
+    color: rgb(var(--c-accent-fg));
+    background: linear-gradient(90deg, rgb(var(--accent-from)), rgb(var(--accent-to)));
+    box-shadow: 0 10px 30px -8px rgb(var(--accent-to) / 0.55);
+  }
+  .btn-ghost {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-btn border border-white/20 bg-white/15 px-6 py-3 font-medium text-white transition-colors hover:bg-white/25;
+  }
+  /* a small round action on the accent, such as the play button on a card */
+  .accent-bg {
+    color: rgb(var(--c-accent-fg));
+    background: linear-gradient(135deg, rgb(var(--accent-from)), rgb(var(--accent-to)));
+  }
+  .btn-play {
+    background: rgb(var(--play-bg));
+    color: rgb(var(--play-fg));
+  }
+  /* small uppercase labels: monospaced and spaced out in Mystic, as on mysticsaba.com */
+  .kicker {
+    @apply font-mono text-xs uppercase tracking-[0.14em];
+  }
+  .text-accent-gradient {
+    background: linear-gradient(90deg, rgb(var(--accent-from)), rgb(var(--accent-to)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
 @layer base {
   html,
   body,
   #root {
     height: 100%;
     overflow: hidden;
-    background: #000;
+    background: rgb(var(--c-black));
     user-select: none;
   }
   ::selection {
@@ -47,7 +140,7 @@
   }
   /* glass: the player bar, menus and the full-screen player sit on it */
   .glass {
-    background: rgb(18 18 22 / 0.62);
+    background: rgb(var(--c-panel) / 0.62);
     backdrop-filter: blur(28px) saturate(170%);
     -webkit-backdrop-filter: blur(28px) saturate(170%);
     border: 1px solid rgb(255 255 255 / 0.1);
@@ -59,7 +152,7 @@
 
 /* A card takes on its artwork's colour when hovered (as Movix's media cards do). */
 .media-card {
-  --media-color: 220 38 38;
+  --media-color: var(--c-red-600);
 }
 .media-card .media-wash {
   opacity: 0;
@@ -82,21 +175,21 @@
   appearance: none;
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(to right, var(--fill, #fff) var(--value, 0%), rgb(255 255 255 / 0.18) var(--value, 0%));
+  background: linear-gradient(to right, var(--fill, rgb(var(--c-white))) var(--value, 0%), rgb(var(--c-white) / 0.18) var(--value, 0%));
   outline: none;
   cursor: pointer;
   transition: height 120ms ease;
 }
 .range:hover {
   height: 6px;
-  --fill: #ef4444;
+  --fill: rgb(var(--c-red-500));
 }
 .range::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: #fff;
+  background: rgb(var(--c-white));
   opacity: 0;
   transition: opacity 120ms ease;
 }

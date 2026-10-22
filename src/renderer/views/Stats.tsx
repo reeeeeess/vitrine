@@ -26,7 +26,7 @@ export function Stats() {
     <div className="animate-skeleton-fade">
       <div className="flex items-end justify-between gap-4 px-1">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-red-500">Vos statistiques</span>
+          <span className="kicker font-semibold text-red-500">Vos statistiques</span>
           <h1 className="mt-1 font-display text-4xl tracking-tight">Ce que vous écoutez</h1>
         </div>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
@@ -34,7 +34,7 @@ export function Stats() {
             <button
               key={value}
               onClick={() => setRange(value)}
-              className={cn("rounded-xl px-4 py-1.5 text-sm font-medium transition-colors", range === value ? "bg-red-600 text-white" : "text-gray-400 hover:text-white")}
+              className={cn("rounded-xl px-4 py-1.5 text-sm font-medium transition-colors", range === value ? "accent-bg" : "text-gray-400 hover:text-white")}
             >
               {label}
             </button>
@@ -88,7 +88,7 @@ export function Stats() {
                 >
                   <div className="relative">
                     <Artwork src={artist.image} round className="ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-105" />
-                    <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-xs font-bold">{index + 1}</span>
+                    <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full accent-bg text-xs font-bold">{index + 1}</span>
                   </div>
                   <span className="mt-2 block truncate text-sm font-semibold">{artist.name}</span>
                   <span className="block truncate text-xs text-gray-400">{artist.genres.slice(0, 2).join(", ") || "Artiste"}</span>
