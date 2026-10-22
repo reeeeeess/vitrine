@@ -8,12 +8,15 @@ import { navigate, notify, ui } from "../lib/ui";
 import { addToQueue, playback } from "../player/engine";
 import { Artwork } from "./Artwork";
 import { ArtistLinks } from "./NowPlayingBar";
+import { trackMenu, type MenuContext } from "./TrackMenu";
 
 interface TrackListProps {
   tracks: Track[];
   onPlay: (track: Track, index: number) => void;
   showAlbum?: boolean;
   showArt?: boolean;
+  /** what a right click on a track may also do here (take it out of this playlist) */
+  menuContext?: MenuContext;
 }
 
 function Equalizer() {
@@ -30,7 +33,7 @@ function Equalizer() {
   );
 }
 
-export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: TrackListProps) {
+export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, menuContext }: TrackListProps) {
   const currentUri = useStore(playback, (s) => s.track?.uri);
   const paused = useStore(playback, (s) => s.paused);
   const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_7rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
@@ -52,6 +55,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: 
               role="row"
               tabIndex={0}
               onDoubleClick={() => onPlay(track, index)}
+              onContextMenu={(event) => trackMenu(event, track, menuContext)}
               onKeyDown={(event) => event.key === "Enter" && onPlay(track, index)}
               className={cn(
                 "group grid items-center gap-4 rounded-xl px-4 py-2 outline-none transition-colors hover:bg-white/5 focus-visible:bg-white/10",

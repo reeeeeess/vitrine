@@ -1,24 +1,32 @@
-// The listening history of this computer, kept in userData/listening-history.jsonl and never sent
-// anywhere. It can be exported as CSV, cleared, or turned off ("history" in config.json).
-import { app, dialog, type BrowserWindow } from "electron";
+// The listening history of the whole account, kept in userData/listening-history.jsonl and never sent
+// anywhere: plays on this computer, plays on every other device (Spotify's "recently played", read
+// every 15 minutes while Vitrine runs, even in the tray), and the history Spotify lets a person
+// download. It can be exported as CSV, cleared, or turned off ("history" in config.json).
+import { app, dialog, net, type BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { summarize, type HistoryInfo, type ListeningSummary } from "../src/renderer/lib/listening";
 import { readConfig, updateConfig } from "./config";
-import { extendLine, parsePlay, playLine, readPlays, toCsv, type Play } from "./historyFile";
+import { extendLine, fromRecentlyPlayed, fromStreamingHistory, newPlays, parsePlay, playLine, readPlays, toCsv, type Play, type PlaySource } from "./historyFile";
+import { readZip } from "./zip";
 
 const file = () => path.join(app.getPath("userData"), "listening-history.jsonl");
+const SYNC_EVERY_MS = 15 * 60_000;
+
+/** the file, read once and kept until it changes */
+let cache: Play[] | null = null;
 
 export function historyEnabled(): boolean {
   return readConfig().history?.enabled !== false;
 }
 
 export function setHistoryEnabled(enabled: boolean): boolean {
-  updateConfig({ history: { enabled } });
+  updateConfig({ history: { ...readConfig().history, enabled } });
   return enabled;
 }
 
-/** Adds a line, on a line of its own even after a write a crash cut short. */
-function append(line: string): void {
+/** Adds lines, on a line of their own even after a write a crash cut short. */
+function append(lines: string): void {
   fs.mkdirSync(path.dirname(file()), { recursive: true });
   let cut = false;
   try {
@@ -31,13 +39,32 @@ function append(line: string): void {
   } catch {
     // no file yet
   }
-  fs.appendFileSync(file(), cut ? `\n${line}` : line);
+  fs.appendFileSync(file(), cut ? `\n${lines}` : lines);
+  cache = null;
 }
 
+export function listPlays(): Play[] {
+  if (cache) return cache;
+  try {
+    cache = readPlays(fs.readFileSync(file(), "utf8"));
+  } catch {
+    cache = [];
+  }
+  return cache;
+}
+
+/** Adds plays not known yet; returns how many were new. */
+function addPlays(incoming: Play[]): number {
+  const fresh = newPlays(listPlays(), incoming);
+  if (fresh.length > 0) append(fresh.map(playLine).join(""));
+  return fresh.length;
+}
+
+/** A play on this computer, sent by the page once it counts. */
 export function addPlay(raw: unknown): void {
   const play = parsePlay(raw);
   if (!play || !historyEnabled()) return;
-  append(playLine(play));
+  addPlays([{ ...play, source: "vitrine" }]);
 }
 
 export function extendPlay(at: unknown, playedMs: unknown): void {
@@ -46,16 +73,83 @@ export function extendPlay(at: unknown, playedMs: unknown): void {
   append(extendLine(at, playedMs));
 }
 
-export function listPlays(): Play[] {
-  try {
-    return readPlays(fs.readFileSync(file(), "utf8"));
-  } catch {
-    return [];
-  }
-}
-
 export function clearHistory(): void {
   fs.rmSync(file(), { force: true });
+  cache = null;
+  updateConfig({ history: { enabled: historyEnabled() } });
+}
+
+export type SourceFilter = "all" | PlaySource;
+
+export function historySummary(raw: unknown): ListeningSummary {
+  const input = (raw ?? {}) as { days?: unknown; source?: unknown };
+  const days = typeof input.days === "number" && input.days > 0 ? input.days : 0;
+  const source = (["vitrine", "spotify", "import"] as const).find((s) => s === input.source);
+  const plays = source ? listPlays().filter((play) => (play.source ?? "vitrine") === source) : listPlays();
+  return summarize(plays, days ? Date.now() - days * 86_400_000 : 0);
+}
+
+export function historyInfo(): HistoryInfo {
+  const plays = listPlays();
+  const bySource = { vitrine: 0, spotify: 0, import: 0 };
+  for (const play of plays) bySource[play.source ?? "vitrine"] += 1;
+  return { plays: plays.length, bySource, first: plays[0]?.at, lastSync: readConfig().history?.lastSync };
+}
+
+// ── every device of the account ───────────────────────────────────────────
+
+/** Reads Spotify's "recently played" since the last time; returns how many plays were new. */
+export async function syncAccount(accessToken: () => Promise<string>): Promise<number> {
+  if (!historyEnabled()) return 0;
+  const after = readConfig().history?.after;
+  const query = after ? `limit=50&after=${after}` : "limit=50";
+  const response = await net.fetch(`https://api.spotify.com/v1/me/player/recently-played?${query}`, {
+    headers: { authorization: `Bearer ${await accessToken()}` },
+  });
+  if (!response.ok) throw new Error(`Spotify a répondu ${response.status}`);
+  const body = (await response.json()) as { items?: unknown[]; cursors?: { after?: string } | null };
+  const added = addPlays(fromRecentlyPlayed(body.items ?? []));
+  const cursor = Number(body.cursors?.after);
+  updateConfig({ history: { ...readConfig().history, enabled: historyEnabled(), lastSync: Date.now(), ...(cursor ? { after: cursor } : {}) } });
+  return added;
+}
+
+let syncTimer: ReturnType<typeof setInterval> | null = null;
+
+export function startAccountSync(accessToken: () => Promise<string>, loggedIn: () => Promise<boolean>): void {
+  const run = () => void loggedIn().then((yes) => (yes ? syncAccount(accessToken) : 0)).catch(() => undefined);
+  setTimeout(run, 8000);
+  syncTimer ??= setInterval(run, SYNC_EVERY_MS);
+}
+
+// ── what Spotify lets a person download ───────────────────────────────────
+
+const isHistoryFile = (name: string) => /Streaming_?History[^/]*\.json$/i.test(name) && !/video/i.test(name);
+
+/** Reads the plays in the JSON files, or in Spotify's ZIP archive, the person picks. */
+export async function importHistory(window: BrowserWindow | null): Promise<{ added: number; read: number; files: number } | null> {
+  const options = {
+    title: "Importer votre historique Spotify",
+    properties: ["openFile", "multiSelections"] as ("openFile" | "multiSelections")[],
+    filters: [{ name: "Historique Spotify (ZIP ou JSON)", extensions: ["zip", "json"] }],
+  };
+  const choice = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  if (choice.canceled || choice.filePaths.length === 0) return null;
+  const texts: string[] = [];
+  for (const picked of choice.filePaths) {
+    if (picked.toLowerCase().endsWith(".zip")) {
+      for (const entry of readZip(fs.readFileSync(picked), isHistoryFile)) texts.push(entry.data.toString("utf8"));
+    } else {
+      texts.push(fs.readFileSync(picked, "utf8"));
+    }
+  }
+  if (texts.length === 0) throw new Error("Aucun fichier d'historique dans ce choix (attendu : Streaming_History_Audio_….json).");
+  const plays = texts.flatMap((content) => {
+    const parsed: unknown = JSON.parse(content);
+    return Array.isArray(parsed) ? fromStreamingHistory(parsed) : [];
+  });
+  plays.sort((a, b) => a.at.localeCompare(b.at));
+  return { added: addPlays(plays), read: plays.length, files: texts.length };
 }
 
 /** Asks where to save, then writes the CSV; false when the person cancelled. */

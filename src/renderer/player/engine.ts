@@ -521,6 +521,21 @@ export function playTracks(uris: string[], index = 0, positionMs?: number): Prom
   return start({ uris: uris.slice(first, first + 100), offset: { position: index - first }, ...(positionMs ? { position_ms: Math.round(positionMs) } : {}) });
 }
 
+/**
+ * A fair shuffle of the whole list, played in that order, after Spicetify's Shuffle+: Spotify's own
+ * shuffle favours some tracks. Spotify takes 100 tracks per request: the first 100 of the draw play.
+ */
+export async function playShuffled(uris: string[]): Promise<void> {
+  const order = [...uris];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  await playTracks(order.slice(0, 100), 0);
+  // Spotify's shuffle on top would undo the draw
+  if (playback.get().shuffle) await toggleShuffle().catch(() => undefined);
+}
+
 export async function transferTo(deviceId: string): Promise<void> {
   await api.transfer(deviceId, !playback.get().paused);
   const local = deviceId === playback.get().localDeviceId;

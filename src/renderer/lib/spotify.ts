@@ -392,3 +392,11 @@ export async function addToPlaylist(playlistId: string, uris: string[]): Promise
     );
   }
 }
+
+export async function removeFromPlaylist(playlistId: string, uris: string[]): Promise<void> {
+  const path = `/playlists/${encodeURIComponent(playlistId)}`;
+  await withFallback(
+    () => request(`${path}/items`, { method: "DELETE", body: JSON.stringify({ items: uris.map((uri) => ({ uri })) }) }),
+    () => request(`${path}/tracks`, { method: "DELETE", body: JSON.stringify({ tracks: uris.map((uri) => ({ uri })) }) }),
+  );
+}

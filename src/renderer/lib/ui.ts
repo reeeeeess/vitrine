@@ -1,9 +1,10 @@
 // App-wide UI state: where the person is, toasts, and whether the full-screen player is open.
 import { createStore } from "./store";
+import type { Track } from "./types";
 
 export type Route =
   | { name: "home" }
-  | { name: "flow" }
+  | { name: "flow"; seed?: Track }
   | { name: "search"; query?: string }
   | { name: "library" }
   | { name: "stats" }

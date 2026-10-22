@@ -1,4 +1,5 @@
-// What the listening history of this computer says: time spent, favourites, when in the week.
+// What the listening history says: time spent, favourites, when in the week and in the year. Pure,
+// so the main process sums up a history of years without sending it all to the page.
 import type { HistoryPlay } from "../global";
 
 export interface Ranked {
@@ -23,7 +24,17 @@ export interface ListeningSummary {
   topArtists: Ranked[];
   /** listening time by weekday (Monday first) and hour, local time */
   heatmap: number[][];
+  /** listening time of each of the last 53 weeks' days, oldest first ("2026-10-22") */
+  calendar: { day: string; ms: number }[];
   recent: HistoryPlay[];
+}
+
+export interface HistoryInfo {
+  plays: number;
+  bySource: Record<"vitrine" | "spotify" | "import", number>;
+  first?: string;
+  /** when "recently played" was last read, epoch ms */
+  lastSync?: number;
 }
 
 const DAY_MS = 86_400_000;
@@ -59,6 +70,8 @@ export function summarize(all: HistoryPlay[], since: number, now = Date.now()): 
     heatmap[(date.getDay() + 6) % 7][date.getHours()] += ms;
 
     const track = tracks.get(play.uri) ?? { key: play.uri, name: play.name, detail: play.artists.join(", "), id: play.id, image: play.image, uri: play.uri, plays: 0, ms: 0 };
+    // an imported play has no artwork: one heard through Spotify gives it
+    track.image ??= play.image;
     track.plays += 1;
     track.ms += ms;
     tracks.set(play.uri, track);
@@ -83,6 +96,22 @@ export function summarize(all: HistoryPlay[], since: number, now = Date.now()): 
   }
 
   for (const artist of artists.values()) artist.detail = `${artist.plays} écoute${artist.plays > 1 ? "s" : ""}`;
+  // the calendar always shows the year: 53 weeks back to a Monday, up to today, whatever the period
+  const startDate = new Date(now - 52 * 7 * DAY_MS);
+  startDate.setDate(startDate.getDate() - ((startDate.getDay() + 6) % 7));
+  startDate.setHours(0, 0, 0, 0);
+  const byDay = new Map<string, number>();
+  for (const play of all) {
+    const time = Date.parse(play.at);
+    if (time < startDate.getTime()) continue;
+    const key = dayKey(time);
+    byDay.set(key, (byDay.get(key) ?? 0) + Math.max(0, play.playedMs));
+  }
+  const calendar: { day: string; ms: number }[] = [];
+  for (let cursorDay = new Date(startDate); dayKey(cursorDay.getTime()) <= today; cursorDay.setDate(cursorDay.getDate() + 1)) {
+    const key = dayKey(cursorDay.getTime());
+    calendar.push({ day: key, ms: byDay.get(key) ?? 0 });
+  }
   return {
     totalMs,
     plays: plays.length,
@@ -92,6 +121,7 @@ export function summarize(all: HistoryPlay[], since: number, now = Date.now()): 
     topTracks: rank(tracks, 5),
     topArtists: rank(artists, 5),
     heatmap,
+    calendar,
     recent: [...plays].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8),
   };
 }

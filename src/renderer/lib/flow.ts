@@ -2,7 +2,9 @@
 // not liked yet (the new releases of their favourite artists, tracks around those artists) with
 // Liked Songs they may have forgotten. Spotify closed its recommendations, related artists and
 // artists' top tracks to apps in development mode: everything here comes from endpoints still open.
+import { rankByTaste, readTaste, seedArtists } from "./flowTaste";
 import * as api from "./spotify";
+import { trash, trashed } from "./trash";
 import { songKey, type Artist, type Track } from "./types";
 
 export { songKey };
@@ -170,19 +172,75 @@ async function savedIds(ids: string[]): Promise<Set<string>> {
   return new Set(batches.flatMap((batch, i) => batch.filter((_, j) => answers[i][j])));
 }
 
-/** One batch of the feed; each round moves on to other artists and further search pages. */
-export async function loadFlow(round: number, skip: ReadonlySet<string>, now = Date.now()): Promise<FlowItem[]> {
-  const artists = await favouriteArtists();
+/**
+ * One batch of the feed; each round moves on to other artists and further search pages. A Flow
+ * started from a track (the radio Spotify no longer lets apps make) opens on it and its artists.
+ */
+export async function loadFlow(round: number, skip: ReadonlySet<string>, now = Date.now(), seed?: Track): Promise<FlowItem[]> {
+  const fromSeed = seed ? seed.artistIds.map((id, i) => ({ id, uri: `spotify:artist:${id}`, name: seed.artists[i] ?? "", genres: [] })) : [];
+  const taste = readTaste();
+  // what Flow learnt weighs in: artists liked in Flow join the seeds, those set aside leave
+  const favourites = seedArtists(await favouriteArtists(), taste);
+  const artists = [...fromSeed, ...favourites.filter((artist) => !fromSeed.some((s) => s.id === artist.id))];
   const [fresh, around, forgotten] = await Promise.all([
     newReleases(rotate(artists, round, 3), now),
     aroundArtists(rotate(artists, round + 1, 3), round),
     forgottenLiked().catch(() => []),
   ]);
   // tracks the person already liked are no discovery
-  const saved = await savedIds([...fresh, ...around].map((item) => item.track.id));
+  const saved = await savedIds([...fresh, ...around].map((item) => item.track.id).concat(seed ? [seed.id] : []));
   const seen = seenTracks();
-  const discover = (items: FlowItem[]) => unseenFirst(items.filter((item) => !saved.has(item.track.id)), seen);
+  const bin = trash.get();
+  const discover = (items: FlowItem[]) => rankByTaste(unseenFirst(items.filter((item) => !saved.has(item.track.id) && !trashed(bin, item.track)), seen), taste);
   const others = discover(around);
+  const start: FlowItem[] = seed && round === 0 ? [{ track: seed, source: "around", reason: `Votre point de départ · ${seed.artists[0] ?? ""}`, saved: saved.has(seed.id) }] : [];
   // around the artists is where most tracks come from: two of them for each new release
-  return interleave([discover(fresh), others, [...others].reverse(), forgotten], new Set([...skip, ...hiddenSongs()]));
+  return [...start, ...interleave([discover(fresh), others, [...others].reverse(), rankByTaste(forgotten.filter((item) => !trashed(bin, item.track)), taste)], new Set([...skip, ...hiddenSongs(), ...start.map((item) => item.track.id)]))];
+}
+
+// ── "Trouvé dans Flow": the tracks liked in Flow, gathered in a playlist ──
+
+const COLLECT_KEY = "vitrine.flow.collect";
+const PLAYLIST_KEY = "vitrine.flow.playlist";
+
+export function collecting(): boolean {
+  try {
+    return localStorage.getItem(COLLECT_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+export function setCollecting(on: boolean): void {
+  try {
+    localStorage.setItem(COLLECT_KEY, on ? "on" : "off");
+  } catch {
+    // for this session only
+  }
+}
+
+/** Adds the track to the person's "Trouvé dans Flow" playlist, made the first time. */
+export async function collect(track: Track): Promise<void> {
+  let id: string | null = null;
+  try {
+    id = localStorage.getItem(PLAYLIST_KEY);
+  } catch {
+    // a new playlist then
+  }
+  if (id) {
+    try {
+      await api.addToPlaylist(id, [track.uri]);
+      return;
+    } catch (error) {
+      // the playlist was deleted: a new one is made below
+      if (!(error instanceof api.SpotifyApiError) || ![403, 404].includes(error.status)) throw error;
+    }
+  }
+  const playlist = await api.createPlaylist("Trouvé dans Flow", "Les titres aimés dans Flow, sur Vitrine.");
+  try {
+    localStorage.setItem(PLAYLIST_KEY, playlist.id);
+  } catch {
+    // made again next session
+  }
+  await api.addToPlaylist(playlist.id, [track.uri]);
 }

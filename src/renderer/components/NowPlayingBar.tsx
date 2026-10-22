@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { ListMusic, Maximize2, Mic2, PictureInPicture2, MonitorSpeaker, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
+import { Captions, ListMusic, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
 import { errorMessage, formatTime } from "../lib/format";
@@ -13,6 +13,8 @@ import { Artwork } from "./Artwork";
 import { DevicesMenu } from "./DevicesMenu";
 import { LikeButton } from "./LikeButton";
 import { SleepTimerButton } from "./SleepTimerButton";
+import { trackMenu } from "./TrackMenu";
+import { overlay, toggleOverlay } from "../player/overlayBridge";
 
 /** Runs a playback command and shows what went wrong, if anything did. */
 export function run(command: () => Promise<unknown>): void {
@@ -170,6 +172,22 @@ export function ArtistLinks({ track, className }: { track: Track; className?: st
   );
 }
 
+/** Lyrics over the desktop, above every app (Ctrl+Alt+K). */
+function OverlayButton() {
+  const open = useStore(overlay, (s) => s.open);
+  return (
+    <button
+      className={cn("rounded-full p-2 transition-colors", open ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-white")}
+      onClick={() => run(toggleOverlay)}
+      aria-label="Paroles sur le bureau"
+      aria-pressed={open}
+      title="Paroles sur le bureau, par-dessus toutes les applis (Ctrl+Alt+K)"
+    >
+      <Captions className="h-4 w-4" />
+    </button>
+  );
+}
+
 function QueueButton() {
   const open = useStore(ui, (s) => s.queueOpen);
   const hasTrack = useStore(playback, (s) => Boolean(s.track));
@@ -201,7 +219,7 @@ export function NowPlayingBar() {
                 <Maximize2 className="h-4 w-4" />
               </span>
             </button>
-            <div className="min-w-0">
+            <div className="min-w-0" onContextMenu={(event) => trackMenu(event, track)}>
               <button
                 className="block max-w-full truncate text-left text-sm font-semibold hover:underline"
                 onClick={() => track.albumId && navigate({ name: "album", id: track.albumId })}
@@ -233,6 +251,7 @@ export function NowPlayingBar() {
         >
           <Mic2 className="h-4 w-4" />
         </button>
+        <OverlayButton />
         <QueueButton />
         <SleepTimerButton />
         <button

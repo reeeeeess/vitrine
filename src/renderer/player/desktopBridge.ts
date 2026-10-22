@@ -30,6 +30,7 @@ export function connectDesktop(onError: (error: unknown) => void): () => void {
   const stopState = playback.subscribe(send);
   const stopCommands = bridge.onCommand((command) => {
     if (command === "flow") return navigate({ name: "flow" });
+    if (command === "lyrics") return void window.vitrine.overlay.toggle().catch(onError);
     const run = command === "next" ? engine.next : command === "previous" ? engine.previous : command === "like" ? likeCurrent : engine.togglePlay;
     void run().catch(onError);
   });

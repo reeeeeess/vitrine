@@ -50,6 +50,11 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
 - 🧪 Touches multimédia du clavier et contrôles système (Media Session : barre des tâches Windows, Centre de contrôle macOS)
 - ⬜ Réorganiser la file (l'API officielle ne le permet pas aujourd'hui)
+- ✅ **Corbeille** *(v0.6.0, d'après Trashbin de Spicetify)* : un titre ou un artiste mis à la corbeille est sauté dès
+  qu'il passe, d'où que vienne la lecture ; restauration dans Réglages. Vérifié : artiste mis à la corbeille pendant
+  son titre → sauté aussitôt
+- ✅ **Mélange parfait** *(v0.6.0, d'après Shuffle+ de Spicetify)* : un vrai tirage au sort sur toute la liste (l'aléatoire
+  de Spotify revient souvent aux mêmes titres) ; vérifié sur une playlist de 174 titres
 
 ### Découverte et bibliothèque
 - ✅ Accueil façon plateforme de streaming : grand bandeau défilant + rangées horizontales
@@ -73,6 +78,20 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Sous-titres : la ligne de paroles du moment sous la pochette, comme les légendes d'une vidéo
 - ✅ « Pas pour moi » écarte le titre pour toujours ; le fil se recharge seul avant la fin
 - ✅ Le lecteur de la barre et Flow restent synchronisés (le titre suivant fait défiler le fil)
+- ✅ Flow à partir d'un titre (clic droit) : le fil part de ce titre et de ses artistes *(v0.6.0)*
+- 🧪 **Flow qui apprend** *(v0.6.0)* : un j'aime, une écoute complète, un saut en moins de 8 s ou « Pas pour moi » font
+  monter ou baisser l'artiste ; les artistes aimés dans Flow deviennent des points de départ, les écartés disparaissent
+- 🧪 Option « Mes ♥ dans Trouvé dans Flow » : chaque titre aimé dans Flow va aussi dans une playlist créée pour l'occasion
+
+### Clic droit sur un titre *(v0.6.0, comme dans Spotify)*
+- ✅ Partout où un titre apparaît : playlists, albums, titres likés, recherche, artiste, Stats, file d'attente, barre
+  de lecture, lecteur plein écran, Flow ; au clavier aussi (touche Menu ou Maj+F10), flèches pour choisir
+- ✅ Lire · Ajouter à la file d'attente · **Lancer un Flow à partir de ce titre** (la « radio » que Spotify ne donne
+  plus aux applis) · Ajouter à une playlist · Ajouter aux / retirer des titres likés · Retirer de cette playlist (si
+  elle est à vous) · Aller à l'artiste (chacun) · Aller à l'album · Copier le lien · Copier « titre — artiste » ·
+  Créer une story · Ouvrir dans l'appli Spotify · Ne plus me le proposer dans Flow · Corbeille (titre ou artiste)
+- Vérifié sur votre compte : menu, copie du lien, aller à l'album, Flow lancé depuis « Anarchie » (SCH) ;
+  🧪 « Retirer de cette playlist » et « Ajouter à la file » non déclenchés (ils modifient votre compte)
 
 ### Immersion (l'esprit Vitrine)
 - ✅ Lecteur plein écran avec pochette géante et fond coloré tiré de la pochette
@@ -81,6 +100,9 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Fond animé (pochette floutée en mouvement lent) dans le bandeau et le lecteur plein écran
 - 🧪 Mini-lecteur : la fenêtre se réduit en vignette 340 × 440 toujours au premier plan, dans le coin de l'écran,
   et revient à sa taille d'origine (mécanique de fenêtre vérifiée dans la vraie appli Electron)
+- ✅ **Paroles sur le bureau** *(v0.6.0, d'après Liner)* : la ligne chantée, en grand, par-dessus toutes les applis
+  (même en plein écran), sans gêner la souris ; bouton dans la barre de lecture ou Ctrl+Alt+K. Vérifié sur votre
+  compte (les lignes défilent avec la chanson) ; transparence à confirmer sous Windows
 - ⬜ Paroles traduites
 - 🧪 Deux thèmes au choix (bouton dans l'en-tête et sur l'écran de connexion) :
   « Movix » (noir, rouge, Inter / Archivo Black) et « Mystic » d'après mysticsaba.com
@@ -88,9 +110,16 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 
 ### Statistiques
 - ✅ Top titres et top artistes sur 4 semaines, 6 mois, depuis toujours
-- ✅ **Sur cet ordinateur** (inspiré de Swiftify) : chaque titre écouté 30 s (ou la moitié d'un titre court) est noté
-  sur le PC, jamais envoyé ; vérifié en réel. Temps d'écoute, nombre d'écoutes, jours d'écoute, série en cours,
-  carte « quand vous écoutez » (jour × heure), vos titres et artistes, dernières écoutes ; 7 jours / 30 jours / tout
+- ✅ **Toute votre écoute** *(v0.6.0, inspiré de Swiftify et stats.fm)* : les écoutes de **tous vos appareils**
+  (téléphone, enceintes, autres ordinateurs) relues chez Spotify toutes les 15 minutes, même Vitrine réduite dans la
+  zone de notification, plus celles de Vitrine (au titre près) ; sans doublon entre les deux. Vérifié sur votre compte :
+  49 écoutes récupérées au premier lancement. Gardé sur le PC, jamais envoyé
+- ✅ Temps d'écoute, écoutes, jours d'écoute, série en cours, **calendrier de l'année** (un carré par jour, façon
+  GitHub), carte « quand vous écoutez » (jour × heure), vos titres et artistes, dernières écoutes (avec leur
+  provenance) ; 7 jours / 30 jours / 1 an / tout ; « Tous mes appareils » ou « Cet ordinateur »
+- 🧪 **Importer tout l'historique** : l'« historique de streaming étendu » que Spotify envoie sur demande (ZIP ou JSON),
+  depuis la création du compte ; musique d'au moins 30 s seulement, sans podcast ni doublon. Vérifié sur votre compte
+  avec un fichier au format de Spotify (120 écoutes ajoutées, 0 au 2e import) ; reste à l'essayer avec votre vrai export
 - ✅ Export CSV de l'historique (Excel, Google Sheets), effacement, désactivation dans Réglages
 - ✅ **Story** 1080 × 1920 du titre en cours (pochette, titre, artistes, ligne de paroles du moment) depuis Flow et le
   lecteur plein écran, à publier sur TikTok, Instagram ou Snapchat ; vérifiée en réel (« Get It Together »)
@@ -104,8 +133,9 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   « Installer » dans l'en-tête) ; macOS exige une signature Apple, prévue plus tard
 - 🧪 Page Réglages : thème, état du lecteur, Discord, mises à jour, compte, à propos
 - ✅ Raccourcis clavier globaux, actifs depuis n'importe quelle appli : Ctrl+Alt+Espace (lecture/pause), Ctrl+Alt+→/←,
-  Ctrl+Alt+L (liker), Ctrl+Alt+F (Flow) ; désactivables, et Vitrine signale ceux qu'une autre appli occupe
-- ✅ Commandes en ligne (comme Swiftify) : `Vitrine.exe --next`, `--previous`, `--play-pause`, `--like`, `--flow`,
+  Ctrl+Alt+L (liker), Ctrl+Alt+F (Flow), Ctrl+Alt+K (paroles sur le bureau) ; désactivables, et Vitrine signale ceux
+  qu'une autre appli occupe
+- ✅ Commandes en ligne (comme Swiftify) : `Vitrine.exe --next`, `--previous`, `--play-pause`, `--like`, `--flow`, `--lyrics`,
   transmises à la fenêtre déjà ouverte ; utilisables dans un raccourci Windows ou un Stream Deck
 - ⬜ Langues : français (par défaut), anglais
 
@@ -143,9 +173,12 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   stats « Sur cet ordinateur », raccourcis globaux, commandes en ligne, titres populaires d'artiste rétablis
 - **Bloquant côté castlabs** : la création du compte EVS a échoué (« LimitExceededException » : quota d'e-mails du jour
   de castlabs atteint) ; à relancer le lendemain
-- **Sprint 7 (prochain, v0.6.0)** : un Flow qui apprend (vos « j'aime » et « pas pour moi » pèsent sur le fil),
-  playlist automatique « Trouvé dans Flow », paroles en surimpression sur le bureau, calendrier annuel des écoutes,
-  thème « Verre » ; puis tests de bout en bout dans la CI
+- **Sprint 7 (fait, v0.6.0)** : historique de **tout le compte** (tous les appareils) et import de l'export Spotify,
+  calendrier de l'année, **clic droit** sur les titres, Flow à partir d'un titre, Flow qui apprend, « Trouvé dans
+  Flow », paroles sur le bureau, corbeille, mélange parfait
+- **Sprint 8 (prochain, v0.7.0)** : « Rétro Vitrine » (votre année en story animée, façon Wrapped / Replay), thème
+  « Verre » (Vitrine iOS), notes horodatées sur un titre (SoundCloud), scrobbling Last.fm, raccourcis personnalisables ;
+  tests de bout en bout dans la CI
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -204,23 +237,34 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | Double-tap pour aimer, légendes sur la vidéo | Double-clic = j'aime, paroles en sous-titres | S | ✅ v0.5.0 |
 | | Partage en story | Story 1080 × 1920 avec la ligne de paroles | S | ✅ v0.5.0 |
 | | « Pas intéressé » | « Pas pour moi » | S | ✅ v0.5.0 |
-| | Le fil apprend de chaque geste | Pondérer les sources de Flow selon vos j'aime, sauts rapides et « pas pour moi » (calcul local) | M | ⬜ v0.6 |
-| | Favoris / « sons » enregistrés | Playlist automatique « Trouvé dans Flow » remplie par vos j'aime dans Flow | S | ⬜ v0.6 |
+| | Le fil apprend de chaque geste | Pondérer les sources de Flow selon vos j'aime, sauts rapides et « pas pour moi » (calcul local) | M | 🧪 v0.6.0 |
+| | Favoris / « sons » enregistrés | Playlist automatique « Trouvé dans Flow » remplie par vos j'aime dans Flow | S | 🧪 v0.6.0 |
 | | Extrait en boucle | Mode « refrain en boucle » : 20 s répétées pour se décider | S | ⬜ |
 | | Tendances | « Tendances Vitrine » : les titres les plus likés dans Flow par les utilisateurs (petit serveur, anonyme) | L | ⬜ |
 | **Swiftify** | Stats locales, « cet ordinateur » | Historique local, carte jour × heure, export CSV | M | ✅ v0.5.0 |
-| | Calendrier d'une année, classement par écoutes ou par temps | Calendrier annuel façon GitHub, bascule écoutes / temps | S | ⬜ v0.6 |
-| | Import stats.fm | Fusionner un historique stats.fm (profil public) | M | ⬜ |
+| | Calendrier d'une année, classement par écoutes ou par temps | Calendrier annuel façon GitHub | S | ✅ v0.6.0 |
+| | Stats de tout le compte (stats.fm) | Écoutes de tous vos appareils relues chez Spotify + import de l'export Spotify complet | M | ✅ v0.6.0 |
 | | Ligne de commande pour les raccourcis | `--next`, `--play-pause`, `--like`, `--flow` | S | ✅ v0.5.0 |
 | | Visualiseurs audio | Visualiseur à partir de la sortie son du PC (capture système, Windows) | M | ⬜ à étudier |
-| **Liner** | Paroles en surimpression sur le bureau | Fenêtre transparente, toujours au premier plan, la ligne en cours par-dessus tout | M | ⬜ v0.6 |
+| **Liner** | Paroles en surimpression sur le bureau | Fenêtre transparente, toujours au premier plan, la ligne en cours par-dessus tout | M | ✅ v0.6.0 |
 | | Fond animé WebGL (kawarp) | Fond « liquide » animé aux couleurs de la pochette dans le plein écran et Flow | M | ⬜ |
 | | Touch Bar, raccourcis | Touch Bar des MacBook (commandes, pochette) | S | ⬜ |
 | **Movix** | WatchParty (regarder ensemble, synchronisé) | « Écouter ensemble » : salons où chacun entend le même titre au même moment, sur son Premium | L | ⬜ |
 | | Profils, appli TV | Mode salon (interface « 10 pieds » plein écran, pilotable au clavier ou à la télécommande) | M | ⬜ |
 | | PreMid (présence Discord) | Discord Rich Presence | S | 🧪 v0.2 |
-| **Vitrine iOS** | Liquid Glass | Thème « Verre » : panneaux translucides, flou d'arrière-plan | S | ⬜ v0.6 |
+| **Vitrine iOS** | Liquid Glass | Thème « Verre » : panneaux translucides, flou d'arrière-plan | S | ⬜ v0.7 |
 | | Live Activity sur l'écran verrouillé | Mini-lecteur toujours visible ; widget de bureau | S | 🧪 v0.2 / ⬜ |
+| **Spotify (bureau)** | Menu clic droit sur un titre | Le même menu, plus Flow, story, corbeille | S | ✅ v0.6.0 |
+| | Radio d'un titre | « Lancer un Flow à partir de ce titre » (la radio n'est plus ouverte aux applis) | S | ✅ v0.6.0 |
+| **Spicetify** | Trashbin (corbeille de titres et d'artistes) | Corbeille : sautés partout, restaurables | S | ✅ v0.6.0 |
+| | Shuffle+ (vrai aléatoire) | Mélange parfait sur toute la liste | S | ✅ v0.6.0 |
+| | Marketplace de thèmes | Thèmes partageables (fichier de couleurs et polices) | M | ⬜ |
+| **Deezer** | Flow, le mix sans fin | Le nom et l'esprit de Flow | — | ✅ v0.5.0 |
+| **Apple Music / Spotify Wrapped** | Replay, Wrapped | « Rétro Vitrine » : votre année en story animée, quand vous voulez, depuis votre historique complet | M | ⬜ v0.7 |
+| **SoundCloud** | Commentaires horodatés | Notes perso à un moment d'un titre, affichées pendant l'écoute | S | ⬜ v0.7 |
+| **Last.fm** | Scrobbling | Envoyer vos écoutes à Last.fm (clé personnelle) | S | ⬜ v0.7 |
+| **Shazam** | Reconnaître un titre autour de soi | Écouter par le micro et ouvrir le titre dans Vitrine (service de reconnaissance payant) | M | ⬜ à étudier |
+| **Discord** | Écouter ensemble | Inviter un ami à suivre votre écoute en direct (chacun sur son Premium) | L | ⬜ |
 
 ---
 
@@ -298,6 +342,22 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Page artiste : « Populaires » rempli malgré la fermeture de l'API | ✅ 8 titres |
 | Raccourcis globaux (vraies frappes clavier) et commandes en ligne (`--flow`, `--next`, `--play-pause`, `--previous`, `--like`) | ✅ profil de test séparé |
 
+**22 octobre 2026, nuit — v0.6.0 sur votre compte (profil de test séparé), lecture via Microsoft Edge (13/13)**
+
+| Test | Résultat |
+|---|---|
+| Écoutes de tous vos appareils récupérées seules au lancement | ✅ 49 écoutes (« Je la connais », « RockWave »…) |
+| Stats « Toute votre écoute » avec calendrier de l'année | ✅ |
+| Import d'un export au format Spotify (ZIP) | ✅ 120 écoutes, podcast et écoute de 5 s écartés, 0 au 2e import |
+| Clic droit : menu complet, copie du lien, aller à l'album | ✅ |
+| Flow lancé depuis un titre (« Anarchie », SCH), qui joue | ✅ à 106 s (refrain) |
+| Paroles sur le bureau qui suivent la chanson ; Ctrl+Alt+K les referme | ✅ |
+| Mélange parfait sur une playlist de 174 titres, sans l'aléatoire de Spotify | ✅ |
+| Corbeille : artiste mis à la corbeille pendant son titre → sauté aussitôt ; restauration | ✅ |
+
+**Défauts trouvés et corrigés** : la page des paroles sur le bureau gardait un fond noir (transparence rétablie) ; la
+corbeille n'agissait qu'au titre suivant (elle agit maintenant dès l'ajout).
+
 **Défaut trouvé et corrigé** : l'API renvoie parfois 0:00 un instant pour le lecteur du navigateur ; l'historique y voyait
 une nouvelle écoute et repartait de zéro. Seule une vraie relecture (après la fin du titre) compte désormais comme une
 nouvelle écoute.
@@ -316,6 +376,7 @@ champs genres / popularité / abonnés des artistes.
 | Spotify limite les applis en mode développement (nombre d'utilisateurs autorisés) | Diffusion bloquée au-delà d'une bêta | Demander le quota étendu ; en attendant chaque utilisateur peut saisir son propre Client ID |
 | La lecture locale exige Premium + Widevine | Utilisateurs gratuits sans son sur PC | Mode télécommande automatique ; message clair |
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
+| Historique de tout le compte : Spotify ne montre aux applis que les 50 dernières écoutes | Vitrine fermée longtemps : les écoutes au-delà de 50 manquent | Lancement avec la session dans la zone de notification (réglage existant) ; import de l'export Spotify complet pour combler |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`, titres d'artiste par la recherche), Flow bâti uniquement sur des points d'accès ouverts, vérification en réel à chaque version, suivi du changelog Spotify |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |

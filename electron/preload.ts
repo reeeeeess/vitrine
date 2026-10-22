@@ -17,6 +17,25 @@ const api = {
     get: (query: unknown) => ipcRenderer.invoke("lyrics:get", query),
   },
   openExternal: (url: string) => ipcRenderer.invoke("shell:open", url),
+  copy: (text: string) => ipcRenderer.invoke("clipboard:write", text),
+  overlay: {
+    toggle: () => ipcRenderer.invoke("overlay:toggle"),
+    status: () => ipcRenderer.invoke("overlay:status"),
+    /** from the main window: the line to show */
+    send: (line: unknown) => ipcRenderer.invoke("overlay:line", line),
+    /** in the main window: the overlay opened or closed */
+    onStatus: (listener: (open: boolean) => void) => {
+      const forward = (_event: unknown, open: boolean) => listener(open);
+      ipcRenderer.on("overlay:status", forward);
+      return () => ipcRenderer.removeListener("overlay:status", forward);
+    },
+    /** in the overlay: each new line */
+    onLine: (listener: (line: unknown) => void) => {
+      const forward = (_event: unknown, line: unknown) => listener(line);
+      ipcRenderer.on("overlay:line", forward);
+      return () => ipcRenderer.removeListener("overlay:line", forward);
+    },
+  },
   window: {
     setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
   },
@@ -36,7 +55,10 @@ const api = {
   history: {
     add: (play: unknown) => ipcRenderer.invoke("history:add", play),
     extend: (at: string, playedMs: number) => ipcRenderer.invoke("history:extend", at, playedMs),
-    list: () => ipcRenderer.invoke("history:list"),
+    summary: (query: unknown) => ipcRenderer.invoke("history:summary", query),
+    info: () => ipcRenderer.invoke("history:info"),
+    sync: () => ipcRenderer.invoke("history:sync"),
+    import: () => ipcRenderer.invoke("history:import"),
     clear: () => ipcRenderer.invoke("history:clear"),
     export: () => ipcRenderer.invoke("history:export"),
     enabled: () => ipcRenderer.invoke("history:enabled"),

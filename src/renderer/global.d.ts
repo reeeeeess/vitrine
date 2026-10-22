@@ -27,6 +27,14 @@ export interface VitrineBridge {
   drm: { status(): Promise<DrmStatus> };
   lyrics: { get(query: { track: string; artist: string; album?: string; durationMs?: number }): Promise<LyricsResult | null> };
   openExternal(url: string): Promise<void>;
+  copy(text: string): Promise<void>;
+  overlay: {
+    toggle(): Promise<boolean>;
+    status(): Promise<boolean>;
+    send(line: OverlayLine): Promise<void>;
+    onStatus(listener: (open: boolean) => void): () => void;
+    onLine(listener: (line: OverlayLine) => void): () => void;
+  };
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
@@ -34,12 +42,17 @@ export interface VitrineBridge {
     get(): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     set(settings: DesktopSettings): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean } | null): Promise<void>;
-    onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow") => void): () => void;
+    onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow" | "lyrics") => void): () => void;
   };
   history: {
     add(play: HistoryPlay): Promise<void>;
     extend(at: string, playedMs: number): Promise<void>;
-    list(): Promise<HistoryPlay[]>;
+    summary(query: { days: number; source: "all" | "vitrine" | "spotify" | "import" }): Promise<import("./lib/listening").ListeningSummary>;
+    info(): Promise<import("./lib/listening").HistoryInfo>;
+    /** reads "recently played" now; resolves to how many plays were new */
+    sync(): Promise<number>;
+    /** null when the person cancelled the file dialog */
+    import(): Promise<{ added: number; read: number; files: number } | null>;
     clear(): Promise<void>;
     /** false when the person cancelled the "Save as" dialog */
     export(): Promise<boolean>;
@@ -74,6 +87,12 @@ export interface BrowserPlayerStatus {
   detail?: string;
 }
 
+export interface OverlayLine {
+  line: string;
+  next: string;
+  title: string;
+}
+
 export interface DesktopSettings {
   closeToTray: boolean;
   notifications: boolean;
@@ -94,6 +113,8 @@ export interface HistoryPlay {
   image?: string;
   durationMs: number;
   playedMs: number;
+  source?: "vitrine" | "spotify" | "import";
+  device?: string;
 }
 
 export interface AppInfo {

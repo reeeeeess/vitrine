@@ -21,7 +21,8 @@ export interface Config {
   clientId?: string;
   discord?: DiscordSettings;
   desktop?: Partial<DesktopSettings>;
-  history?: { enabled: boolean };
+  /** `after` and `lastSync`: where the reading of Spotify's "recently played" got to, epoch ms */
+  history?: { enabled: boolean; after?: number; lastSync?: number };
 }
 
 const file = () => path.join(app.getPath("userData"), "config.json");

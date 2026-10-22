@@ -38,6 +38,8 @@ export class Desktop {
   constructor(
     private readonly window: () => BrowserWindow | null,
     private readonly showWindow: () => void,
+    /** commands the main process runs itself, without the page */
+    private readonly own: Partial<Record<DesktopCommand, () => void>> = {},
   ) {}
 
   start(): void {
@@ -74,6 +76,8 @@ export class Desktop {
 
   /** A command from the tray, the taskbar, a shortcut or the command line, for the page to run. */
   command(command: DesktopCommand): void {
+    const own = this.own[command];
+    if (own) return own();
     if (command === "flow") this.showWindow();
     this.window()?.webContents.send("desktop:command", command);
   }

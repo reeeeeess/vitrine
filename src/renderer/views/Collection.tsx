@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Shuffle } from "lucide-react";
+import { ArrowLeft, Dices, Play, Shuffle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
 import { run } from "../components/NowPlayingBar";
@@ -13,6 +13,7 @@ import * as engine from "../player/engine";
 export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: string }) {
   const { data, error, loading } = useAsync(() => (kind === "album" ? api.album(id) : api.playlist(id)), [kind, id]);
   const [color, setColor] = useState("220 38 38");
+  const [removed, setRemoved] = useState<string[]>([]);
 
   useEffect(() => {
     if (data?.collection.image) void artworkColor(data.collection.image).then((rgb) => setColor(rgbVar(rgb)));
@@ -21,7 +22,8 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
   if (loading && !data) return <Spinner className="py-40" />;
   if (error) return <ErrorNote text={error} />;
   if (!data) return null;
-  const { collection, tracks } = data;
+  const { collection } = data;
+  const tracks = removed.length ? data.tracks.filter((track) => !removed.includes(track.uri)) : data.tracks;
   const total = tracks.reduce((sum, track) => sum + track.durationMs, 0);
 
   return (
@@ -67,6 +69,14 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
             <Shuffle className="h-5 w-5" />
             Aléatoire
           </button>
+          <button
+            onClick={() => run(() => engine.playShuffled(tracks.map((track) => track.uri)))}
+            className="btn-ghost"
+            title="Un vrai tirage au sort sur toute la liste, à la place de l'aléatoire de Spotify qui revient souvent aux mêmes titres"
+          >
+            <Dices className="h-5 w-5" />
+            Mélange parfait
+          </button>
         </div>
       </section>
       <TrackList
@@ -74,6 +84,11 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
         showAlbum={kind === "playlist"}
         showArt={kind === "playlist"}
         onPlay={(track) => run(() => engine.playContext(collection.uri, track.uri))}
+        menuContext={
+          kind === "playlist"
+            ? { playlist: { id: collection.id, ownerId: collection.ownerId, collaborative: collection.collaborative }, onRemoved: (uri) => setRemoved((list) => [...list, uri]) }
+            : undefined
+        }
       />
     </div>
   );

@@ -8,6 +8,7 @@ import { NowPlayingBar, run } from "./components/NowPlayingBar";
 import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
+import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
 import { useStore } from "./lib/store";
@@ -17,6 +18,8 @@ import * as engine from "./player/engine";
 import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
+import { connectOverlay } from "./player/overlayBridge";
+import { connectTrash } from "./player/trashBridge";
 import { connectDynamicAccent } from "./player/dynamicAccent";
 import { connectMediaSession } from "./player/mediaSession";
 import { connectUpdates } from "./lib/updates";
@@ -51,6 +54,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectDynamicAccent(), []);
   useEffect(() => connectUpdates(), []);
   useEffect(() => connectHistory(), []);
+  useEffect(() => connectOverlay(), []);
+  useEffect(() => connectTrash(), []);
 
   // space plays and pauses, except while typing
   useEffect(() => {
@@ -71,7 +76,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       view = <Home name={profile?.name} />;
       break;
     case "flow":
-      view = <Flow />;
+      view = <Flow key={route.seed?.uri ?? "flow"} seed={route.seed} />;
       break;
     case "search":
       view = <Search query={route.query} />;
@@ -118,6 +123,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
+      <TrackMenuHost />
     </div>
   );
 }

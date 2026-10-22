@@ -9,6 +9,7 @@ import { Artwork } from "./Artwork";
 import { Lyrics } from "./Lyrics";
 import { LikeButton } from "./LikeButton";
 import { StoryButton } from "./StoryButton";
+import { trackMenu } from "./TrackMenu";
 import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
 
 /** The immersive player: giant artwork, a backdrop of its colours, and synced lyrics. */
@@ -65,7 +66,9 @@ export function FullPlayer() {
               </motion.div>
               <div className="mt-8 w-[min(52vh,100%)]">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="min-w-0 truncate font-display text-3xl tracking-tight">{track.name}</h2>
+                  <h2 className="min-w-0 truncate font-display text-3xl tracking-tight" onContextMenu={(event) => trackMenu(event, track)}>
+                    {track.name}
+                  </h2>
                   <div className="flex shrink-0 items-center">
                     <button
                       onClick={() => ui.set({ playlistDialog: { uris: [track.uri] } })}

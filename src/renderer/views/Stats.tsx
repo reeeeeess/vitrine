@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { Loader2, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
-import { LocalListening } from "../components/LocalListening";
+import { Listening } from "../components/Listening";
+import { trackMenu } from "../components/TrackMenu";
 import { run } from "../components/NowPlayingBar";
 import { cn } from "../lib/cn";
 import * as api from "../lib/spotify";
@@ -83,6 +84,7 @@ export function Stats() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
                   className="group flex items-center gap-4 rounded-xl px-2 py-2 hover:bg-white/5"
+                  onContextMenu={(event) => trackMenu(event, track)}
                 >
                   <span className={cn("w-8 text-right font-display text-xl tabular-nums", index < 3 ? "text-red-500" : "text-white/40")}>{index + 1}</span>
                   <button className="h-11 w-11 shrink-0" onClick={() => run(() => engine.playTracks(data.tracks.map((t) => t.uri), index))} aria-label={`Lire ${track.name}`}>
@@ -125,7 +127,7 @@ export function Stats() {
           </section>
         </div>
       )}
-      <LocalListening />
+      <Listening />
     </div>
   );
 }

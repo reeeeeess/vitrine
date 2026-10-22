@@ -4,12 +4,15 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Artwork, ErrorNote } from "../components/Artwork";
 import { ArtistLinks, run } from "../components/NowPlayingBar";
 import { shareStory } from "../components/StoryButton";
+import { trackMenu } from "../components/TrackMenu";
 import { cn } from "../lib/cn";
-import { hide, hookPosition, loadFlow, markSeen, songKey, type FlowItem, type FlowSource } from "../lib/flow";
+import { collect, collecting, hide, hookPosition, loadFlow, markSeen, setCollecting, songKey, type FlowItem, type FlowSource } from "../lib/flow";
+import { teach } from "../lib/flowTaste";
 import { errorMessage } from "../lib/format";
 import { activeLineIndex } from "../lib/lrc";
 import * as api from "../lib/spotify";
 import { useStore } from "../lib/store";
+import type { Track } from "../lib/types";
 import { navigate, notify, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { playback } from "../player/engine";
@@ -18,6 +21,9 @@ import { useLyrics } from "../player/useLyrics";
 
 /** how long a card has to stay in view before it plays: scrolling through does not start each one */
 const SETTLE_MS = 450;
+/** a card left this soon after it started playing says "not for me", one heard this long says the opposite */
+const SKIPPED_BEFORE_MS = 8000;
+const LISTENED_AFTER_MS = 30_000;
 /** a wheel or trackpad gesture moves one card, then waits before the next */
 const WHEEL_COOLDOWN_MS = 650;
 const HOOK_KEY = "vitrine.flow.hook";
@@ -33,12 +39,15 @@ function readHook(): boolean {
 }
 
 /** The TikTok of your music: one track per screen, playing from its chorus, the next one a scroll away. */
-export function Flow() {
+export function Flow({ seed }: { seed?: Track }) {
   const [items, setItems] = useState<FlowItem[]>([]);
   const [state, setState] = useState<{ status: "loading" | "ready" } | { status: "error"; message: string }>({ status: "loading" });
   const [active, setActive] = useState(0);
   const [hook, setHook] = useState(readHook);
   const [burst, setBurst] = useState(0);
+  const [gather, setGather] = useState(collecting);
+  /** the card playing, since when: what the person does next teaches Flow */
+  const dwell = useRef<{ item: FlowItem; since: number } | null>(null);
   const round = useRef(0);
   const loadingMore = useRef(false);
   const lastWheel = useRef(0);
@@ -52,14 +61,14 @@ export function Flow() {
     setState({ status: "loading" });
     try {
       round.current = 0;
-      const first = await loadFlow(0, new Set());
+      const first = await loadFlow(0, new Set(), Date.now(), seed);
       setItems(first);
       setActive(0);
       setState({ status: "ready" });
     } catch (error) {
       setState({ status: "error", message: errorMessage(error) });
     }
-  }, []);
+  }, [seed]);
 
   useEffect(() => {
     void load();
@@ -71,7 +80,7 @@ export function Flow() {
     loadingMore.current = true;
     round.current += 1;
     const skip = new Set(items.flatMap((item) => [item.track.id, songKey(item.track)]));
-    loadFlow(round.current, skip)
+    loadFlow(round.current, skip, Date.now(), seed)
       .then((more) => setItems((list) => [...list, ...more]))
       .catch(() => undefined)
       .finally(() => {
@@ -98,6 +107,19 @@ export function Flow() {
     if (index >= 0 && index !== active) setActive(index);
   }, [playingUri]);
 
+  // how long each card was heard: a quick skip and a full listen both teach Flow
+  useEffect(() => {
+    const item = items[active];
+    const previous = dwell.current;
+    if (previous && previous.item.track.uri !== item?.track.uri) {
+      const heard = Date.now() - previous.since;
+      if (heard < SKIPPED_BEFORE_MS) teach(previous.item.track, "skipped");
+      else if (heard >= LISTENED_AFTER_MS) teach(previous.item.track, "listened");
+      dwell.current = null;
+    }
+    if (item && playingUri === item.track.uri && dwell.current?.item.track.uri !== item.track.uri) dwell.current = { item, since: Date.now() };
+  }, [active, playingUri, items]);
+
   const go = useCallback((delta: number) => setActive((index) => Math.max(0, Math.min(items.length - 1, index + delta))), [items.length]);
 
   const toggleLike = useCallback(
@@ -109,15 +131,17 @@ export function Flow() {
       const saved = !item.saved;
       const mark = (value: boolean) => setItems((list) => list.map((other, i) => (i === index ? { ...other, saved: value } : other)));
       mark(saved);
+      teach(item.track, saved ? "like" : "unlike");
       try {
         await (saved ? api.saveTrack(item.track.id) : api.removeTrack(item.track.id));
-        if (!onlyLike) notify(saved ? "Ajouté aux titres likés" : "Retiré des titres likés");
+        if (saved && gather) await collect(item.track);
+        if (!onlyLike) notify(saved ? (gather ? "Ajouté aux titres likés et à « Trouvé dans Flow »" : "Ajouté aux titres likés") : "Retiré des titres likés");
       } catch (error) {
         mark(!saved);
         notify(errorMessage(error), "error");
       }
     },
-    [items],
+    [items, gather],
   );
 
   const notForMe = useCallback(
@@ -125,6 +149,8 @@ export function Flow() {
       const item = items[index];
       if (!item) return;
       hide(item.track);
+      teach(item.track, "notForMe");
+      if (dwell.current?.item === item) dwell.current = null;
       setItems((list) => list.filter((_, i) => i !== index));
       // the next card takes its place, and plays; the last one leaves the previous in view
       if (index === items.length - 1) setActive(Math.max(0, index - 1));
@@ -239,6 +265,18 @@ export function Flow() {
         <button onClick={toggleHook} className={cn("rounded-full border px-3 py-1 text-xs transition-colors", hook ? "border-red-500/60 bg-red-500/15 text-white" : "border-white/15 text-gray-400 hover:text-white")} aria-pressed={hook}>
           Démarrer au refrain
         </button>
+        <button
+          onClick={() => {
+            setCollecting(!gather);
+            setGather(!gather);
+          }}
+          className={cn("rounded-full border px-3 py-1 text-xs transition-colors", gather ? "border-red-500/60 bg-red-500/15 text-white" : "border-white/15 text-gray-400 hover:text-white")}
+          aria-pressed={gather}
+          title="Chaque titre aimé dans Flow va aussi dans votre playlist « Trouvé dans Flow »"
+        >
+          Mes ♥ dans « Trouvé dans Flow »
+        </button>
+        {seed && <span className="text-xs text-white/60">à partir de « {seed.name} »</span>}
       </div>
 
       {items.map((item, index) =>
@@ -306,6 +344,7 @@ function Card({ item, active, playing, burst, onToggle, onLike }: { item: FlowIt
           clearTimeout(clickTimer.current);
           clickTimer.current = setTimeout(onToggle, 230);
         }}
+        onContextMenu={(event) => trackMenu(event, track)}
         onDoubleClick={() => {
           clearTimeout(clickTimer.current);
           onLike();

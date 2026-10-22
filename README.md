@@ -24,16 +24,38 @@ file d'attente, artiste, story à partager, « Pas pour moi ». Le fil mélange 
 des titres autour d'eux et des pépites oubliées de vos titres likés, sans l'API de recommandation que Spotify
 a fermée aux nouvelles applis.
 
+Flow apprend de vos gestes (j'aime, sauts, « pas pour moi »), peut partir de n'importe quel titre (clic droit),
+et peut ranger vos coups de cœur dans une playlist « Trouvé dans Flow ».
+
 <p align="center">
   <img src="docs/screenshots/20-flow.png" width="49%" alt="Flow">
-  <img src="docs/screenshots/23-stats-ordinateur.png" width="49%" alt="Statistiques de cet ordinateur">
+  <img src="docs/screenshots/31-clic-droit.png" width="49%" alt="Clic droit sur un titre">
 </p>
 
-La **story** (1080 × 1920, pour TikTok, Instagram ou Snapchat) reprend la pochette, le titre et la ligne de
-paroles du moment. La page Stats a gagné une section **Sur cet ordinateur** (inspirée de Swiftify) :
-temps d'écoute, carte des heures d'écoute, séries de jours, export CSV ; l'historique reste sur le PC.
-**Raccourcis globaux** : Ctrl+Alt+Espace (lecture/pause), Ctrl+Alt+→ / ← , Ctrl+Alt+L (liker),
-Ctrl+Alt+F (Flow), et les mêmes en ligne de commande : `Vitrine.exe --next`, `--play-pause`, `--like`, `--flow`.
+### Toute votre écoute, pas seulement sur le PC
+
+La page Stats suit **tous vos appareils** : Vitrine relit vos écoutes Spotify toutes les 15 minutes (téléphone,
+enceintes, autres ordinateurs) et les garde sur le PC. Calendrier de l'année, carte des heures d'écoute, séries de
+jours, vos titres et artistes, export CSV. Pour remonter jusqu'à la création du compte, demandez à Spotify votre
+« historique de streaming étendu » et importez le ZIP tel quel (inspiré de Swiftify et stats.fm).
+
+<p align="center">
+  <img src="docs/screenshots/30-stats-compte.png" width="70%" alt="Toute votre écoute">
+</p>
+
+### Et aussi
+
+- **Clic droit sur un titre**, comme dans Spotify : file d'attente, playlist, j'aime, artiste, album, lien,
+  story, Flow à partir de ce titre, corbeille…
+- **Paroles sur le bureau** (d'après Liner) : la ligne chantée par-dessus toutes les applis (Ctrl+Alt+K).
+- **Corbeille** et **mélange parfait** (d'après Trashbin et Shuffle+ de Spicetify).
+- **Story** 1080 × 1920 pour TikTok, Instagram ou Snapchat, avec la ligne de paroles du moment.
+- **Raccourcis globaux** : Ctrl+Alt+Espace (lecture/pause), Ctrl+Alt+→ / ←, Ctrl+Alt+L (liker), Ctrl+Alt+F (Flow),
+  Ctrl+Alt+K (paroles), et en ligne de commande : `Vitrine.exe --next`, `--play-pause`, `--like`, `--flow`, `--lyrics`.
+
+<p align="center">
+  <img src="docs/screenshots/32-paroles-bureau.png" width="70%" alt="Paroles sur le bureau">
+</p>
 
 ### Deux thèmes
 
@@ -92,13 +114,17 @@ electron/            processus principal (Node)
   lyrics.ts          paroles depuis LRCLIB, côté processus principal
   browserPlayer.ts   lecture via Edge ou Chrome quand Spotify refuse le DRM d'Electron
   desktop.ts         zone de notification, barre des tâches, notifications, raccourcis globaux
-  history.ts         historique d'écoute de ce PC (JSONL), export CSV
+  history.ts         historique d'écoute de tout le compte (JSONL) : synchro, import de l'export Spotify, CSV
+  overlay.ts         paroles sur le bureau (fenêtre transparente au premier plan)
+  zip.ts             lecture de l'archive de données envoyée par Spotify
   cli.ts             commandes en ligne (--next, --flow…) passées à l'instance ouverte
   preload.ts         le seul pont vers la page (contextBridge)
 src/renderer/        interface (React 18, Tailwind CSS, framer-motion, lucide-react, Embla)
   lib/spotify.ts     Web API officielle
   lib/flow.ts        le fil de Flow (nouveautés, autour de vos artistes, pépites oubliées)
+  lib/flowTaste.ts   ce que Flow apprend de vos gestes
   lib/story.ts       la story 1080 × 1920 du titre en cours
+  lib/trash.ts       la corbeille (titres et artistes sautés partout)
   player/engine.ts   lecture : SDK local (cet ordinateur) ou télécommande Spotify Connect
   player/history.ts  ce qui compte comme une écoute (30 s, ou la moitié d'un titre court)
   components/        en-tête, bandeau, cartes, rangées, lecteur, paroles, appareils

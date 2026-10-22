@@ -1,5 +1,5 @@
 import * as electron from "electron";
-import { app, BrowserWindow, ipcMain, net, protocol, screen, shell, type IpcMainInvokeEvent, type Rectangle } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, net, protocol, screen, shell, type IpcMainInvokeEvent, type Rectangle } from "electron";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
@@ -9,8 +9,21 @@ import { Desktop, HIDDEN_ARG, type DesktopNowPlaying } from "./desktop";
 import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
 import type { NowPlaying } from "./discordProtocol";
-import { addPlay, clearHistory, exportHistory, extendPlay, historyEnabled, listPlays, setHistoryEnabled } from "./history";
+import {
+  addPlay,
+  clearHistory,
+  exportHistory,
+  extendPlay,
+  historyEnabled,
+  historyInfo,
+  historySummary,
+  importHistory,
+  setHistoryEnabled,
+  startAccountSync,
+  syncAccount,
+} from "./history";
 import { fetchLyrics } from "./lyrics";
+import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
 
@@ -47,7 +60,8 @@ function showWindow(): void {
   mainWindow.focus();
 }
 
-const desktop = new Desktop(() => mainWindow, showWindow);
+const overlay = new LyricsOverlay(DEV_SERVER_URL ?? APP_URL, path.join(__dirname, "preload.js"), (open) => mainWindow?.webContents.send("overlay:status", open));
+const desktop = new Desktop(() => mainWindow, showWindow, { lyrics: () => void overlay.toggle() });
 let mainWindow: BrowserWindow | null = null;
 let drm: DrmStatus = { widevine: false, detail: "Vérification de Widevine…" };
 
@@ -146,7 +160,17 @@ function registerIpc(): void {
   handle("drm:status", () => drm);
   handle("lyrics:get", (query) => fetchLyrics(query));
   handle("shell:open", (url) => {
-    if (typeof url === "string" && url.startsWith("https://")) return shell.openExternal(url);
+    // web pages, and the Spotify app on a track, album, artist or playlist
+    if (typeof url === "string" && (url.startsWith("https://") || /^spotify:(track|album|artist|playlist):[A-Za-z0-9]{1,40}$/.test(url))) return shell.openExternal(url);
+  });
+  handle("overlay:toggle", () => overlay.toggle());
+  handle("overlay:status", () => overlay.open);
+  handle("overlay:line", (raw) => {
+    const line = parseOverlayLine(raw);
+    if (line) overlay.send(line);
+  });
+  handle("clipboard:write", (text) => {
+    if (typeof text === "string") clipboard.writeText(text.slice(0, 2000));
   });
   handle("window:mini", (on) => setMini(on === true));
   handle("spotify:launch", () => launchSpotify());
@@ -170,7 +194,10 @@ function registerIpc(): void {
   handle("desktop:update", (raw) => desktop.update(desktopNowPlaying(raw)));
   handle("history:add", (play) => addPlay(play));
   handle("history:extend", (at, playedMs) => extendPlay(at, playedMs));
-  handle("history:list", () => listPlays());
+  handle("history:summary", (query) => historySummary(query));
+  handle("history:info", () => historyInfo());
+  handle("history:sync", () => syncAccount(() => auth.accessToken()));
+  handle("history:import", () => importHistory(mainWindow));
   handle("history:clear", () => clearHistory());
   handle("history:export", () => exportHistory(mainWindow));
   handle("history:enabled", () => historyEnabled());
@@ -254,7 +281,10 @@ app.on("second-instance", (_event, argv) => {
   else showWindow();
 });
 
-app.on("before-quit", () => browserPlayer?.stop());
+app.on("before-quit", () => {
+  browserPlayer?.stop();
+  overlay.close();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
@@ -282,4 +312,5 @@ void app.whenReady().then(async () => {
   const settings = readConfig().discord;
   if (settings) discord.configure(settings.enabled, settings.appId);
   startUpdater(() => mainWindow);
+  startAccountSync(() => auth.accessToken(), () => auth.status().then((status) => status.loggedIn));
 });

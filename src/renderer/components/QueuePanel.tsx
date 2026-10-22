@@ -7,10 +7,11 @@ import { ui } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import { playback } from "../player/engine";
 import type { Track } from "../lib/types";
+import { trackMenu } from "./TrackMenu";
 
 function Row({ track, current = false }: { track: Track; current?: boolean }) {
   return (
-    <li className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/5">
+    <li className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/5" onContextMenu={(event) => trackMenu(event, track)}>
       <Artwork src={track.image} className="h-11 w-11 shrink-0 rounded-md" />
       <span className="min-w-0 flex-1">
         <span className={current ? "block truncate text-sm font-semibold text-red-400" : "block truncate text-sm font-medium"}>{track.name}</span>

@@ -9,6 +9,7 @@ import { setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
+import { restore, trash } from "../lib/trash";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -167,6 +168,7 @@ const SHORTCUTS = [
   ["Ctrl+Alt+→ / ←", "titre suivant / précédent"],
   ["Ctrl+Alt+L", "liker le titre"],
   ["Ctrl+Alt+F", "ouvrir Flow"],
+  ["Ctrl+Alt+K", "paroles sur le bureau"],
 ];
 
 function DesktopSettingsLines() {
@@ -209,6 +211,33 @@ function DesktopSettingsLines() {
   );
 }
 
+/** What the trash bin holds, after Spicetify's Trashbin: each can be given back. */
+function TrashSettings() {
+  const bin = useStore(trash, (s) => s);
+  const entries = [
+    ...Object.entries(bin.artists).map(([key, name]) => ({ kind: "artists" as const, key, label: name, detail: "Artiste" })),
+    ...Object.entries(bin.tracks).map(([key, name]) => ({ kind: "tracks" as const, key, label: name, detail: "Titre" })),
+  ];
+  if (entries.length === 0) {
+    return <p className="text-sm text-gray-400">Vide. Clic droit sur un titre → « Corbeille » : ce titre, ou son artiste, est sauté à chaque fois qu'il passe.</p>;
+  }
+  return (
+    <ul className="space-y-1">
+      {entries.map((entry) => (
+        <li key={`${entry.kind}-${entry.key}`} className="flex items-center justify-between gap-4 rounded-xl px-2 py-1.5 hover:bg-white/5">
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium">{entry.label}</span>
+            <span className="text-xs text-gray-400">{entry.detail} sauté partout</span>
+          </span>
+          <button onClick={() => restore(entry.kind, entry.key)} className="btn-ghost min-h-0 shrink-0 px-3 py-1.5 text-xs">
+            Restaurer
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function HistorySettings() {
   const [enabled, setEnabled] = useState<boolean>();
   useEffect(() => {
@@ -225,10 +254,13 @@ function HistorySettings() {
   };
   return (
     <>
-      <Line label="Noter mes écoutes sur ce PC" hint="Chaque titre écouté 30 secondes (ou la moitié d'un titre court), pour la section « Sur cet ordinateur » des Stats. Rien ne quitte votre ordinateur.">
+      <Line
+        label="Garder l'historique de toutes mes écoutes"
+        hint="Les écoutes de tous vos appareils (Vitrine relit Spotify toutes les 15 minutes) et celles de Vitrine, pour la section « Toute votre écoute » des Stats. Gardé sur ce PC uniquement."
+      >
         <Switch on={enabled} onChange={(on) => void act(async () => setEnabled(await window.vitrine.history.setEnabled(on)))} label="Historique d'écoute" />
       </Line>
-      <Line label="Mon historique" hint="Un fichier CSV s'ouvre dans Excel ou Google Sheets.">
+      <Line label="Mon historique" hint="Un fichier CSV s'ouvre dans Excel ou Google Sheets. Pour remonter avant Vitrine : Stats → Importer tout l'historique.">
         <div className="flex shrink-0 gap-2">
           <button onClick={() => void act(async () => (await window.vitrine.history.export()) && notify("Historique exporté."))} className="btn-ghost min-h-0 px-4 py-2 text-sm">
             <Download className="h-4 w-4" />
@@ -302,6 +334,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
             </button>
           )}
         </Line>
+      </Section>
+
+      <Section title="Corbeille">
+        <TrashSettings />
       </Section>
 
       <Section title="Historique d'écoute">

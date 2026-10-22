@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Shuffle } from "lucide-react";
+import { ArrowLeft, Dices, Play, Shuffle } from "lucide-react";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { LikedCover } from "../components/LikedCover";
 import { run } from "../components/NowPlayingBar";
@@ -61,6 +61,15 @@ export function LikedView() {
           >
             <Shuffle className="h-5 w-5" />
             Aléatoire
+          </button>
+          <button
+            onClick={() => run(() => engine.playShuffled(uris))}
+            disabled={!tracks.length}
+            className="btn-ghost"
+            title="Un vrai tirage au sort sur tous vos titres likés chargés, à la place de l'aléatoire de Spotify"
+          >
+            <Dices className="h-5 w-5" />
+            Mélange parfait
           </button>
         </div>
       </section>

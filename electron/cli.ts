@@ -1,6 +1,6 @@
 // What Vitrine can be asked from the command line or a keyboard shortcut. Only one Vitrine runs:
 // started again with one of these flags, it hands the command to the one already open and quits.
-export type DesktopCommand = "toggle" | "next" | "previous" | "like" | "flow";
+export type DesktopCommand = "toggle" | "next" | "previous" | "like" | "flow" | "lyrics";
 
 const FLAGS: Record<string, DesktopCommand> = {
   "--play-pause": "toggle",
@@ -8,6 +8,7 @@ const FLAGS: Record<string, DesktopCommand> = {
   "--previous": "previous",
   "--like": "like",
   "--flow": "flow",
+  "--lyrics": "lyrics",
 };
 
 /** The command in these arguments, or null for a plain start (which just shows the window). */
@@ -23,4 +24,5 @@ export const GLOBAL_SHORTCUTS: { accelerator: string; command: DesktopCommand; l
   { accelerator: "CommandOrControl+Alt+Left", command: "previous", label: "Titre précédent" },
   { accelerator: "CommandOrControl+Alt+L", command: "like", label: "Liker le titre en cours" },
   { accelerator: "CommandOrControl+Alt+F", command: "flow", label: "Ouvrir Flow" },
+  { accelerator: "CommandOrControl+Alt+K", command: "lyrics", label: "Paroles sur le bureau" },
 ];
