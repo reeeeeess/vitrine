@@ -29,6 +29,7 @@ export interface VitrineBridge {
   openExternal(url: string): Promise<void>;
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
+  launchSpotify(): Promise<"app" | "protocol" | null>;
   discord: {
     get(): Promise<DiscordInfo>;
     set(settings: { enabled: boolean; appId: string }): Promise<DiscordInfo>;

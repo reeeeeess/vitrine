@@ -156,6 +156,31 @@ export function refreshSoon(delay = 600): void {
 }
 
 let started = false;
+let appVersion = "";
+
+// Spotify refusing to play here comes from how the app is built (its DRM signature), so it is
+// remembered for this version only: the next version, perhaps signed, tries again by itself.
+const REFUSED_KEY = "vitrine.localPlaybackRefused";
+const REFUSED_MESSAGE =
+  "Spotify refuse la lecture dans cette version de Vitrine (protection DRM non reconnue : signature castlabs manquante). Vitrine joue la musique dans l'appli Spotify officielle, qu'elle ouvre en arrière-plan si besoin.";
+
+function refusedVersion(): string | null {
+  try {
+    return localStorage.getItem(REFUSED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Forgets the refusal and restarts the page, so the local player tries again. */
+export function retryLocalPlayback(): void {
+  try {
+    localStorage.removeItem(REFUSED_KEY);
+  } catch {
+    // nothing stored
+  }
+  window.location.reload();
+}
 
 export async function startPlayback(widevine: boolean, reason: string): Promise<void> {
   // React's strict mode runs effects twice in development; one player is enough
@@ -167,6 +192,13 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
 
   if (!widevine) {
     playback.set({ sdk: "off", sdkMessage: reason });
+    return;
+  }
+  // Spotify already refused this very version: go straight to driving the person's other devices
+  const version = (await window.vitrine.info?.().catch(() => undefined))?.version ?? "";
+  appVersion = version;
+  if (version && refusedVersion() === version) {
+    playback.set({ sdk: "off", sdkMessage: REFUSED_MESSAGE });
     return;
   }
   playback.set({ sdk: "loading", sdkMessage: undefined });
@@ -277,7 +309,7 @@ export async function cycleRepeat(): Promise<void> {
 
 export class NoDeviceError extends Error {
   constructor() {
-    super("Aucun appareil disponible : ouvrez Spotify sur un appareil, ou activez la lecture sur cet ordinateur.");
+    super("Aucun appareil Spotify disponible : installez ou ouvrez l'appli Spotify sur ce PC, ou ouvrez Spotify sur votre téléphone.");
   }
 }
 
@@ -315,19 +347,39 @@ async function giveUpLocalPlayback(): Promise<void> {
   localActive = false;
   await local.pause().catch(() => undefined);
   local.disconnect();
+  try {
+    if (appVersion) localStorage.setItem(REFUSED_KEY, appVersion);
+  } catch {
+    // remembered for this session only
+  }
   playback.set((state) => ({
     sdk: "error",
-    sdkMessage:
-      "Spotify refuse la lecture sur cet ordinateur (protection DRM de l'appli non reconnue : signature castlabs manquante). Vitrine pilote vos autres appareils Spotify à la place.",
+    sdkMessage: REFUSED_MESSAGE,
     localDeviceId: undefined,
     device: state.device?.local ? undefined : state.device,
     paused: true,
   }));
-  notify("Lecture impossible sur cet ordinateur (DRM). Vitrine passe en mode télécommande : la musique jouera sur un autre appareil Spotify ouvert.", "error");
+  notify("Spotify refuse la lecture dans Vitrine (DRM). La musique passe par l'appli Spotify officielle : relancez la lecture.", "error");
+}
+
+const LAUNCH_WAIT_MS = 25_000;
+
+/** Opens the official Spotify app in the background and waits for it to show up in Connect. */
+async function launchSpotifyAndWait(): Promise<string | undefined> {
+  const how = await window.vitrine.launchSpotify?.().catch(() => null);
+  if (!how) return undefined;
+  notify("Ouverture de Spotify en arrière-plan…");
+  const end = Date.now() + LAUNCH_WAIT_MS;
+  while (Date.now() < end) {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const device = await otherDevice().catch(() => undefined);
+    if (device) return device;
+  }
+  return undefined;
 }
 
 async function start(body: api.PlayBody): Promise<void> {
-  const device = startTarget(playback.get(), chosenDevice) ?? (await otherDevice());
+  const device = startTarget(playback.get(), chosenDevice) ?? (await otherDevice()) ?? (await launchSpotifyAndWait());
   if (!device) throw new NoDeviceError();
   // the click that started playback also unlocks audio for the SDK
   if (device === playback.get().localDeviceId) await player?.activateElement().catch(() => undefined);
@@ -364,4 +416,20 @@ export async function addToQueue(uri: string): Promise<void> {
   const device = playback.get().device?.id ?? startTarget(playback.get(), chosenDevice);
   if (!device) throw new NoDeviceError();
   await api.addToQueue(uri, device);
+}
+
+/**
+ * Plays Liked Songs from a track. Spotify plays the collection as a context when it is asked for
+ * "spotify:user:<id>:collection"; failing that, the loaded tracks themselves are sent.
+ */
+export async function playLiked(userId: string | undefined, uris: string[], index = 0): Promise<void> {
+  if (userId) {
+    try {
+      await playContext(`spotify:user:${userId}:collection`, uris[index]);
+      return;
+    } catch (error) {
+      if (!(error instanceof api.SpotifyApiError) || ![400, 403, 404].includes(error.status)) throw error;
+    }
+  }
+  await playTracks(uris, index);
 }

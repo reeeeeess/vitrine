@@ -21,6 +21,7 @@ import { ArtistView } from "./views/Artist";
 import { CollectionView } from "./views/Collection";
 import { Home } from "./views/Home";
 import { Library } from "./views/Library";
+import { LikedView } from "./views/Liked";
 import { Login } from "./views/Login";
 import { Search } from "./views/Search";
 import { Settings } from "./views/Settings";
@@ -70,6 +71,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       break;
     case "stats":
       view = <Stats />;
+      break;
+    case "liked":
+      view = <LikedView />;
       break;
     case "settings":
       view = <Settings profile={profile} onLogout={onLogout} />;

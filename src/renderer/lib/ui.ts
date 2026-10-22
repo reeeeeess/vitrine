@@ -9,7 +9,8 @@ export type Route =
   | { name: "playlist"; id: string }
   | { name: "album"; id: string }
   | { name: "artist"; id: string }
-  | { name: "settings" };
+  | { name: "settings" }
+  | { name: "liked" };
 
 export interface Toast {
   id: number;

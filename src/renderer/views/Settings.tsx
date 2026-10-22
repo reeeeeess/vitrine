@@ -8,7 +8,7 @@ import { useStore } from "../lib/store";
 import { setTheme, theme, type Theme } from "../lib/theme";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
-import { playback } from "../player/engine";
+import { playback, retryLocalPlayback } from "../player/engine";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -201,7 +201,14 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
       </Section>
 
       <Section title="Lecture">
-        <Line label="Lecteur intégré" hint={player} />
+        <Line label="Lecteur intégré" hint={player}>
+          {sdk !== "ready" && sdk !== "loading" && (
+            <button onClick={retryLocalPlayback} className="btn-ghost min-h-0 shrink-0 px-4 py-2 text-sm">
+              <RefreshCw className="h-4 w-4" />
+              Réessayer
+            </button>
+          )}
+        </Line>
       </Section>
 
       <Section title="Discord">

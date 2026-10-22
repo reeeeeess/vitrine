@@ -4,7 +4,9 @@ import { ErrorNote, Spinner } from "../components/Artwork";
 import { MediaCard } from "../components/MediaCard";
 import { cn } from "../lib/cn";
 import * as api from "../lib/spotify";
-import { ui } from "../lib/ui";
+import { navigate, ui } from "../lib/ui";
+import { LikedCover } from "../components/LikedCover";
+import { playAllLiked } from "./Home";
 import { useAsync } from "../lib/useAsync";
 import { openCollection, playCollection } from "./Home";
 
@@ -43,6 +45,9 @@ export function Library() {
       {loading && !data && <Spinner className="py-40" />}
       {error && <ErrorNote text={error} />}
       <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2">
+        {tab === "playlists" && data && (
+          <MediaCard title="Titres likés" subtitle="Playlist" cover={<LikedCover />} onOpen={() => navigate({ name: "liked" })} onPlay={() => playAllLiked()} />
+        )}
         {items.map((collection, index) => (
           <MediaCard
             key={collection.id}

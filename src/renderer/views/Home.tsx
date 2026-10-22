@@ -2,6 +2,7 @@ import { Hero, type HeroSlide } from "../components/Hero";
 import { MediaCard } from "../components/MediaCard";
 import { run } from "../components/NowPlayingBar";
 import { Row } from "../components/Row";
+import { LikedCover } from "../components/LikedCover";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { greeting } from "../lib/format";
 import * as api from "../lib/spotify";
@@ -36,6 +37,14 @@ export function openCollection(collection: Collection): void {
 
 export function playCollection(collection: Collection): void {
   run(() => engine.playContext(collection.uri));
+}
+
+/** Plays Liked Songs from the start, without opening them. */
+export function playAllLiked(): void {
+  run(async () => {
+    const [{ tracks }, profile] = await Promise.all([api.likedTracks(100), api.me()]);
+    await engine.playLiked(profile.id, tracks.map((track) => track.uri));
+  });
 }
 
 /** What the person was listening to lately, then their playlists, for the banner. */
@@ -92,6 +101,7 @@ export function Home({ name }: { name?: string }) {
 
       {data.playlists.length > 0 && (
         <Row title="Vos playlists">
+          <MediaCard title="Titres likés" subtitle="Playlist" cover={<LikedCover />} onOpen={() => navigate({ name: "liked" })} onPlay={() => playAllLiked()} />
           {data.playlists.slice(0, 30).map((collection, index) => (
             <MediaCard
               key={collection.id}

@@ -21,6 +21,7 @@ const api = {
     setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
   },
   info: () => ipcRenderer.invoke("app:info"),
+  launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
   discord: {
     get: () => ipcRenderer.invoke("discord:get"),
     set: (settings: unknown) => ipcRenderer.invoke("discord:set", settings),

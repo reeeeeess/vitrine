@@ -93,7 +93,18 @@ export interface Profile {
   product?: string;
 }
 
-export async function me(): Promise<Profile> {
+let profileCache: Promise<Profile> | null = null;
+
+/** The signed-in person; asked once, then shared by every view that needs it. */
+export function me(): Promise<Profile> {
+  profileCache ??= fetchProfile().catch((error: unknown) => {
+    profileCache = null;
+    throw error;
+  });
+  return profileCache;
+}
+
+async function fetchProfile(): Promise<Profile> {
   const raw = await request("/me");
   return {
     id: String(raw.id ?? ""),
@@ -133,6 +144,16 @@ export async function myPlaylists(max = 200): Promise<Collection[]> {
 export async function savedAlbums(max = 100): Promise<Collection[]> {
   const items = await collect("/me/albums?limit=50", max);
   return items.map((item) => mapAlbum((item as Json).album as Json)).filter((c): c is Collection => c !== null);
+}
+
+/** Liked Songs, newest first; `total` counts them all even when fewer were loaded. */
+export async function likedTracks(max = 1000): Promise<{ tracks: Track[]; total: number }> {
+  const first = await request<{ items?: unknown[]; next?: string | null; total?: number }>("/me/tracks?limit=50");
+  const rest = first.next && max > 50 ? await collect(first.next, max - 50) : [];
+  return {
+    tracks: asTracks([...(first.items ?? []), ...rest], "track"),
+    total: typeof first.total === "number" ? first.total : (first.items ?? []).length + rest.length,
+  };
 }
 
 // ── collections ───────────────────────────────────────────────────────────

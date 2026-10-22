@@ -7,6 +7,7 @@ import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
 import type { NowPlaying } from "./discordProtocol";
 import { fetchLyrics } from "./lyrics";
+import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
 
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -125,6 +126,7 @@ function registerIpc(): void {
     if (typeof url === "string" && url.startsWith("https://")) return shell.openExternal(url);
   });
   handle("window:mini", (on) => setMini(on === true));
+  handle("spotify:launch", () => launchSpotify());
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
 
   handle("discord:get", () => discordInfo());

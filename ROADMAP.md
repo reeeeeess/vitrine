@@ -37,7 +37,10 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - 🟡 Volume : appliqué sur l'ordinateur ; synchronisation avec Spotify Connect corrigée, à revérifier
 - ✅ Choix et transfert de l'appareil de lecture
 - 🧪 Si Spotify refuse la lecture sur l'ordinateur (erreurs en série), le lecteur intégré se retire et Vitrine passe
-  d'elle-même en mode télécommande, au lieu de sauter les titres un par un
+  d'elle-même en mode télécommande, au lieu de sauter les titres un par un ; le refus est retenu pour cette version
+  (réessai automatique à la version suivante, bouton « Réessayer » dans Réglages)
+- 🧪 Sans appareil Spotify ouvert, Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y envoie la
+  lecture : la musique joue depuis Vitrine même sans lecture intégrée
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
 - 🧪 Touches multimédia du clavier et contrôles système (Media Session : barre des tâches Windows, Centre de contrôle macOS)
 - ⬜ Réorganiser la file (l'API officielle ne le permet pas aujourd'hui)
@@ -45,6 +48,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 ### Découverte et bibliothèque
 - ✅ Accueil façon plateforme de streaming : grand bandeau défilant + rangées horizontales
 - ✅ Écoutés récemment, vos playlists, vos albums, vos artistes favoris
+- 🧪 Titres likés : page dédiée (pochette cœur, lecture, aléatoire), en tête de la Bibliothèque et de l'accueil
 - ✅ Recherche (titres, albums, playlists, artistes)
 - ✅ Pages playlist et album avec liste des titres et lecture en un clic
 - 🧪 Pages artiste (abonnés, genres, titres populaires, albums et singles), artistes cliquables partout
@@ -66,7 +70,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 
 ### Statistiques
 - ✅ Top titres et top artistes sur 4 semaines, 6 mois, depuis toujours
-- ⬜ Récapitulatif mensuel partageable (image)
+- 🧪 Récap partageable : image 1080 × 1350 (top 5 titres, top 3 artistes) aux couleurs et polices du thème,
+  depuis la page Stats, pour les 3 périodes
 
 ### Intégrations
 - 🧪 Discord Rich Presence « Écoute » (titre, artiste, pochette, progression), désactivé par défaut, dans Réglages ;
@@ -100,6 +105,10 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - **Sprint 2 (fait)** : thème « Mystic » (mysticsaba.com) en option, mini-lecteur
 - **Sprint 3 (fait, v0.2.0)** : mises à jour automatiques, Réglages, Discord, playlists, repli automatique en
   télécommande quand la lecture est refusée
+- **Sprint 4 (fait, v0.3.0)** : titres likés, ouverture automatique de Spotify en arrière-plan, refus DRM retenu,
+  récap partageable
+- **Bloquant côté castlabs** : la création du compte EVS a échoué (« LimitExceededException » : quota d'e-mails du jour
+  de castlabs atteint) ; à relancer le lendemain
 - **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
   d'attente, titres likés, pages artiste, contrôles système), puis envoi sur GitHub pour produire
   l'installateur Windows et écouter sur un vrai PC
@@ -108,7 +117,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
 
 ### Phase 3 — Version 1.0 *(+8 semaines)*
-- Traduction anglaise, récapitulatif mensuel partageable
+- Traduction anglaise
 - Demande de « quota étendu » auprès de Spotify pour ouvrir l'appli au-delà de 25 utilisateurs
 - Tests de charge mémoire/CPU, accessibilité clavier
 

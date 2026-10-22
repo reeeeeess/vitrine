@@ -1,5 +1,5 @@
 import { Play } from "lucide-react";
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { artworkColor, rgbVar } from "../lib/palette";
 import { Artwork } from "./Artwork";
@@ -8,6 +8,8 @@ interface MediaCardProps {
   title: string;
   subtitle?: string;
   image?: string;
+  /** drawn instead of the artwork, for collections that have none (Liked Songs) */
+  cover?: ReactNode;
   round?: boolean;
   index?: number;
   onOpen?: () => void;
@@ -15,7 +17,7 @@ interface MediaCardProps {
 }
 
 /** A square artwork card that takes on the artwork's colour when hovered. */
-export function MediaCard({ title, subtitle, image, round, index = 0, onOpen, onPlay }: MediaCardProps) {
+export function MediaCard({ title, subtitle, image, cover, round, index = 0, onOpen, onPlay }: MediaCardProps) {
   const [color, setColor] = useState<string>();
   const warm = () => {
     if (!color) void artworkColor(image).then((rgb) => setColor(rgbVar(rgb)));
@@ -29,7 +31,7 @@ export function MediaCard({ title, subtitle, image, round, index = 0, onOpen, on
     >
       <div className="media-surface rounded-2xl border border-transparent p-2.5 transition-colors duration-200">
         <div className="relative cursor-pointer overflow-hidden rounded-lg" onClick={onOpen}>
-          <Artwork src={image} round={round} className="transition-transform duration-300 group-hover:scale-105" />
+          {cover ?? <Artwork src={image} round={round} className="transition-transform duration-300 group-hover:scale-105" />}
           {!round && <div className="media-wash pointer-events-none absolute inset-0" />}
           {onPlay && (
             <button
