@@ -1,15 +1,17 @@
 import { AnimatePresence } from "framer-motion";
-import { Maximize2, Mic2, MonitorSpeaker, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
+import { ListMusic, Maximize2, Mic2, MonitorSpeaker, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
 import { errorMessage, formatTime } from "../lib/format";
 import { useStore } from "../lib/store";
+import type { Track } from "../lib/types";
 import { navigate, notify, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
 import { Artwork } from "./Artwork";
 import { DevicesMenu } from "./DevicesMenu";
+import { LikeButton } from "./LikeButton";
 
 /** Runs a playback command and shows what went wrong, if anything did. */
 export function run(command: () => Promise<unknown>): void {
@@ -145,6 +147,45 @@ export function DevicesButton() {
   );
 }
 
+export function ArtistLinks({ track, className }: { track: Track; className?: string }) {
+  return (
+    <p className={cn("truncate", className)}>
+      {track.artists.map((name, index) => {
+        const id = track.artistIds[index];
+        return (
+          <span key={`${name}-${index}`}>
+            {index > 0 && ", "}
+            {id ? (
+              <button className="hover:text-white hover:underline" onClick={() => navigate({ name: "artist", id })}>
+                {name}
+              </button>
+            ) : (
+              name
+            )}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
+
+function QueueButton() {
+  const open = useStore(ui, (s) => s.queueOpen);
+  const hasTrack = useStore(playback, (s) => Boolean(s.track));
+  return (
+    <button
+      className={cn("rounded-full p-2 transition-colors disabled:opacity-40", open ? "text-red-500" : "text-gray-400 hover:text-white")}
+      onClick={() => ui.set({ queueOpen: !open })}
+      disabled={!hasTrack}
+      aria-label="File d'attente"
+      aria-pressed={open}
+      title="File d'attente"
+    >
+      <ListMusic className="h-4 w-4" />
+    </button>
+  );
+}
+
 export function NowPlayingBar() {
   const track = useStore(playback, (s) => s.track);
   const device = useStore(playback, (s) => s.device);
@@ -166,9 +207,10 @@ export function NowPlayingBar() {
               >
                 {track.name}
               </button>
-              <p className="truncate text-xs text-gray-400">{track.artists.join(", ")}</p>
+              <ArtistLinks track={track} className="text-xs text-gray-400" />
               {device && !device.local && <p className="truncate text-[11px] font-medium text-red-400">Lecture sur {device.name}</p>}
             </div>
+            <LikeButton track={track} />
           </>
         ) : (
           <p className="text-sm text-gray-400">Choisissez un titre pour commencer.</p>
@@ -190,6 +232,7 @@ export function NowPlayingBar() {
         >
           <Mic2 className="h-4 w-4" />
         </button>
+        <QueueButton />
         <DevicesButton />
         <VolumeControl />
       </div>

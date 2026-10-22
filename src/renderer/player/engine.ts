@@ -83,6 +83,7 @@ function mapSdkTrack(track: SpotifySdk.SdkTrack): Track {
     uri: track.uri,
     name: track.name,
     artists: track.artists.map((artist) => artist.name),
+    artistIds: track.artists.map((artist) => artist.uri.split(":").pop() ?? "").filter(Boolean),
     albumName: track.album.name,
     albumId: track.album.uri.split(":").pop(),
     image: [...track.album.images].sort((a, b) => b.url.length - a.url.length)[0]?.url ?? track.album.images[0]?.url,
@@ -303,4 +304,10 @@ export async function transferTo(deviceId: string): Promise<void> {
   chosenDevice = local ? undefined : deviceId;
   if (!local) localActive = false;
   refreshSoon(800);
+}
+
+export async function addToQueue(uri: string): Promise<void> {
+  const device = playback.get().device?.id ?? startTarget(playback.get(), chosenDevice);
+  if (!device) throw new NoDeviceError();
+  await api.addToQueue(uri, device);
 }

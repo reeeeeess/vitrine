@@ -1,11 +1,13 @@
-import { Clock3, Play } from "lucide-react";
+import { Clock3, ListPlus, Play } from "lucide-react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
 import { useStore } from "../lib/store";
 import type { Track } from "../lib/types";
-import { navigate } from "../lib/ui";
-import { playback } from "../player/engine";
+import { errorMessage } from "../lib/format";
+import { navigate, notify } from "../lib/ui";
+import { addToQueue, playback } from "../player/engine";
 import { Artwork } from "./Artwork";
+import { ArtistLinks } from "./NowPlayingBar";
 
 interface TrackListProps {
   tracks: Track[];
@@ -31,7 +33,7 @@ function Equalizer() {
 export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: TrackListProps) {
   const currentUri = useStore(playback, (s) => s.track?.uri);
   const paused = useStore(playback, (s) => s.paused);
-  const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_4rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_4rem]";
+  const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_5.5rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_5.5rem]";
 
   return (
     <div className="mt-6" role="table" aria-label="Titres">
@@ -69,7 +71,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: 
                   <span className={cn("block truncate text-sm font-medium", current ? "text-red-400" : "text-white")}>{track.name}</span>
                   <span className="flex min-w-0 items-center gap-1.5 text-xs text-gray-400">
                     {track.explicit && <span className="rounded-sm bg-white/20 px-1 text-[10px] font-bold leading-4 text-white/80">E</span>}
-                    <span className="truncate">{track.artists.join(", ")}</span>
+                    <ArtistLinks track={track} className="min-w-0" />
                   </span>
                 </span>
               </span>
@@ -82,7 +84,22 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: 
                   {track.albumName}
                 </button>
               )}
-              <span className="text-right text-sm tabular-nums text-gray-400">{formatTime(track.durationMs)}</span>
+              <span className="flex items-center justify-end gap-2 text-sm tabular-nums text-gray-400">
+                <button
+                  className="hidden text-gray-400 hover:text-white group-hover:block"
+                  onClick={() =>
+                    addToQueue(track.uri).then(
+                      () => notify(`« ${track.name} » ajouté à la file`),
+                      (error: unknown) => notify(errorMessage(error), "error"),
+                    )
+                  }
+                  aria-label={`Ajouter ${track.name} à la file`}
+                  title="Ajouter à la file d'attente"
+                >
+                  <ListPlus className="h-4 w-4" />
+                </button>
+                {formatTime(track.durationMs)}
+              </span>
             </div>
           );
         })}

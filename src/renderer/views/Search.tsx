@@ -5,6 +5,7 @@ import { run } from "../components/NowPlayingBar";
 import { Row } from "../components/Row";
 import { TrackList } from "../components/TrackList";
 import * as api from "../lib/spotify";
+import { navigate } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
 import { openCollection, playCollection } from "./Home";
@@ -37,7 +38,7 @@ export function Search({ query }: { query?: string }) {
       {data.artists.length > 0 && (
         <Row title="Artistes">
           {data.artists.map((artist, index) => (
-            <MediaCard key={artist.id} index={index} round title={artist.name} subtitle="Artiste" image={artist.image} onOpen={() => run(() => engine.playContext(artist.uri))} onPlay={() => run(() => engine.playContext(artist.uri))} />
+            <MediaCard key={artist.id} index={index} round title={artist.name} subtitle="Artiste" image={artist.image} onOpen={() => navigate({ name: "artist", id: artist.id })} onPlay={() => run(() => engine.playContext(artist.uri))} />
           ))}
         </Row>
       )}

@@ -242,3 +242,49 @@ export const setRepeat = (mode: "off" | "context" | "track", deviceId?: string) 
   request(withDevice("/me/player/repeat", deviceId, { state: mode }), { method: "PUT" });
 export const transfer = (deviceId: string, playNow: boolean) =>
   request("/me/player", { method: "PUT", body: JSON.stringify({ device_ids: [deviceId], play: playNow }) });
+
+export const addToQueue = (uri: string, deviceId?: string) =>
+  request(withDevice("/me/player/queue", deviceId, { uri }), { method: "POST" });
+
+export async function queue(): Promise<{ current: Track | null; next: Track[] }> {
+  const raw = await request<Json | undefined>("/me/player/queue");
+  return {
+    current: mapTrack((raw?.currently_playing as Json | null) ?? null),
+    next: asTracks((raw?.queue as unknown[] | undefined) ?? []).slice(0, 30),
+  };
+}
+
+// ── artists ───────────────────────────────────────────────────────────────
+
+export async function artist(id: string): Promise<{ artist: Artist; topTracks: Track[]; releases: Collection[] }> {
+  const path = `/artists/${encodeURIComponent(id)}`;
+  const [info, top, albums] = await Promise.allSettled([
+    request(path),
+    request<{ tracks?: unknown[] }>(`${path}/top-tracks?market=from_token`),
+    request<{ items?: Json[] }>(`${path}/albums?include_groups=album,single&limit=10`),
+  ]);
+  if (info.status === "rejected") throw info.reason;
+  const mapped = mapArtist(info.value);
+  if (!mapped) throw new SpotifyApiError(404, "Artiste introuvable");
+  // top tracks and releases are extras: an endpoint Spotify closes to an app leaves the page standing
+  return {
+    artist: mapped,
+    topTracks: top.status === "fulfilled" ? asTracks(top.value.tracks ?? []).slice(0, 10) : [],
+    releases:
+      albums.status === "fulfilled"
+        ? (albums.value.items ?? []).map(mapAlbum).filter((c): c is Collection => c !== null)
+        : [],
+  };
+}
+
+// ── liked songs ───────────────────────────────────────────────────────────
+
+/** Whether each track is in the person's Liked Songs, in the order given. */
+export async function areSaved(ids: string[]): Promise<boolean[]> {
+  if (ids.length === 0) return [];
+  const result = await request<unknown>(`/me/tracks/contains?ids=${ids.slice(0, 50).map(encodeURIComponent).join(",")}`);
+  return Array.isArray(result) ? result.map((value) => value === true) : ids.map(() => false);
+}
+
+export const saveTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "PUT" });
+export const removeTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "DELETE" });

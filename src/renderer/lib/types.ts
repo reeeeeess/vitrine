@@ -6,6 +6,7 @@ export interface Track {
   uri: string;
   name: string;
   artists: string[];
+  artistIds: string[];
   albumName: string;
   albumId?: string;
   image?: string;
@@ -30,6 +31,7 @@ export interface Artist {
   name: string;
   image?: string;
   genres: string[];
+  followers?: number;
 }
 
 interface RawImage {
@@ -59,11 +61,13 @@ export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: 
     : rawAlbum
       ? [str(rawAlbum.publisher) || str(rawAlbum.name)].filter(Boolean)
       : [];
+  const artistIds = Array.isArray(raw.artists) ? (raw.artists as Raw[]).map((artist) => str(artist?.id)).filter(Boolean) : [];
   return {
     id: str(raw.id) || str(raw.uri),
     uri: str(raw.uri),
     name: str(raw.name) || "Titre inconnu",
     artists,
+    artistIds,
     albumName: album?.name ?? str(rawAlbum?.name),
     albumId: album?.id ?? (str(rawAlbum?.id) || undefined),
     image: album?.image ?? pickImage(rawAlbum?.images ?? raw.images, 64),
@@ -111,6 +115,7 @@ export function mapArtist(raw: Raw): Artist | null {
     name: str(raw.name),
     image: pickImage(raw.images),
     genres: Array.isArray(raw.genres) ? (raw.genres as unknown[]).map(str).filter(Boolean) : [],
+    followers: typeof obj(raw.followers)?.total === "number" ? (obj(raw.followers)!.total as number) : undefined,
   };
 }
 

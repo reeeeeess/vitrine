@@ -4,12 +4,16 @@ import { Spinner } from "./components/Artwork";
 import { FullPlayer } from "./components/FullPlayer";
 import { Header } from "./components/Header";
 import { NowPlayingBar, run } from "./components/NowPlayingBar";
+import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
 import { useStore } from "./lib/store";
-import { ui } from "./lib/ui";
+import { errorMessage } from "./lib/format";
+import { notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
+import { connectMediaSession } from "./player/mediaSession";
+import { ArtistView } from "./views/Artist";
 import { CollectionView } from "./views/Collection";
 import { Home } from "./views/Home";
 import { Library } from "./views/Library";
@@ -20,6 +24,7 @@ import { Stats } from "./views/Stats";
 function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const route = useStore(ui, (s) => s.route);
   const fullPlayer = useStore(ui, (s) => s.fullPlayer);
+  const queueOpen = useStore(ui, (s) => s.queueOpen);
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
 
@@ -27,6 +32,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
     api.me().then(setProfile, () => undefined);
     void engine.startPlayback(drm.widevine, drm.detail);
   }, [drm]);
+
+  useEffect(() => connectMediaSession((error) => notify(errorMessage(error), "error")), []);
 
   // space plays and pauses, except while typing
   useEffect(() => {
@@ -55,6 +62,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
     case "stats":
       view = <Stats />;
       break;
+    case "artist":
+      view = <ArtistView key={route.id} id={route.id} />;
+      break;
     case "playlist":
     case "album":
       view = <CollectionView key={`${route.name}-${route.id}`} kind={route.name} id={route.id} />;
@@ -72,6 +82,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
         <div className="mx-auto max-w-[1800px]">{view}</div>
       </main>
       <NowPlayingBar />
+      <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
     </div>
   );

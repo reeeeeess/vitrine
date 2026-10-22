@@ -117,7 +117,7 @@ export function Home({ name }: { name?: string }) {
               subtitle="Artiste"
               image={artist.image}
               onPlay={() => run(() => engine.playContext(artist.uri))}
-              onOpen={() => run(() => engine.playContext(artist.uri))}
+              onOpen={() => navigate({ name: "artist", id: artist.id })}
             />
           ))}
         </Row>

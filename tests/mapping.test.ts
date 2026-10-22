@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { errorMessage, formatTime, formatTotal } from "../src/renderer/lib/format";
 import { dominantColor } from "../src/renderer/lib/palette";
-import { mapAlbum, mapPlaylist, mapTrack, pickImage, stripHtml, uniqueById } from "../src/renderer/lib/types";
+import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, stripHtml, uniqueById } from "../src/renderer/lib/types";
 import { currentPosition, startTarget, type PlaybackState } from "../src/renderer/player/engine";
 
 const images = [
@@ -96,5 +96,18 @@ describe("startTarget", () => {
   it("falls back to the active device without a local player", () => {
     expect(startTarget({ sdk: "off", device: remote })).toBe("desktop");
     expect(startTarget({ sdk: "error", localDeviceId: "me" })).toBeUndefined();
+  });
+});
+
+describe("artists and links", () => {
+  it("keeps artist ids next to names", () => {
+    const track = mapTrack({ id: "t", uri: "spotify:track:t", name: "x", artists: [{ id: "a1", name: "A" }, { name: "No id" }] });
+    expect(track?.artists).toEqual(["A", "No id"]);
+    expect(track?.artistIds).toEqual(["a1"]);
+  });
+
+  it("reads followers", () => {
+    expect(mapArtist({ id: "a", uri: "u", name: "A", followers: { total: 1234 } })?.followers).toBe(1234);
+    expect(mapArtist({ id: "a", uri: "u", name: "A" })?.followers).toBeUndefined();
   });
 });

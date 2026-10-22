@@ -83,7 +83,7 @@ export function Stats() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.04 }}
-                  onClick={() => run(() => engine.playContext(artist.uri))}
+                  onClick={() => navigate({ name: "artist", id: artist.id })}
                   className="group text-center"
                 >
                   <div className="relative">

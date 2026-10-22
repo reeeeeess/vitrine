@@ -7,7 +7,8 @@ import { navigate, ui } from "../lib/ui";
 import { playback } from "../player/engine";
 import { Artwork } from "./Artwork";
 import { Lyrics } from "./Lyrics";
-import { DevicesButton, ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
+import { LikeButton } from "./LikeButton";
+import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
 
 /** The immersive player: giant artwork, a backdrop of its colours, and synced lyrics. */
 export function FullPlayer() {
@@ -61,8 +62,11 @@ export function FullPlayer() {
                 <Artwork src={track.image} className="rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.6)] ring-1 ring-white/10" />
               </motion.div>
               <div className="mt-8 w-[min(52vh,100%)]">
-                <h2 className="truncate font-display text-3xl tracking-tight">{track.name}</h2>
-                <p className="mt-1 truncate text-lg text-white/70">{track.artists.join(", ")}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="min-w-0 truncate font-display text-3xl tracking-tight">{track.name}</h2>
+                  <LikeButton track={track} size="h-6 w-6" />
+                </div>
+                <ArtistLinks track={track} className="mt-1 text-lg text-white/70" />
                 {track.albumId && (
                   <button className="mt-0.5 truncate text-sm text-white/50 hover:text-white hover:underline" onClick={() => navigate({ name: "album", id: track.albumId! })}>
                     {track.albumName}

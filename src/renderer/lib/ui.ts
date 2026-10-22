@@ -7,7 +7,8 @@ export type Route =
   | { name: "library" }
   | { name: "stats" }
   | { name: "playlist"; id: string }
-  | { name: "album"; id: string };
+  | { name: "album"; id: string }
+  | { name: "artist"; id: string };
 
 export interface Toast {
   id: number;
@@ -21,6 +22,7 @@ export const ui = createStore({
   toasts: [] as Toast[],
   fullPlayer: false,
   devicesOpen: false,
+  queueOpen: false,
 });
 
 export function navigate(route: Route): void {
