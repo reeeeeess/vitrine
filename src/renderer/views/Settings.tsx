@@ -1,11 +1,11 @@
 import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import type { AppInfo, DiscordInfo } from "../global";
+import type { AppInfo, DesktopSettings, DiscordInfo } from "../global";
 import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
 import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
-import { setTheme, theme, type Theme } from "../lib/theme";
+import { setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
@@ -162,8 +162,37 @@ function UpdateSettings({ version }: { version?: string }) {
   );
 }
 
+function DesktopSettingsLines() {
+  const [settings, setSettings] = useState<DesktopSettings>();
+  useEffect(() => {
+    void window.vitrine.desktop?.get().then(setSettings, () => undefined);
+  }, []);
+  if (!settings) return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
+  const change = async (patch: Partial<DesktopSettings>) => {
+    try {
+      setSettings(await window.vitrine.desktop.set({ ...settings, ...patch }));
+    } catch (error) {
+      notify(errorMessage(error), "error");
+    }
+  };
+  return (
+    <>
+      <Line label="Fermer dans la zone de notification" hint="La croix cache la fenêtre : la musique continue, Vitrine reste à côté de l'horloge (clic droit pour les commandes).">
+        <Switch on={settings.closeToTray} onChange={(on) => void change({ closeToTray: on })} label="Fermer dans la zone de notification" />
+      </Line>
+      <Line label="Notification à chaque nouveau titre" hint="Seulement quand Vitrine est en arrière-plan.">
+        <Switch on={settings.notifications} onChange={(on) => void change({ notifications: on })} label="Notifications" />
+      </Line>
+      <Line label="Lancer Vitrine au démarrage" hint="Vitrine s'ouvre directement dans la zone de notification (version installée).">
+        <Switch on={settings.openAtLogin} onChange={(on) => void change({ openAtLogin: on })} label="Lancer au démarrage" />
+      </Line>
+    </>
+  );
+}
+
 export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: () => void }) {
   const current = useStore(theme, (s) => s.current);
+  const dynamic = useStore(theme, (s) => s.dynamic);
   const sdk = useStore(playback, (s) => s.sdk);
   const sdkMessage = useStore(playback, (s) => s.sdkMessage);
   const [info, setInfo] = useState<AppInfo>();
@@ -198,6 +227,13 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
             </button>
           ))}
         </div>
+        <Line label="Couleurs de la pochette" hint="L'accent du thème prend la couleur de la pochette du titre en cours.">
+          <Switch on={dynamic} onChange={setDynamicAccent} label="Couleurs de la pochette" />
+        </Line>
+      </Section>
+
+      <Section title="Bureau">
+        <DesktopSettingsLines />
       </Section>
 
       <Section title="Lecture">

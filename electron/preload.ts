@@ -22,6 +22,17 @@ const api = {
   },
   info: () => ipcRenderer.invoke("app:info"),
   launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
+  desktop: {
+    get: () => ipcRenderer.invoke("desktop:get"),
+    set: (settings: unknown) => ipcRenderer.invoke("desktop:set", settings),
+    update: (nowPlaying: unknown) => ipcRenderer.invoke("desktop:update", nowPlaying),
+    /** Commands from the tray and the taskbar buttons; returns the function that stops listening. */
+    onCommand: (listener: (command: unknown) => void) => {
+      const forward = (_event: unknown, command: unknown) => listener(command);
+      ipcRenderer.on("desktop:command", forward);
+      return () => ipcRenderer.removeListener("desktop:command", forward);
+    },
+  },
   browserPlayer: {
     status: () => ipcRenderer.invoke("browser-player:status"),
     start: () => ipcRenderer.invoke("browser-player:start"),

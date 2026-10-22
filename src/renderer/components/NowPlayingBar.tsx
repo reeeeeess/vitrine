@@ -12,6 +12,7 @@ import { usePosition } from "../player/hooks";
 import { Artwork } from "./Artwork";
 import { DevicesMenu } from "./DevicesMenu";
 import { LikeButton } from "./LikeButton";
+import { SleepTimerButton } from "./SleepTimerButton";
 
 /** Runs a playback command and shows what went wrong, if anything did. */
 export function run(command: () => Promise<unknown>): void {
@@ -233,6 +234,7 @@ export function NowPlayingBar() {
           <Mic2 className="h-4 w-4" />
         </button>
         <QueueButton />
+        <SleepTimerButton />
         <button
           className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
           onClick={() => void setMini(true)}

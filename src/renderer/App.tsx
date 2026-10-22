@@ -14,7 +14,9 @@ import { useStore } from "./lib/store";
 import { errorMessage } from "./lib/format";
 import { notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
+import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
+import { connectDynamicAccent } from "./player/dynamicAccent";
 import { connectMediaSession } from "./player/mediaSession";
 import { connectUpdates } from "./lib/updates";
 import { ArtistView } from "./views/Artist";
@@ -43,6 +45,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
 
   useEffect(() => connectMediaSession((error) => notify(errorMessage(error), "error")), []);
   useEffect(() => connectDiscord(), []);
+  useEffect(() => connectDesktop((error) => notify(errorMessage(error), "error")), []);
+  useEffect(() => connectDynamicAccent(), []);
   useEffect(() => connectUpdates(), []);
 
   // space plays and pauses, except while typing

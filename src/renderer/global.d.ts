@@ -30,6 +30,12 @@ export interface VitrineBridge {
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
+  desktop: {
+    get(): Promise<DesktopSettings>;
+    set(settings: DesktopSettings): Promise<DesktopSettings>;
+    update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean } | null): Promise<void>;
+    onCommand(listener: (command: "toggle" | "next" | "previous") => void): () => void;
+  };
   browserPlayer: {
     status(): Promise<BrowserPlayerStatus | undefined>;
     start(): Promise<BrowserPlayerStatus | undefined>;
@@ -54,6 +60,12 @@ export interface BrowserPlayerStatus {
   browser: "Microsoft Edge" | "Google Chrome" | null;
   deviceId?: string;
   detail?: string;
+}
+
+export interface DesktopSettings {
+  closeToTray: boolean;
+  notifications: boolean;
+  openAtLogin: boolean;
 }
 
 export interface AppInfo {

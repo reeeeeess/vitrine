@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
 import { BrowserPlayer } from "./browserPlayer";
+import { Desktop, HIDDEN_ARG, type DesktopNowPlaying } from "./desktop";
 import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
 import type { NowPlaying } from "./discordProtocol";
@@ -31,6 +32,20 @@ if (!app.requestSingleInstanceLock()) app.quit();
 const auth = new AuthManager();
 const discord = new DiscordPresence();
 let browserPlayer: BrowserPlayer | null = null;
+const startHidden = process.argv.includes(HIDDEN_ARG);
+
+function showWindow(): void {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    mainWindow = createWindow(true);
+    desktop.attach(mainWindow);
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
+
+const desktop = new Desktop(() => mainWindow, showWindow);
 let mainWindow: BrowserWindow | null = null;
 let drm: DrmStatus = { widevine: false, detail: "Vérification de Widevine…" };
 
@@ -63,7 +78,7 @@ function isAppUrl(url: string): boolean {
   return DEV_SERVER_URL ? url.startsWith(DEV_SERVER_URL) : url.startsWith("app://vitrine/");
 }
 
-function createWindow(): BrowserWindow {
+function createWindow(visible = !startHidden): BrowserWindow {
   const isMac = process.platform === "darwin";
   const window = new BrowserWindow({
     width: 1360,
@@ -88,7 +103,8 @@ function createWindow(): BrowserWindow {
     },
   });
 
-  window.once("ready-to-show", () => window.show());
+  // started with the session: the window loads (playback, Discord…) but stays in the tray
+  window.once("ready-to-show", () => visible && window.show());
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https://")) void shell.openExternal(url);
     return { action: "deny" };
@@ -135,6 +151,12 @@ function registerIpc(): void {
   handle("browser-player:status", () => browserPlayer?.status);
   handle("browser-player:start", () => browserPlayer?.start());
   handle("browser-player:stop", () => browserPlayer?.stop());
+  handle("desktop:get", () => desktop.settings());
+  handle("desktop:set", (raw) => {
+    const input = (raw ?? {}) as Record<string, unknown>;
+    return desktop.setSettings({ closeToTray: input.closeToTray === true, notifications: input.notifications === true, openAtLogin: input.openAtLogin === true });
+  });
+  handle("desktop:update", (raw) => desktop.update(desktopNowPlaying(raw)));
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
 
   handle("discord:get", () => discordInfo());
@@ -155,6 +177,14 @@ function registerIpc(): void {
 function discordInfo() {
   const settings = readConfig().discord ?? { enabled: false, appId: "" };
   return { ...settings, state: discord.state, detail: discord.detail };
+}
+
+function desktopNowPlaying(raw: unknown): DesktopNowPlaying | null {
+  if (!raw || typeof raw !== "object") return null;
+  const input = raw as Record<string, unknown>;
+  const text = (value: unknown) => (typeof value === "string" ? value.slice(0, 200) : "");
+  if (!text(input.title)) return null;
+  return { title: text(input.title), artist: text(input.artist), imageUrl: text(input.imageUrl) || undefined, paused: input.paused === true };
 }
 
 /** What the page says is playing, checked field by field before it reaches Discord. */
@@ -199,11 +229,7 @@ function setMini(on: boolean): boolean {
   return on;
 }
 
-app.on("second-instance", () => {
-  if (!mainWindow) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
-  mainWindow.focus();
-});
+app.on("second-instance", () => showWindow());
 
 app.on("before-quit", () => browserPlayer?.stop());
 
@@ -212,7 +238,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0 && app.isReady()) mainWindow = createWindow();
+  if (app.isReady()) showWindow();
 });
 
 void app.whenReady().then(async () => {
@@ -221,6 +247,8 @@ void app.whenReady().then(async () => {
   [drm] = await Promise.all([prepareWidevine(), auth.load()]);
   browserPlayer = new BrowserPlayer(() => auth.accessToken(), path.join(app.getPath("userData"), "browser-player"), () => mainWindow);
   mainWindow = createWindow();
+  desktop.start();
+  desktop.attach(mainWindow);
   const settings = readConfig().discord;
   if (settings) discord.configure(settings.enabled, settings.appId);
   startUpdater(() => mainWindow);

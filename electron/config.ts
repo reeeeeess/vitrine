@@ -9,9 +9,16 @@ export interface DiscordSettings {
   appId: string;
 }
 
+export interface DesktopSettings {
+  closeToTray: boolean;
+  notifications: boolean;
+  openAtLogin: boolean;
+}
+
 export interface Config {
   clientId?: string;
   discord?: DiscordSettings;
+  desktop?: Partial<DesktopSettings>;
 }
 
 const file = () => path.join(app.getPath("userData"), "config.json");

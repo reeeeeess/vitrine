@@ -39,8 +39,13 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - 🧪 Si Spotify refuse la lecture sur l'ordinateur (erreurs en série), le lecteur intégré se retire et Vitrine passe
   d'elle-même en mode télécommande, au lieu de sauter les titres un par un ; le refus est retenu pour cette version
   (réessai automatique à la version suivante, bouton « Réessayer » dans Réglages)
-- 🧪 Sans appareil Spotify ouvert, Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y envoie la
-  lecture : la musique joue depuis Vitrine même sans lecture intégrée
+- 🧪 **Lecture sur l'ordinateur sans castlabs** : si Spotify refuse le lecteur intégré, Vitrine fait tourner le lecteur
+  officiel de Spotify dans Microsoft Edge (présent sur tout Windows) ou Google Chrome, hors de l'écran ; leur DRM est
+  reconnu par Spotify. L'appareil reste « Vitrine (cet ordinateur) ». Vérifié avec votre compte : démarrage en 2 s,
+  appareil visible dans Spotify Connect, fermeture à la déconnexion ; la lecture elle-même reste à confirmer (le test a
+  été interrompu par une écoute en parallèle sur le PC : Spotify n'autorise qu'une lecture à la fois par compte)
+- 🧪 En dernier recours (ni Edge ni Chrome), Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y
+  envoie la lecture
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
 - 🧪 Touches multimédia du clavier et contrôles système (Media Session : barre des tâches Windows, Centre de contrôle macOS)
 - ⬜ Réorganiser la file (l'API officielle ne le permet pas aujourd'hui)
@@ -107,6 +112,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   télécommande quand la lecture est refusée
 - **Sprint 4 (fait, v0.3.0)** : titres likés, ouverture automatique de Spotify en arrière-plan, refus DRM retenu,
   récap partageable
+- **Sprint 5 (fait, v0.4.0)** : lecture via Edge/Chrome, zone de notification, boutons de la barre des tâches,
+  notifications, démarrage avec la session, minuteur de sommeil, accent tiré de la pochette
 - **Bloquant côté castlabs** : la création du compte EVS a échoué (« LimitExceededException » : quota d'e-mails du jour
   de castlabs atteint) ; à relancer le lendemain
 - **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
@@ -123,6 +130,40 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 
 ### Phase 4 — Au-delà
 - Récapitulatif mensuel, paroles traduites, thèmes, version Linux
+
+### Vision élargie — ce que Vitrine peut devenir
+
+Classées par thème ; **effort** : S (≤ 1 jour), M (quelques jours), L (une à deux semaines), XL (plus).
+Tout reste dans le cadre de l'API officielle de Spotify (les recommandations, les « audio features » et les
+aperçus de 30 s ne sont plus ouverts aux nouvelles applis depuis fin 2024 : rien ici n'en dépend).
+
+| Thème | Fonctionnalité | Effort | Statut |
+|---|---|---|---|
+| **Bureau** | Icône dans la zone de notification avec commandes, fermeture « dans la barre » | S | 🧪 v0.4.0 |
+| | Boutons précédent / lecture / suivant dans l'aperçu de la barre des tâches Windows | S | 🧪 v0.4.0 |
+| | Notifications natives au changement de titre (pochette, titre, artiste) | S | 🧪 v0.4.0 |
+| | Lancer Vitrine au démarrage de Windows, directement dans la barre | S | 🧪 v0.4.0 |
+| | Minuteur de sommeil (15 à 60 min, ou fin du titre) | S | 🧪 v0.4.0 |
+| | Raccourcis clavier globaux personnalisables (hors des touches multimédia) | S | ⬜ |
+| **Personnalisation** | Couleur d'accent tirée de la pochette en cours, en direct | S | 🧪 v0.4.0 |
+| | Éditeur de thème (couleurs, polices, rayons) et thèmes partageables | M | ⬜ |
+| | Fond animé « particules » façon mysticsaba.com dans le lecteur plein écran | M | ⬜ |
+| **Paroles** | Partager une ligne de paroles en image (carte aux couleurs de la pochette) | S | ⬜ |
+| | Mode karaoké mot par mot quand LRCLIB fournit l'horodatage par mot | M | ⬜ |
+| | Traduction des paroles (service de traduction au choix de l'utilisateur) | M | ⬜ |
+| **Découverte** | « Mix Vitrine » maison : titres de vos artistes du moment et de leurs albums, sans API de recommandation | M | ⬜ |
+| | Historique d'écoute local illimité (Spotify n'en donne que 50) et minutes écoutées | M | ⬜ |
+| | Récap animé (format story) en plus de l'image | M | ⬜ |
+| **Social** | Écoute à plusieurs entre utilisateurs de Vitrine, synchronisée (petit serveur de salons) | L | ⬜ |
+| | Scrobbling Last.fm (clé personnelle) | S | ⬜ |
+| **Qualité** | Tests de bout en bout automatiques sur compte de test, à chaque version | M | 🟡 scripts prêts, à intégrer à la CI |
+| | Rapports de plantage anonymes, sur consentement | S | ⬜ |
+| | Accessibilité (navigation clavier complète, contrastes AA, lecteur d'écran) | M | ⬜ |
+| | Langues : anglais, espagnol, arabe | M | ⬜ |
+| **Diffusion** | Signature de code Windows (Azure Trusted Signing) : plus d'alerte SmartScreen | S + coût | ⬜ |
+| | Notarisation Apple (compte développeur 99 $/an) + mises à jour automatiques macOS | S + coût | ⬜ |
+| | Version Linux (AppImage) | S | ⬜ |
+| | Demande de quota étendu Spotify (au-delà de 25 utilisateurs) | démarches | ⬜ |
 
 ---
 
