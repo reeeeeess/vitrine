@@ -100,4 +100,5 @@ Pour économiser le quota d'un dépôt privé, lancez les builds à la main (ét
 | Le job `test` échoue | Un test ou TypeScript signale une erreur | Ouvrez le job pour lire l'erreur, ou demandez à Claude de corriger |
 | `npm ci` échoue sur `electron-releases` | Accès au dépôt castlabs | Relancez le job (souvent passager) |
 | « Premium requis » ou erreur DRM au lancement | Signature VMP absente | Ajoutez les secrets EVS (étape 3) et refabriquez |
+| `LimitExceededException … Exceeded daily email limit` à l'inscription castlabs | Le service d'inscription de castlabs (Amazon Cognito) a envoyé son quota d'e-mails du jour, pour tous ses utilisateurs | Réessayez plus tard (le lendemain). Si l'outil répond alors que le compte existe déjà, demandez le code : `py -m castlabs_evs.account resend`, puis saisissez le code reçu |
 | La connexion Spotify échoue | URI de redirection absente | Ajoutez `http://127.0.0.1:8898/callback` dans le tableau de bord Spotify |
