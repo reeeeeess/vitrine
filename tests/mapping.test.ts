@@ -27,7 +27,7 @@ describe("Spotify mapping", () => {
       artists: [{ name: "A" }, { name: "B" }],
       album: { id: "al", name: "Album", images },
     });
-    expect(track).toMatchObject({ id: "t1", artists: ["A", "B"], albumName: "Album", albumId: "al", image: "small", explicit: true });
+    expect(track).toMatchObject({ id: "t1", artists: ["A", "B"], albumName: "Album", albumId: "al", image: "medium", imageLarge: "big", explicit: true });
   });
 
   it("drops removed and local tracks", () => {

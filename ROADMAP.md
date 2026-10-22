@@ -130,6 +130,14 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 | « Lecture » envoyait la musique sur un autre appareil simplement actif (un autre PC en pause) | Majeur | Lecture sur cet ordinateur dès que son lecteur est prêt ; un appareil choisi dans le menu reste prioritaire |
 | Volume de l'ordinateur non transmis à Spotify Connect | Mineur | Volume aussi envoyé par l'API officielle |
 
+**22 octobre 2026 — premiers retours sur un vrai PC Windows (installateur GitHub Actions)**
+
+| Retour | Cause | État |
+|---|---|---|
+| Pochettes floues | Vignettes 64 px de Spotify agrandies à 168 px | Corrigé : 300 px pour les cartes et listes, 640 px pour les grands lecteurs |
+| Après une avance dans le titre, plus de son mais la barre avance | Très probablement la licence DRM refusée hors de la partie non chiffrée du titre (Widevine non signé VMP) | À confirmer : signature castlabs EVS à ajouter (secrets GitHub) ; les erreurs du lecteur s'affichent désormais |
+| Un titre joue 1 s puis passe au suivant | Même cause : le lecteur Spotify saute le titre après l'erreur DRM | Idem |
+
 ---
 
 ## 5. Risques et points d'attention
@@ -138,7 +146,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 |---|---|---|
 | Spotify limite les applis en mode développement (nombre d'utilisateurs autorisés) | Diffusion bloquée au-delà d'une bêta | Demander le quota étendu ; en attendant chaque utilisateur peut saisir son propre Client ID |
 | La lecture locale exige Premium + Widevine | Utilisateurs gratuits sans son sur PC | Mode télécommande automatique ; message clair |
-| Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
+| Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`), suivi du changelog Spotify |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |

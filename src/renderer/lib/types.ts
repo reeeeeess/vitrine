@@ -9,7 +9,10 @@ export interface Track {
   artistIds: string[];
   albumName: string;
   albumId?: string;
+  /** about 300 px: cards and lists */
   image?: string;
+  /** the largest Spotify has (640 px): the full-screen and mini players */
+  imageLarge?: string;
   durationMs: number;
   explicit: boolean;
 }
@@ -53,7 +56,7 @@ export function pickImage(images: unknown, size = 300): string | undefined {
   return (fitting[0] ?? list[0])?.url;
 }
 
-export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: string }): Track | null {
+export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: string; imageLarge?: string }): Track | null {
   if (!raw || !str(raw.uri) || raw.is_local === true) return null;
   const rawAlbum = obj(raw.album) ?? obj(raw.show);
   const artists = Array.isArray(raw.artists)
@@ -70,7 +73,8 @@ export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: 
     artistIds,
     albumName: album?.name ?? str(rawAlbum?.name),
     albumId: album?.id ?? (str(rawAlbum?.id) || undefined),
-    image: album?.image ?? pickImage(rawAlbum?.images ?? raw.images, 64),
+    image: album?.image ?? pickImage(rawAlbum?.images ?? raw.images, 300),
+    imageLarge: album?.imageLarge ?? pickImage(rawAlbum?.images ?? raw.images, 640),
     durationMs: typeof raw.duration_ms === "number" ? raw.duration_ms : 0,
     explicit: raw.explicit === true,
   };
@@ -87,7 +91,7 @@ export function mapPlaylist(raw: Raw): Collection | null {
     name: str(raw.name) || "Playlist",
     subtitle: owner ? `Par ${owner}` : "Playlist",
     description: stripHtml(str(raw.description)) || undefined,
-    image: pickImage(raw.images),
+    image: pickImage(raw.images, 640),
     total: typeof total === "number" ? total : undefined,
   };
 }
@@ -102,7 +106,7 @@ export function mapAlbum(raw: Raw): Collection | null {
     kind: "album",
     name: str(raw.name) || "Album",
     subtitle: [artists.join(", "), year].filter(Boolean).join(" · "),
-    image: pickImage(raw.images),
+    image: pickImage(raw.images, 640),
     total: typeof raw.total_tracks === "number" ? raw.total_tracks : undefined,
   };
 }
@@ -113,7 +117,7 @@ export function mapArtist(raw: Raw): Artist | null {
     id: str(raw.id),
     uri: str(raw.uri),
     name: str(raw.name),
-    image: pickImage(raw.images),
+    image: pickImage(raw.images, 640),
     genres: Array.isArray(raw.genres) ? (raw.genres as unknown[]).map(str).filter(Boolean) : [],
     followers: typeof obj(raw.followers)?.total === "number" ? (obj(raw.followers)!.total as number) : undefined,
   };

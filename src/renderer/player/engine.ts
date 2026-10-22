@@ -6,7 +6,8 @@
 import type { SpotifySdk } from "../global";
 import * as api from "../lib/spotify";
 import { createStore } from "../lib/store";
-import type { Track } from "../lib/types";
+import { notify } from "../lib/ui";
+import { pickImage, type Track } from "../lib/types";
 
 const SDK_URL = "https://sdk.scdn.co/spotify-player.js";
 const DEVICE_NAME = "Vitrine (cet ordinateur)";
@@ -86,7 +87,8 @@ function mapSdkTrack(track: SpotifySdk.SdkTrack): Track {
     artistIds: track.artists.map((artist) => artist.uri.split(":").pop() ?? "").filter(Boolean),
     albumName: track.album.name,
     albumId: track.album.uri.split(":").pop(),
-    image: [...track.album.images].sort((a, b) => b.url.length - a.url.length)[0]?.url ?? track.album.images[0]?.url,
+    image: pickImage(track.album.images, 300),
+    imageLarge: pickImage(track.album.images, 640),
     durationMs: track.duration_ms,
     explicit: false,
   };
@@ -182,9 +184,17 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
     account_error: "La lecture sur cet ordinateur nécessite Spotify Premium.",
   } as const;
   for (const [event, message] of Object.entries(failures) as [keyof typeof failures, string][]) {
-    player.addListener(event, () => playback.set({ sdk: "error", sdkMessage: message }));
+    player.addListener(event, ({ message: detail }) => {
+      playback.set({ sdk: "error", sdkMessage: message });
+      notify(`${message} (${detail})`, "error");
+    });
   }
-  player.addListener("playback_error", ({ message }) => playback.set({ sdkMessage: `Erreur de lecture : ${message}` }));
+  // the SDK skips to the next track after a playback error: say so, or the skip looks random
+  player.addListener("playback_error", ({ message }) => {
+    const text = `Lecture interrompue sur cet ordinateur : ${message}. Si cela se répète, la protection DRM de l'appli n'est pas reconnue par Spotify (signature castlabs) ; choisissez un autre appareil dans le menu des appareils.`;
+    playback.set({ sdkMessage: text });
+    notify(text, "error");
+  });
   if (!(await player.connect())) playback.set({ sdk: "error", sdkMessage: "Le lecteur intégré a été refusé." });
 }
 

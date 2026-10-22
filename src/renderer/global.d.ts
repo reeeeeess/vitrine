@@ -34,6 +34,7 @@ export interface VitrineBridge {
 export namespace SpotifySdk {
   interface Image {
     url: string;
+    width?: number | null;
   }
   interface SdkTrack {
     id: string | null;

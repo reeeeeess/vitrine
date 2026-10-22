@@ -13,12 +13,13 @@ import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeContr
 /** The immersive player: giant artwork, a backdrop of its colours, and synced lyrics. */
 export function FullPlayer() {
   const track = useStore(playback, (s) => s.track);
+  const art = track?.imageLarge ?? track?.image;
   const device = useStore(playback, (s) => s.device);
   const [color, setColor] = useState("220 38 38");
 
   useEffect(() => {
-    void artworkColor(track?.image).then((rgb) => setColor(rgbVar(rgb)));
-  }, [track?.image]);
+    void artworkColor(art).then((rgb) => setColor(rgbVar(rgb)));
+  }, [art]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -38,8 +39,8 @@ export function FullPlayer() {
       exit={{ opacity: 0, y: 40 }}
       transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
     >
-      {track?.image && (
-        <img src={track.image} alt="" aria-hidden="true" className="absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover opacity-50 blur-[90px]" />
+      {art && (
+        <img src={art} alt="" aria-hidden="true" className="absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover opacity-50 blur-[90px]" />
       )}
       <div className="absolute inset-0" style={{ background: `radial-gradient(70% 90% at 25% 40%, rgb(${color} / 0.5), transparent 70%)` }} />
       <div className="absolute inset-0 bg-black/45" />
@@ -59,7 +60,7 @@ export function FullPlayer() {
           {track ? (
             <>
               <motion.div key={track.uri} initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }} className="w-[min(52vh,100%)]">
-                <Artwork src={track.image} className="rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.6)] ring-1 ring-white/10" />
+                <Artwork src={art} className="rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.6)] ring-1 ring-white/10" />
               </motion.div>
               <div className="mt-8 w-[min(52vh,100%)]">
                 <div className="flex items-start justify-between gap-3">
