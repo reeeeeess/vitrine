@@ -40,6 +40,8 @@ export interface VitrineBridge {
     status(): Promise<BrowserPlayerStatus | undefined>;
     start(): Promise<BrowserPlayerStatus | undefined>;
     stop(): Promise<void>;
+    command(command: { type: "toggle" | "pause" | "resume" | "next" | "previous" } | { type: "seek"; ms: number } | { type: "volume"; value: number }): Promise<void>;
+    onState(listener: (state: SpotifySdk.State | null) => void): () => void;
     onEvent(listener: (event: { type: string; message: string }) => void): () => void;
   };
   discord: {
@@ -132,6 +134,7 @@ export namespace SpotifySdk {
     ): void;
     togglePlay(): Promise<void>;
     pause(): Promise<void>;
+    resume(): Promise<void>;
     nextTrack(): Promise<void>;
     previousTrack(): Promise<void>;
     seek(ms: number): Promise<void>;

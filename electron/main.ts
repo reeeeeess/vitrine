@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain, net, protocol, screen, shell, type IpcMain
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
-import { BrowserPlayer } from "./browserPlayer";
+import { BrowserPlayer, parseCommand } from "./browserPlayer";
 import { Desktop, HIDDEN_ARG, type DesktopNowPlaying } from "./desktop";
 import { readConfig, updateConfig } from "./config";
 import { DiscordPresence } from "./discord";
@@ -151,6 +151,10 @@ function registerIpc(): void {
   handle("browser-player:status", () => browserPlayer?.status);
   handle("browser-player:start", () => browserPlayer?.start());
   handle("browser-player:stop", () => browserPlayer?.stop());
+  handle("browser-player:command", (raw) => {
+    const command = parseCommand(raw);
+    if (command) browserPlayer?.command(command);
+  });
   handle("desktop:get", () => desktop.settings());
   handle("desktop:set", (raw) => {
     const input = (raw ?? {}) as Record<string, unknown>;

@@ -37,6 +37,13 @@ const api = {
     status: () => ipcRenderer.invoke("browser-player:status"),
     start: () => ipcRenderer.invoke("browser-player:start"),
     stop: () => ipcRenderer.invoke("browser-player:stop"),
+    command: (command: unknown) => ipcRenderer.invoke("browser-player:command", command),
+    /** The player's own state, on every change; returns the function that stops listening. */
+    onState: (listener: (state: unknown) => void) => {
+      const forward = (_event: unknown, state: unknown) => listener(state);
+      ipcRenderer.on("browser-player:state", forward);
+      return () => ipcRenderer.removeListener("browser-player:state", forward);
+    },
     /** Errors the browser's player reports; returns the function that stops listening. */
     onEvent: (listener: (event: unknown) => void) => {
       const forward = (_event: unknown, payload: unknown) => listener(payload);

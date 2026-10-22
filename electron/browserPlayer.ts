@@ -10,13 +10,37 @@ import { BrowserWindow } from "electron";
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
-import { createServer, type IncomingMessage, type Server } from "node:http";
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import path from "node:path";
 
 const READY_TIMEOUT_MS = 30_000;
 export const DEVICE_NAME = "Vitrine (cet ordinateur)";
 
 export type BrowserName = "Microsoft Edge" | "Google Chrome";
+
+export type PlayerCommand =
+  | { type: "toggle" | "pause" | "resume" | "next" | "previous" }
+  | { type: "seek"; ms: number }
+  | { type: "volume"; value: number };
+
+/** Checks a command coming from the page before it is passed on. */
+export function parseCommand(raw: unknown): PlayerCommand | null {
+  const input = (raw ?? {}) as Record<string, unknown>;
+  switch (input.type) {
+    case "toggle":
+    case "pause":
+    case "resume":
+    case "next":
+    case "previous":
+      return { type: input.type };
+    case "seek":
+      return typeof input.ms === "number" && input.ms >= 0 ? { type: "seek", ms: Math.round(input.ms) } : null;
+    case "volume":
+      return typeof input.value === "number" ? { type: "volume", value: Math.min(1, Math.max(0, input.value)) } : null;
+    default:
+      return null;
+  }
+}
 
 export interface BrowserPlayerStatus {
   state: "off" | "starting" | "ready" | "error";
@@ -71,6 +95,41 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     player.activateElement().catch(() => {});
     post("/ready", { deviceId: device_id });
   });
+  // the player's own state: the Web API reports a frozen position for this kind of device
+  player.addListener("player_state_changed", (state) => post("/state", state ? {
+    paused: state.paused, position: state.position, duration: state.duration, shuffle: state.shuffle, repeat_mode: state.repeat_mode,
+    context: { uri: state.context?.uri ?? null },
+    track_window: { current_track: state.track_window?.current_track ? (({ id, uri, name, duration_ms, artists, album }) => ({
+      id, uri, name, duration_ms, artists: artists.map((a) => ({ name: a.name, uri: a.uri })),
+      album: { name: album.name, uri: album.uri, images: album.images.map((i) => ({ url: i.url, width: i.width ?? null })) },
+    }))(state.track_window.current_track) : null },
+  } : null));
+  // Vitrine's commands, waited for one at a time; the SDK's own calls keep the position on pause
+  const run = (command) => {
+    switch (command.type) {
+      case "toggle": return player.togglePlay();
+      case "pause": return player.pause();
+      case "resume": return player.resume();
+      case "next": return player.nextTrack();
+      case "previous": return player.previousTrack();
+      case "seek": return player.seek(command.ms);
+      case "volume": return player.setVolume(command.value);
+    }
+  };
+  (async function listen() {
+    for (;;) {
+      try {
+        const response = await fetch("/command?k=" + key);
+        if (response.status === 200) {
+          const command = await response.json();
+          await Promise.resolve(run(command)).then(() => console.log("commande", command.type), (error) => console.warn("commande", command.type, error));
+        }
+        else if (response.status !== 204) await new Promise((r) => setTimeout(r, 1000));
+      } catch {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+  })();
   player.addListener("autoplay_failed", () => post("/event", { type: "autoplay_failed", message: "lecture automatique bloquée par le navigateur" }));
   if (new URLSearchParams(location.search).get("debug")) {
     setInterval(() => player.getCurrentState().then((s) => s && post("/event", { type: "state", message: JSON.stringify({ paused: s.paused, position: s.position, track: s.track_window?.current_track?.name }) })), 3000);
@@ -110,6 +169,8 @@ export class BrowserPlayer {
   private starting: Promise<BrowserPlayerStatus> | null = null;
   /** settles the launch: the device id, or null when the player reported it cannot start */
   private onReady: ((deviceId: string | null) => void) | null = null;
+  private commands: PlayerCommand[] = [];
+  private waiting: ServerResponse | null = null;
   status: BrowserPlayerStatus = { state: "off", browser: findBrowser()?.name ?? null };
 
   constructor(
@@ -126,8 +187,22 @@ export class BrowserPlayer {
     return this.starting;
   }
 
+  /** Hands a command to the page, at once if it is waiting for one. */
+  command(command: PlayerCommand): void {
+    if (this.status.state !== "ready") return;
+    if (this.waiting) {
+      const response = this.waiting;
+      this.waiting = null;
+      response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(command));
+    } else {
+      this.commands.push(command);
+    }
+  }
+
   stop(): void {
     this.onReady = null;
+    this.commands = [];
+    this.waiting = null;
     this.child?.kill();
     this.child = null;
     this.server?.close();
@@ -162,8 +237,11 @@ export class BrowserPlayer {
         "--autoplay-policy=no-user-gesture-required",
         "--no-first-run",
         "--no-default-browser-check",
+        // a window out of sight still has to answer at once: Chrome otherwise slows it down and its
+        // player ignores pause and seek (next still goes through Spotify's servers)
         "--disable-background-timer-throttling",
         "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
         // out of sight: the window only hosts the player
         "--window-position=-10000,-10000",
         "--window-size=420,240",
@@ -224,13 +302,38 @@ export class BrowserPlayer {
           const body = await readJson(request);
           if (typeof body.deviceId === "string") this.onReady?.(body.deviceId);
           response.writeHead(204).end();
+        } else if (request.method === "POST" && url.pathname === "/state") {
+          const body = await readJson(request);
+          this.window()?.webContents.send("browser-player:state", Object.keys(body).length ? body : null);
+          response.writeHead(204).end();
+        } else if (request.method === "GET" && url.pathname === "/command") {
+          // long poll: answered with the next command, or empty after a while so the page asks again
+          const queued = this.commands.shift();
+          if (queued) {
+            response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(queued));
+          } else {
+            this.waiting?.writeHead(204).end();
+            this.waiting = response;
+            const timer = setTimeout(() => {
+              if (this.waiting === response) {
+                this.waiting = null;
+                response.writeHead(204).end();
+              }
+            }, 25_000);
+            response.on("close", () => {
+              clearTimeout(timer);
+              // the page went away: the next command waits for it to ask again
+              if (this.waiting === response) this.waiting = null;
+            });
+          }
         } else if (request.method === "POST" && url.pathname === "/event") {
           const body = await readJson(request);
           const type = typeof body.type === "string" ? body.type : "event";
           const message = typeof body.message === "string" ? body.message.slice(0, 300) : "";
           this.window()?.webContents.send("browser-player:event", { type, message });
+          if (process.env.VITRINE_BROWSER_DEBUG_PORT) console.log(`[lecteur navigateur] ${type} ${message}`);
           if (type === "state" || type === "autoplay_failed") {
-            if (process.env.VITRINE_BROWSER_DEBUG_PORT) console.log(`[lecteur navigateur] ${type} ${message}`);
+            // diagnostics only
           } else if (type !== "playback_error" && type !== "not_ready") {
             this.set({ state: "error", detail: `${type} ${message}`.trim() });
             this.onReady?.(null);

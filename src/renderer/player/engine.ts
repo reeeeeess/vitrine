@@ -252,10 +252,37 @@ function targetDevice(): string | undefined {
   return state.device?.id || state.localDeviceId;
 }
 
-const useSdk = () => localActive && player !== null;
+type LocalCommand = Parameters<Window["vitrine"]["browserPlayer"]["command"]>[0];
+
+/**
+ * Runs a command on this computer's player while it is the one playing: the SDK inside Vitrine, or
+ * the one in Edge or Chrome. Null otherwise, and the Web API drives the active device instead.
+ */
+function runLocally(command: LocalCommand): Promise<void> | null {
+  if (!localActive) return null;
+  if (viaBrowser) return window.vitrine.browserPlayer.command(command);
+  if (!player) return null;
+  switch (command.type) {
+    case "toggle":
+      return player.togglePlay();
+    case "pause":
+      return player.pause();
+    case "resume":
+      return player.resume();
+    case "next":
+      return player.nextTrack();
+    case "previous":
+      return player.previousTrack();
+    case "seek":
+      return player.seek(command.ms);
+    case "volume":
+      return player.setVolume(command.value);
+  }
+}
 
 export async function togglePlay(): Promise<void> {
-  if (useSdk()) return player!.togglePlay();
+  const local = runLocally({ type: "toggle" });
+  if (local) return local;
   const state = playback.get();
   if (!state.track) return;
   playback.set({ paused: !state.paused, positionMs: currentPosition(state), updatedAt: Date.now() });
@@ -267,20 +294,23 @@ export async function togglePlay(): Promise<void> {
 }
 
 export async function next(): Promise<void> {
-  if (useSdk()) return player!.nextTrack();
+  const local = runLocally({ type: "next" });
+  if (local) return local;
   await api.next(targetDevice());
   refreshSoon();
 }
 
 export async function previous(): Promise<void> {
-  if (useSdk()) return player!.previousTrack();
+  const local = runLocally({ type: "previous" });
+  if (local) return local;
   await api.previous(targetDevice());
   refreshSoon();
 }
 
 export async function seek(ms: number): Promise<void> {
   playback.set({ positionMs: ms, updatedAt: Date.now() });
-  if (useSdk()) return player!.seek(ms);
+  const local = runLocally({ type: "seek", ms });
+  if (local) return local;
   await api.seek(ms, targetDevice());
 }
 
@@ -290,7 +320,7 @@ export function setVolume(volume: number): void {
   playback.set({ volume: value });
   // the SDK applies it at once, but does not tell Spotify Connect: the Web API call below does,
   // so the volume other devices show for this computer stays right
-  if (useSdk() || playback.get().device?.local) void player?.setVolume(value);
+  if (!runLocally({ type: "volume", value }) && playback.get().device?.local) void player?.setVolume(value);
   // a slider sends many values; the Web API is asked for the last one
   clearTimeout(volumeTimer);
   volumeTimer = setTimeout(() => void api.setVolume(value * 100, targetDevice()).catch(() => undefined), 200);
@@ -413,8 +443,15 @@ async function startBrowserPlayer(): Promise<boolean> {
   return true;
 }
 
-/** The browser's player failing in a row, or closed: step aside, as with the built-in player. */
+/**
+ * The browser's player failing in a row, or closed: step aside, as with the built-in player.
+ * Its own state is the truth for this computer: Spotify's Web API keeps reporting the position
+ * and the pause of such a device as they were when the track started.
+ */
 function watchBrowserPlayer(): void {
+  window.vitrine.browserPlayer?.onState((state) => {
+    if (viaBrowser) applySdkState(state);
+  });
   window.vitrine.browserPlayer?.onEvent(({ type, message }) => {
     if (type === "not_ready" || type === "state" || type === "autoplay_failed") return;
     const now = Date.now();

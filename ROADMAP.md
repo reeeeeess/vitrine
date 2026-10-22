@@ -34,16 +34,16 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Lecture sur l'ordinateur (Web Playback SDK, appareil « Vitrine (cet ordinateur) ») — Premium requis
 - ✅ Mode télécommande : piloter le téléphone, une enceinte ou l'appli officielle (Spotify Connect)
 - ✅ Lecture / pause, précédent / suivant, avance, aléatoire, répétition
-- 🟡 Volume : appliqué sur l'ordinateur ; synchronisation avec Spotify Connect corrigée, à revérifier
+- ✅ Volume : appliqué sur l'ordinateur et transmis à Spotify Connect (vérifié : 27 % demandé, 27 % côté Spotify)
 - ✅ Choix et transfert de l'appareil de lecture
 - 🧪 Si Spotify refuse la lecture sur l'ordinateur (erreurs en série), le lecteur intégré se retire et Vitrine passe
   d'elle-même en mode télécommande, au lieu de sauter les titres un par un ; le refus est retenu pour cette version
   (réessai automatique à la version suivante, bouton « Réessayer » dans Réglages)
-- 🧪 **Lecture sur l'ordinateur sans castlabs** : si Spotify refuse le lecteur intégré, Vitrine fait tourner le lecteur
+- ✅ **Lecture sur l'ordinateur sans castlabs** : si Spotify refuse le lecteur intégré, Vitrine fait tourner le lecteur
   officiel de Spotify dans Microsoft Edge (présent sur tout Windows) ou Google Chrome, hors de l'écran ; leur DRM est
-  reconnu par Spotify. L'appareil reste « Vitrine (cet ordinateur) ». Vérifié avec votre compte : démarrage en 2 s,
-  appareil visible dans Spotify Connect, fermeture à la déconnexion ; la lecture elle-même reste à confirmer (le test a
-  été interrompu par une écoute en parallèle sur le PC : Spotify n'autorise qu'une lecture à la fois par compte)
+  reconnu par Spotify. L'appareil reste « Vitrine (cet ordinateur) ». Vitrine lui envoie directement ses commandes et
+  affiche son état réel (l'API de Spotify fige la position de ce type d'appareil). Vérifié avec votre compte sous
+  Chrome (11/11, deux fois) ; reste à l'entendre sous Edge sur votre PC Windows
 - 🧪 En dernier recours (ni Edge ni Chrome), Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y
   envoie la lecture
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
@@ -114,6 +114,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   récap partageable
 - **Sprint 5 (fait, v0.4.0)** : lecture via Edge/Chrome, zone de notification, boutons de la barre des tâches,
   notifications, démarrage avec la session, minuteur de sommeil, accent tiré de la pochette
+- **v0.4.1 (fait)** : lecture via Edge/Chrome réellement pilotable — barre de progression, pause et avance exactes
 - **Bloquant côté castlabs** : la création du compte EVS a échoué (« LimitExceededException » : quota d'e-mails du jour
   de castlabs atteint) ; à relancer le lendemain
 - **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
@@ -197,6 +198,25 @@ aperçus de 30 s ne sont plus ouverts aux nouvelles applis depuis fin 2024 : rie
 | Message « Spotify refuse la lecture sur cet ordinateur » (repli v0.2) | Pas de signature VMP ; l'inscription castlabs EVS a échoué (quota d'e-mails de castlabs) | Contourné en v0.3.0 : la lecture passe par l'appli Spotify officielle, ouverte en arrière-plan si besoin (parcours vérifié par simulation : refus mémorisé, Spotify lancé une fois, lecture envoyée à l'appareil du PC). Correctif définitif : compte EVS à créer, puis build signé |
 | Message « Unexpected token … is not valid JSON » | Les commandes de lecture de Spotify répondent désormais par un identifiant en texte brut | Corrigé : réponse non JSON acceptée (la commande avait réussi) |
 | Un titre joue 1 s puis passe au suivant | Même cause : le lecteur Spotify saute le titre après l'erreur DRM | Confirmé par la capture des erreurs (« Playback error » sur chaque titre) ; en attente de la signature EVS. En attendant, la v0.2 bascule seule en mode télécommande |
+
+**22 octobre 2026, soir — lecture via Google Chrome, compte Premium, appli Electron réelle (v0.4.1)**
+
+Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC Windows), lecture via le navigateur.
+
+| Test | Résultat |
+|---|---|
+| Lecteur intégré non relancé (refus mémorisé), lecteur Chrome prêt, appareil visible dans Spotify Connect | ✅ |
+| Lecture d'une playlist : la barre de Vitrine avance au même rythme que le lecteur (écart ≤ 0,5 s) | ✅ |
+| Avance à 60 % : le lecteur y va (106 s pour 104 s visés) et la barre repart | ✅ |
+| Pause : la musique s'arrête, la barre se fige ; reprise au même endroit | ✅ |
+| Titre suivant : affiché, et il tient ; volume 27 % ; pause finale ; fermeture de Chrome | ✅ |
+
+**Défauts trouvés et corrigés**
+
+| Défaut | Cause | Correctif |
+|---|---|---|
+| Barre figée à 0:00 et bouton lecture/pause faux en lecture via navigateur | L'API de Spotify renvoie, pour ce type d'appareil, la position et la pause du début du titre | Le lecteur du navigateur transmet son propre état à Vitrine, qui l'affiche |
+| Pause et avance sans effet (le titre suivant, lui, marchait) | Chrome met au ralenti sa fenêtre placée hors de l'écran | Commandes envoyées directement au lecteur, et Chrome/Edge lancés sans mise au ralenti des fenêtres cachées |
 
 ---
 
