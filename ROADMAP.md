@@ -43,7 +43,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   officiel de Spotify dans Microsoft Edge (présent sur tout Windows) ou Google Chrome, hors de l'écran ; leur DRM est
   reconnu par Spotify. L'appareil reste « Vitrine (cet ordinateur) ». Vitrine lui envoie directement ses commandes et
   affiche son état réel (l'API de Spotify fige la position de ce type d'appareil). Vérifié avec votre compte sous
-  Chrome (11/11, deux fois) ; reste à l'entendre sous Edge sur votre PC Windows
+  Chrome (11/11, deux fois) puis sous Microsoft Edge avec le son enregistré et mesuré (11/11) ; à confirmer à
+  l'oreille sur votre PC Windows
 - 🧪 En dernier recours (ni Edge ni Chrome), Vitrine lance l'appli Spotify officielle réduite en arrière-plan et y
   envoie la lecture
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
@@ -210,6 +211,17 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Avance à 60 % : le lecteur y va (106 s pour 104 s visés) et la barre repart | ✅ |
 | Pause : la musique s'arrête, la barre se fige ; reprise au même endroit | ✅ |
 | Titre suivant : affiché, et il tient ; volume 27 % ; pause finale ; fermeture de Chrome | ✅ |
+
+**Même test sous Microsoft Edge 156, avec le son enregistré** (sortie audio virtuelle, niveau RMS sur 3 s ; 0 = silence)
+
+| Moment | Niveau sonore | Résultat |
+|---|---|---|
+| Lecture d'une playlist | 2 913 | ✅ son présent, barre exacte (écart 0,1 s) |
+| Après une avance à 60 % (le cas « plus de son après une avance » sous Windows) | 8 232 | ✅ |
+| Pendant la pause | 0 | ✅ silence |
+| Après la reprise, au même endroit | 8 635 | ✅ |
+| Titre suivant | 1 801 | ✅ |
+| Volume abaissé à 27 % | 1 796 → 1 094 | ✅ le son baisse |
 
 **Défauts trouvés et corrigés**
 
