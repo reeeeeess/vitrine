@@ -1,5 +1,5 @@
 import * as electron from "electron";
-import { app, BrowserWindow, ipcMain, net, protocol, shell, type IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, ipcMain, net, protocol, screen, shell, type IpcMainInvokeEvent, type Rectangle } from "electron";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
@@ -60,8 +60,8 @@ function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1360,
     height: 880,
-    minWidth: 1000,
-    minHeight: 660,
+    minWidth: FULL_MIN.width,
+    minHeight: FULL_MIN.height,
     show: false,
     title: "Vitrine",
     backgroundColor: "#000000",
@@ -119,6 +119,31 @@ function registerIpc(): void {
   handle("shell:open", (url) => {
     if (typeof url === "string" && url.startsWith("https://")) return shell.openExternal(url);
   });
+  handle("window:mini", (on) => setMini(on === true));
+}
+
+const MINI = { width: 340, height: 440 };
+const FULL_MIN = { width: 1000, height: 660 };
+let boundsBeforeMini: Rectangle | null = null;
+
+/** The mini player: the same window, small and kept above the others, in a screen corner. */
+function setMini(on: boolean): boolean {
+  const window = mainWindow;
+  if (!window || on === (boundsBeforeMini !== null)) return on;
+  if (on) {
+    boundsBeforeMini = window.getBounds();
+    if (window.isMaximized()) window.unmaximize();
+    const area = screen.getDisplayMatching(boundsBeforeMini).workArea;
+    window.setMinimumSize(280, 360);
+    window.setBounds({ x: area.x + area.width - MINI.width - 24, y: area.y + area.height - MINI.height - 24, ...MINI }, true);
+    window.setAlwaysOnTop(true, "floating");
+  } else {
+    window.setAlwaysOnTop(false);
+    window.setMinimumSize(FULL_MIN.width, FULL_MIN.height);
+    window.setBounds(boundsBeforeMini ?? { ...window.getBounds(), width: 1360, height: 880 }, true);
+    boundsBeforeMini = null;
+  }
+  return on;
 }
 
 app.on("second-instance", () => {

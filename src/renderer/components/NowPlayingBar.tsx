@@ -1,11 +1,11 @@
 import { AnimatePresence } from "framer-motion";
-import { ListMusic, Maximize2, Mic2, MonitorSpeaker, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
+import { ListMusic, Maximize2, Mic2, PictureInPicture2, MonitorSpeaker, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
 import { errorMessage, formatTime } from "../lib/format";
 import { useStore } from "../lib/store";
 import type { Track } from "../lib/types";
-import { navigate, notify, ui } from "../lib/ui";
+import { navigate, notify, setMini, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
@@ -233,6 +233,14 @@ export function NowPlayingBar() {
           <Mic2 className="h-4 w-4" />
         </button>
         <QueueButton />
+        <button
+          className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+          onClick={() => void setMini(true)}
+          aria-label="Mini-lecteur"
+          title="Mini-lecteur (toujours au premier plan)"
+        >
+          <PictureInPicture2 className="h-4 w-4" />
+        </button>
         <DevicesButton />
         <VolumeControl />
       </div>

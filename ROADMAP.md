@@ -53,7 +53,9 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Lecteur plein écran avec pochette géante et fond coloré tiré de la pochette
 - ✅ Paroles synchronisées (LRCLIB, base ouverte), défilement automatique, clic pour aller au passage
 - ✅ Cartes qui prennent la couleur de leur pochette au survol
-- ⬜ Fond animé (pochette floutée en mouvement), mode « mini-lecteur » toujours au premier plan
+- ✅ Fond animé (pochette floutée en mouvement lent) dans le bandeau et le lecteur plein écran
+- 🧪 Mini-lecteur : la fenêtre se réduit en vignette 340 × 440 toujours au premier plan, dans le coin de l'écran,
+  et revient à sa taille d'origine (mécanique de fenêtre vérifiée dans la vraie appli Electron)
 - ⬜ Paroles traduites
 - 🧪 Deux thèmes au choix (bouton dans l'en-tête et sur l'écran de connexion) :
   « Movix » (noir, rouge, Inter / Archivo Black) et « Mystic » d'après mysticsaba.com
@@ -88,13 +90,16 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 ### Phase 2 — Bêta v0.2 *(en cours)*
 - **Sprint 1 (fait)** : file d'attente, touches multimédia et contrôles système, pages artiste, titres likés
   — vérifiés sur données fictives, à valider sur compte réel avec le volume
-- **Sprint 2** : thème « Mystic » (mysticsaba.com) en option *(fait)*, mini-lecteur *(en cours)*
+- **Sprint 2 (fait)** : thème « Mystic » (mysticsaba.com) en option, mini-lecteur
+- **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
+  d'attente, titres likés, pages artiste, contrôles système), puis envoi sur GitHub pour produire
+  l'installateur Windows et écouter sur un vrai PC
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
 
 ### Phase 3 — Version 1.0 *(+8 semaines)*
-- Mises à jour automatiques, Discord, mini-lecteur, fond animé, traduction anglaise
+- Mises à jour automatiques, Discord, traduction anglaise
 - Demande de « quota étendu » auprès de Spotify pour ouvrir l'appli au-delà de 25 utilisateurs
 - Tests de charge mémoire/CPU, accessibilité clavier
 

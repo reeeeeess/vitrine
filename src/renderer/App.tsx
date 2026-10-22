@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Spinner } from "./components/Artwork";
 import { FullPlayer } from "./components/FullPlayer";
+import { MiniPlayer } from "./components/MiniPlayer";
 import { Header } from "./components/Header";
 import { NowPlayingBar, run } from "./components/NowPlayingBar";
 import { QueuePanel } from "./components/QueuePanel";
@@ -25,6 +26,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const route = useStore(ui, (s) => s.route);
   const fullPlayer = useStore(ui, (s) => s.fullPlayer);
   const queueOpen = useStore(ui, (s) => s.queueOpen);
+  const mini = useStore(ui, (s) => s.mini);
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
 
@@ -70,6 +72,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       view = <CollectionView key={`${route.name}-${route.id}`} kind={route.name} id={route.id} />;
       break;
   }
+
+  if (mini) return <MiniPlayer />;
 
   return (
     <div className="relative h-full">

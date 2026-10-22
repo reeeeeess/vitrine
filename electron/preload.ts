@@ -17,6 +17,9 @@ const api = {
     get: (query: unknown) => ipcRenderer.invoke("lyrics:get", query),
   },
   openExternal: (url: string) => ipcRenderer.invoke("shell:open", url),
+  window: {
+    setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
+  },
 };
 
 contextBridge.exposeInMainWorld("vitrine", api);

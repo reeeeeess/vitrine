@@ -27,6 +27,7 @@ export interface VitrineBridge {
   drm: { status(): Promise<DrmStatus> };
   lyrics: { get(query: { track: string; artist: string; album?: string; durationMs?: number }): Promise<LyricsResult | null> };
   openExternal(url: string): Promise<void>;
+  window: { setMini(on: boolean): Promise<boolean> };
 }
 
 // The part of the Web Playback SDK this app uses.

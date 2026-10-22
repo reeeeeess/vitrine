@@ -23,7 +23,14 @@ export const ui = createStore({
   fullPlayer: false,
   devicesOpen: false,
   queueOpen: false,
+  mini: false,
 });
+
+export async function setMini(on: boolean): Promise<void> {
+  // without the desktop bridge (a browser preview) the layout still switches
+  await window.vitrine.window?.setMini(on).catch(() => undefined);
+  ui.set({ mini: on, fullPlayer: false, devicesOpen: false, queueOpen: false });
+}
 
 export function navigate(route: Route): void {
   ui.set((state) => ({ route, history: [...state.history.slice(-30), state.route], fullPlayer: false, devicesOpen: false }));
