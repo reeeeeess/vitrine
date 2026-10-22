@@ -1,6 +1,6 @@
 // Lyrics from LRCLIB (lrclib.net), a free and open lyrics database with a public API. Fetched from
 // the main process so the renderer needs no cross-origin access, and only ever from that host.
-import { app } from "electron";
+import { app, net } from "electron";
 import { pickBest, toResult, type LrclibRecord, type LyricsResult } from "./lyricsMatch";
 
 export interface LyricsQuery {
@@ -29,7 +29,7 @@ export function parseQuery(raw: unknown): LyricsQuery | null {
 }
 
 async function get(path: string, params: Record<string, string>): Promise<unknown> {
-  const response = await fetch(`${API}${path}?${new URLSearchParams(params).toString()}`, {
+  const response = await net.fetch(`${API}${path}?${new URLSearchParams(params).toString()}`, {
     headers: { "user-agent": `Vitrine/${app.getVersion()} (lecteur de bureau)` },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });

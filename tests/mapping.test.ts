@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { errorMessage, formatTime, formatTotal } from "../src/renderer/lib/format";
 import { dominantColor } from "../src/renderer/lib/palette";
 import { mapAlbum, mapPlaylist, mapTrack, pickImage, stripHtml, uniqueById } from "../src/renderer/lib/types";
-import { currentPosition, type PlaybackState } from "../src/renderer/player/engine";
+import { currentPosition, startTarget, type PlaybackState } from "../src/renderer/player/engine";
 
 const images = [
   { url: "big", width: 640 },
@@ -81,5 +81,20 @@ describe("currentPosition", () => {
     expect(currentPosition(base, 1500)).toBe(2500);
     expect(currentPosition(base, 60_000)).toBe(5000);
     expect(currentPosition({ ...base, paused: true }, 60_000)).toBe(1000);
+  });
+});
+
+describe("startTarget", () => {
+  const remote = { id: "desktop", name: "DESKTOP", type: "Computer", local: false };
+  it("plays on this computer when its player is ready, even if another device is active", () => {
+    expect(startTarget({ sdk: "ready", localDeviceId: "me", device: remote })).toBe("me");
+  });
+  it("keeps a device the person chose while it is still active", () => {
+    expect(startTarget({ sdk: "ready", localDeviceId: "me", device: remote }, "desktop")).toBe("desktop");
+    expect(startTarget({ sdk: "ready", localDeviceId: "me", device: { ...remote, id: "phone" } }, "desktop")).toBe("me");
+  });
+  it("falls back to the active device without a local player", () => {
+    expect(startTarget({ sdk: "off", device: remote })).toBe("desktop");
+    expect(startTarget({ sdk: "error", localDeviceId: "me" })).toBeUndefined();
   });
 });

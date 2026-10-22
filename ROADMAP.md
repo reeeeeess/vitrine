@@ -33,7 +33,8 @@ Légende : ✅ fait dans la v0.1 · 🟡 en cours · ⬜ prévu
 ### Lecture
 - ✅ Lecture sur l'ordinateur (Web Playback SDK, appareil « Vitrine (cet ordinateur) ») — Premium requis
 - ✅ Mode télécommande : piloter le téléphone, une enceinte ou l'appli officielle (Spotify Connect)
-- ✅ Lecture / pause, précédent / suivant, avance, volume, aléatoire, répétition
+- ✅ Lecture / pause, précédent / suivant, avance, aléatoire, répétition
+- 🟡 Volume : appliqué sur l'ordinateur ; synchronisation avec Spotify Connect corrigée, à revérifier
 - ✅ Choix et transfert de l'appareil de lecture
 - ⬜ File d'attente visible et réorganisable
 - ⬜ Touches multimédia du clavier et contrôles système (barre des tâches Windows, Centre de contrôle macOS)
@@ -71,7 +72,7 @@ Légende : ✅ fait dans la v0.1 · 🟡 en cours · ⬜ prévu
 - Choix de la pile : Electron (version castlabs avec DRM Widevine), React, Vite, TypeScript,
   Tailwind CSS, framer-motion, lucide-react, Embla — la même pile front que Movix
 
-### Phase 1 — MVP v0.1 *(en cours)*
+### Phase 1 — MVP v0.1 *(testée sur un vrai compte Premium : 26/27 tests réussis)*
 - Connexion sécurisée, lecture locale + télécommande, accueil, recherche, bibliothèque,
   playlists/albums, lecteur plein écran avec paroles, statistiques
 - Construction automatique Windows + macOS par GitHub Actions

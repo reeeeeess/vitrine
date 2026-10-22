@@ -230,10 +230,9 @@ let volumeTimer: ReturnType<typeof setTimeout> | undefined;
 export function setVolume(volume: number): void {
   const value = Math.min(1, Math.max(0, volume));
   playback.set({ volume: value });
-  if (useSdk() || playback.get().device?.local) {
-    void player?.setVolume(value);
-    return;
-  }
+  // the SDK applies it at once, but does not tell Spotify Connect: the Web API call below does,
+  // so the volume other devices show for this computer stays right
+  if (useSdk() || playback.get().device?.local) void player?.setVolume(value);
   // a slider sends many values; the Web API is asked for the last one
   clearTimeout(volumeTimer);
   volumeTimer = setTimeout(() => void api.setVolume(value * 100, targetDevice()).catch(() => undefined), 200);
@@ -258,8 +257,22 @@ export class NoDeviceError extends Error {
   }
 }
 
+/** a device the person picked in the devices menu; playback started here goes there */
+let chosenDevice: string | undefined;
+
+/**
+ * Where a new playback goes: the device the person picked, if it is still the active one;
+ * otherwise this computer when its player is ready, otherwise whatever device is active.
+ * An active device that merely sits paused (another computer, a phone) does not win over this one.
+ */
+export function startTarget(state: Pick<PlaybackState, "device" | "localDeviceId" | "sdk">, chosen?: string): string | undefined {
+  if (chosen && state.device?.id === chosen) return chosen;
+  if (state.sdk === "ready" && state.localDeviceId) return state.localDeviceId;
+  return state.device?.id;
+}
+
 async function start(body: api.PlayBody): Promise<void> {
-  const device = targetDevice();
+  const device = startTarget(playback.get(), chosenDevice);
   if (!device) throw new NoDeviceError();
   // the click that started playback also unlocks audio for the SDK
   if (device === playback.get().localDeviceId) await player?.activateElement().catch(() => undefined);
@@ -286,6 +299,8 @@ export function playTracks(uris: string[], index = 0): Promise<void> {
 
 export async function transferTo(deviceId: string): Promise<void> {
   await api.transfer(deviceId, !playback.get().paused);
-  if (deviceId !== playback.get().localDeviceId) localActive = false;
+  const local = deviceId === playback.get().localDeviceId;
+  chosenDevice = local ? undefined : deviceId;
+  if (!local) localActive = false;
   refreshSoon(800);
 }

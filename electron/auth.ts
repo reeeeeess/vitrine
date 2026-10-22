@@ -1,7 +1,7 @@
 // Signs in to Spotify in the system browser and keeps the session. The browser comes back to a
 // one-shot HTTP server on 127.0.0.1:8898; the refresh token is stored encrypted with the OS keychain
 // (safeStorage) and never reaches the renderer, which only ever gets short-lived access tokens.
-import { app, safeStorage, shell } from "electron";
+import { app, net, safeStorage, shell } from "electron";
 import { createServer, type Server } from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -118,7 +118,8 @@ export class AuthManager {
   }
 
   private async post(form: Record<string, string>): Promise<unknown> {
-    const response = await fetch(TOKEN_URL, {
+    // net.fetch goes through Chromium's network stack, so it honours the system proxy settings
+    const response = await net.fetch(TOKEN_URL, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(form).toString(),
