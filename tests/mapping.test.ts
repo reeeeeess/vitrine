@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parseBody } from "../src/renderer/lib/spotify";
 import { errorMessage, formatTime, formatTotal } from "../src/renderer/lib/format";
 import { dominantColor } from "../src/renderer/lib/palette";
 import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, stripHtml, uniqueById } from "../src/renderer/lib/types";
@@ -116,5 +117,13 @@ describe("startTarget without a working local player", () => {
   it("never picks this computer once its player has failed", () => {
     const local = { id: "me", name: "Vitrine (cet ordinateur)", type: "Computer", local: true };
     expect(startTarget({ sdk: "error", device: local })).toBeUndefined();
+  });
+});
+
+describe("parseBody", () => {
+  it("reads JSON and tolerates the plain-text ids playback commands answer with", () => {
+    expect(parseBody('{"a":1}')).toEqual({ a: 1 });
+    expect(parseBody("")).toBeUndefined();
+    expect(parseBody("qCZ5rxRFyhXyz")).toBeUndefined();
   });
 });

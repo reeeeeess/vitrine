@@ -49,8 +49,20 @@ async function request<T = Json>(path: string, init: RequestInit = {}, retry = t
     }
     throw new SpotifyApiError(response.status, message);
   }
-  const text = await response.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+  return parseBody(await response.text()) as T;
+}
+
+/**
+ * A response body as JSON, or nothing. Spotify's playback commands (play, pause, next, volume…)
+ * answer a success with a bare identifier in plain text, which is not JSON and carries nothing used.
+ */
+export function parseBody(text: string): unknown {
+  if (!text) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Follows `next` links until `max` items, for the endpoints that page. */

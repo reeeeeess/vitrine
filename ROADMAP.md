@@ -144,6 +144,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 |---|---|---|
 | Pochettes floues | Vignettes 64 px de Spotify agrandies à 168 px | Corrigé : 300 px pour les cartes et listes, 640 px pour les grands lecteurs |
 | Après une avance dans le titre, plus de son mais la barre avance | Très probablement la licence DRM refusée hors de la partie non chiffrée du titre (Widevine non signé VMP) | À confirmer : signature castlabs EVS à ajouter (secrets GitHub) ; les erreurs du lecteur s'affichent désormais |
+| Message « Unexpected token … is not valid JSON » | Les commandes de lecture de Spotify répondent désormais par un identifiant en texte brut | Corrigé : réponse non JSON acceptée (la commande avait réussi) |
 | Un titre joue 1 s puis passe au suivant | Même cause : le lecteur Spotify saute le titre après l'erreur DRM | Confirmé par la capture des erreurs (« Playback error » sur chaque titre) ; en attente de la signature EVS. En attendant, la v0.2 bascule seule en mode télécommande |
 
 ---
