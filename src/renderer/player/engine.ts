@@ -416,7 +416,7 @@ async function startBrowserPlayer(): Promise<boolean> {
 /** The browser's player failing in a row, or closed: step aside, as with the built-in player. */
 function watchBrowserPlayer(): void {
   window.vitrine.browserPlayer?.onEvent(({ type, message }) => {
-    if (type === "not_ready") return;
+    if (type === "not_ready" || type === "state" || type === "autoplay_failed") return;
     const now = Date.now();
     browserErrors = [...browserErrors.filter((time) => now - time < ERROR_WINDOW_MS), now];
     if (type === "playback_error" && browserErrors.length < ERRORS_BEFORE_GIVING_UP) {

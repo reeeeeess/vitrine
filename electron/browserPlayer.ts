@@ -66,12 +66,20 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         .then((j) => cb(j.token))
         .catch((error) => post("/event", { type: "authentication_error", message: error.message })),
   });
-  player.addListener("ready", ({ device_id }) => post("/ready", { deviceId: device_id }));
+  player.addListener("ready", ({ device_id }) => {
+    // unlocks the SDK's audio as a click would: without it, Chrome can hold the track at 0:00
+    player.activateElement().catch(() => {});
+    post("/ready", { deviceId: device_id });
+  });
+  player.addListener("autoplay_failed", () => post("/event", { type: "autoplay_failed", message: "lecture automatique bloquée par le navigateur" }));
+  if (new URLSearchParams(location.search).get("debug")) {
+    setInterval(() => player.getCurrentState().then((s) => s && post("/event", { type: "state", message: JSON.stringify({ paused: s.paused, position: s.position, track: s.track_window?.current_track?.name }) })), 3000);
+  }
   player.addListener("not_ready", () => post("/event", { type: "not_ready" }));
   for (const type of ["initialization_error", "authentication_error", "account_error", "playback_error"]) {
     player.addListener(type, ({ message }) => post("/event", { type, message }));
   }
-  player.connect();
+  player.connect().then(() => player.activateElement().catch(() => {}));
 };
 </script>
 <script src="https://sdk.scdn.co/spotify-player.js" onerror="post('/event', { type: 'initialization_error', message: 'SDK Spotify injoignable' })"></script>
@@ -143,7 +151,7 @@ export class BrowserPlayer {
     this.key = randomBytes(24).toString("hex");
     const port = await this.serve();
 
-    const url = `http://127.0.0.1:${port}/player?k=${this.key}`;
+    const url = `http://127.0.0.1:${port}/player?k=${this.key}${process.env.VITRINE_BROWSER_DEBUG_PORT ? "&debug=1" : ""}`;
     fs.mkdirSync(this.profileDir, { recursive: true });
     const child = spawn(
       browser.path,
@@ -161,6 +169,8 @@ export class BrowserPlayer {
         "--window-size=420,240",
         // Chrome will not start as root on Linux without it; never the case on Windows or macOS
         ...(process.platform === "linux" && process.getuid?.() === 0 ? ["--no-sandbox"] : []),
+        // development only: lets a debugger read the player page's console
+        ...(process.env.VITRINE_BROWSER_DEBUG_PORT ? [`--remote-debugging-port=${process.env.VITRINE_BROWSER_DEBUG_PORT}`] : []),
       ],
       { stdio: "ignore", windowsHide: true },
     );
@@ -219,7 +229,9 @@ export class BrowserPlayer {
           const type = typeof body.type === "string" ? body.type : "event";
           const message = typeof body.message === "string" ? body.message.slice(0, 300) : "";
           this.window()?.webContents.send("browser-player:event", { type, message });
-          if (type !== "playback_error" && type !== "not_ready") {
+          if (type === "state" || type === "autoplay_failed") {
+            if (process.env.VITRINE_BROWSER_DEBUG_PORT) console.log(`[lecteur navigateur] ${type} ${message}`);
+          } else if (type !== "playback_error" && type !== "not_ready") {
             this.set({ state: "error", detail: `${type} ${message}`.trim() });
             this.onReady?.(null);
           }

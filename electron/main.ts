@@ -244,6 +244,10 @@ app.on("activate", () => {
 void app.whenReady().then(async () => {
   registerIpc();
   if (!DEV_SERVER_URL) serveRenderer();
+  // test machines without a keychain: keep the session with Chromium's fixed key (Linux, opt-in only)
+  if (process.platform === "linux" && process.env.VITRINE_DEV_PLAINTEXT_SESSION === "1") {
+    (electron.safeStorage as unknown as { setUsePlainTextEncryption?: (on: boolean) => void }).setUsePlainTextEncryption?.(true);
+  }
   [drm] = await Promise.all([prepareWidevine(), auth.load()]);
   browserPlayer = new BrowserPlayer(() => auth.accessToken(), path.join(app.getPath("userData"), "browser-player"), () => mainWindow);
   mainWindow = createWindow();
