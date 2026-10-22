@@ -24,7 +24,7 @@ Il y envoie le code depuis la session. Si GitHub refuse l'accès, claude.ai vous
 **Option B — vous-même**, depuis un dossier qui contient le projet :
 
 ```bash
-git remote add origin https://github.com/votre-compte/vitrine-pc.git
+git remote add origin https://github.com/reeeeeess/vitrine.git
 git push -u origin main
 ```
 
