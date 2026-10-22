@@ -73,8 +73,12 @@ Les artefacts sont conservés 90 jours par GitHub.
 
 ## 6. Publier une version (quand vous êtes prêt)
 
-1. Onglet **Releases** → **Draft a new release** → tag `v0.1.0`.
-2. Joignez les fichiers téléchargés à l'étape 5, puis **Publish release**.
+1. Le code de la version doit être sur GitHub : `git push origin main`. Le numéro est celui de `"version"` dans
+   `package.json` (par exemple `0.4.1`).
+2. Créez le tag du même numéro, précédé de `v`, et envoyez-le : `git tag v0.4.1` puis `git push origin v0.4.1`.
+3. GitHub Actions fabrique et publie la release « v0.4.1 » : installateur Windows (et mises à jour automatiques des
+   PC déjà équipés), puis les images macOS. Si le tag ne correspond pas à la version du code, la fabrication
+   s'arrête dès le début avec un message qui l'explique.
 
 Les testeurs téléchargent alors directement depuis la page Releases.
 
@@ -101,4 +105,5 @@ Pour économiser le quota d'un dépôt privé, lancez les builds à la main (ét
 | `npm ci` échoue sur `electron-releases` | Accès au dépôt castlabs | Relancez le job (souvent passager) |
 | « Premium requis » ou erreur DRM au lancement | Signature VMP absente | Ajoutez les secrets EVS (étape 3) et refabriquez |
 | `LimitExceededException … Exceeded daily email limit` à l'inscription castlabs | Le service d'inscription de castlabs (Amazon Cognito) a envoyé son quota d'e-mails du jour, pour tous ses utilisateurs | Réessayez plus tard (le lendemain). Si l'outil répond alors que le compte existe déjà, demandez le code : `py -m castlabs_evs.account resend`, puis saisissez le code reçu |
+| Le job `release` échoue (« exit code 1 »), ou `test` signale « Le tag … est posé sur du code en version … » | Le tag a été créé sur l'ancien code : le nouveau n'avait pas été envoyé (`git push origin main`), et le numéro de version ne correspond pas | Envoyez le code, supprimez le tag et recréez-le : `git push origin main`, `git tag -d v0.4.1`, `git push origin :refs/tags/v0.4.1`, `git tag v0.4.1`, `git push origin v0.4.1` |
 | La connexion Spotify échoue | URI de redirection absente | Ajoutez `http://127.0.0.1:8898/callback` dans le tableau de bord Spotify |

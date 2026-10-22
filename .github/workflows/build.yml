@@ -21,6 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # a tag on code of another version would publish under that other version's name
+      - name: Check the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Le tag $GITHUB_REF_NAME est posé sur du code en version $version. Envoyez d'abord le code de $GITHUB_REF_NAME (git push origin main), supprimez le tag puis recréez-le."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -91,6 +100,10 @@ jobs:
         with:
           name: vitrine-mac
           path: mac
-      - run: gh release upload "$GITHUB_REF_NAME" mac/*.dmg --clobber --repo "$GITHUB_REPOSITORY"
+      # the release normally exists already (the Windows build creates it); created here otherwise
+      - run: |
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "Vitrine ${GITHUB_REF_NAME#v}" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" mac/*.dmg --clobber --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
