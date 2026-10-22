@@ -111,3 +111,10 @@ describe("artists and links", () => {
     expect(mapArtist({ id: "a", uri: "u", name: "A" })?.followers).toBeUndefined();
   });
 });
+
+describe("startTarget without a working local player", () => {
+  it("never picks this computer once its player has failed", () => {
+    const local = { id: "me", name: "Vitrine (cet ordinateur)", type: "Computer", local: true };
+    expect(startTarget({ sdk: "error", device: local })).toBeUndefined();
+  });
+});

@@ -8,7 +8,8 @@ export type Route =
   | { name: "stats" }
   | { name: "playlist"; id: string }
   | { name: "album"; id: string }
-  | { name: "artist"; id: string };
+  | { name: "artist"; id: string }
+  | { name: "settings" };
 
 export interface Toast {
   id: number;
@@ -24,6 +25,8 @@ export const ui = createStore({
   devicesOpen: false,
   queueOpen: false,
   mini: false,
+  /** the playlist dialog: add these tracks to a playlist, or (empty) just create one */
+  playlistDialog: null as { uris: string[] } | null,
 });
 
 export async function setMini(on: boolean): Promise<void> {
@@ -46,6 +49,8 @@ export function goBack(): void {
 
 let nextToast = 1;
 export function notify(text: string, tone: Toast["tone"] = "info"): void {
+  // the same message twice in a row would only stack up
+  if (ui.get().toasts.some((toast) => toast.text === text)) return;
   const id = nextToast++;
   ui.set((state) => ({ toasts: [...state.toasts, { id, text, tone }].slice(-3) }));
   setTimeout(() => ui.set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })), 4500);

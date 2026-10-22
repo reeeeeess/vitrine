@@ -5,6 +5,7 @@ import { FullPlayer } from "./components/FullPlayer";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Header } from "./components/Header";
 import { NowPlayingBar, run } from "./components/NowPlayingBar";
+import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
 import type { AuthStatus, DrmStatus } from "./global";
@@ -13,13 +14,16 @@ import { useStore } from "./lib/store";
 import { errorMessage } from "./lib/format";
 import { notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
+import { connectDiscord } from "./player/discordBridge";
 import { connectMediaSession } from "./player/mediaSession";
+import { connectUpdates } from "./lib/updates";
 import { ArtistView } from "./views/Artist";
 import { CollectionView } from "./views/Collection";
 import { Home } from "./views/Home";
 import { Library } from "./views/Library";
 import { Login } from "./views/Login";
 import { Search } from "./views/Search";
+import { Settings } from "./views/Settings";
 import { Stats } from "./views/Stats";
 
 function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
@@ -27,6 +31,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const fullPlayer = useStore(ui, (s) => s.fullPlayer);
   const queueOpen = useStore(ui, (s) => s.queueOpen);
   const mini = useStore(ui, (s) => s.mini);
+  const playlistDialog = useStore(ui, (s) => s.playlistDialog);
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
 
@@ -36,6 +41,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   }, [drm]);
 
   useEffect(() => connectMediaSession((error) => notify(errorMessage(error), "error")), []);
+  useEffect(() => connectDiscord(), []);
+  useEffect(() => connectUpdates(), []);
 
   // space plays and pauses, except while typing
   useEffect(() => {
@@ -64,6 +71,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
     case "stats":
       view = <Stats />;
       break;
+    case "settings":
+      view = <Settings profile={profile} onLogout={onLogout} />;
+      break;
     case "artist":
       view = <ArtistView key={route.id} id={route.id} />;
       break;
@@ -88,6 +98,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <NowPlayingBar />
       <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
+      <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
     </div>
   );
 }

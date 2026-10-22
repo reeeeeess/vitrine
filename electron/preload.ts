@@ -20,6 +20,23 @@ const api = {
   window: {
     setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
   },
+  info: () => ipcRenderer.invoke("app:info"),
+  discord: {
+    get: () => ipcRenderer.invoke("discord:get"),
+    set: (settings: unknown) => ipcRenderer.invoke("discord:set", settings),
+    update: (nowPlaying: unknown) => ipcRenderer.invoke("discord:update", nowPlaying),
+  },
+  updates: {
+    get: () => ipcRenderer.invoke("update:get"),
+    check: () => ipcRenderer.invoke("update:check"),
+    install: () => ipcRenderer.invoke("update:install"),
+    /** Calls back on every change; returns the function that stops listening. */
+    subscribe: (listener: (state: unknown) => void) => {
+      const forward = (_event: unknown, state: unknown) => listener(state);
+      ipcRenderer.on("update:status", forward);
+      return () => ipcRenderer.removeListener("update:status", forward);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("vitrine", api);

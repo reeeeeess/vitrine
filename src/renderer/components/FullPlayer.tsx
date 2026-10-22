@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ListPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { artworkColor, rgbVar } from "../lib/palette";
 import { useStore } from "../lib/store";
@@ -23,7 +23,7 @@ export function FullPlayer() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || ui.get().playlistDialog) return;
       // the devices menu closes first, then the player
       ui.set(ui.get().devicesOpen ? { devicesOpen: false } : { fullPlayer: false });
     };
@@ -65,7 +65,17 @@ export function FullPlayer() {
               <div className="mt-8 w-[min(52vh,100%)]">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="min-w-0 truncate font-display text-3xl tracking-tight">{track.name}</h2>
-                  <LikeButton track={track} size="h-6 w-6" />
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      onClick={() => ui.set({ playlistDialog: { uris: [track.uri] } })}
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+                      aria-label="Ajouter à une playlist"
+                      title="Ajouter à une playlist"
+                    >
+                      <ListPlus className="h-6 w-6" />
+                    </button>
+                    <LikeButton track={track} size="h-6 w-6" />
+                  </div>
                 </div>
                 <ArtistLinks track={track} className="mt-1 text-lg text-white/70" />
                 {track.albumId && (

@@ -3,7 +3,11 @@ import { app, BrowserWindow, ipcMain, net, protocol, screen, shell, type IpcMain
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { AuthManager } from "./auth";
+import { readConfig, updateConfig } from "./config";
+import { DiscordPresence } from "./discord";
+import type { NowPlaying } from "./discordProtocol";
 import { fetchLyrics } from "./lyrics";
+import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
 
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const RENDERER_DIR = path.join(__dirname, "../dist/renderer");
@@ -23,6 +27,7 @@ protocol.registerSchemesAsPrivileged([
 if (!app.requestSingleInstanceLock()) app.quit();
 
 const auth = new AuthManager();
+const discord = new DiscordPresence();
 let mainWindow: BrowserWindow | null = null;
 let drm: DrmStatus = { widevine: false, detail: "Vérification de Widevine…" };
 
@@ -120,6 +125,44 @@ function registerIpc(): void {
     if (typeof url === "string" && url.startsWith("https://")) return shell.openExternal(url);
   });
   handle("window:mini", (on) => setMini(on === true));
+  handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
+
+  handle("discord:get", () => discordInfo());
+  handle("discord:set", (raw) => {
+    const input = (raw ?? {}) as { enabled?: unknown; appId?: unknown };
+    const settings = { enabled: input.enabled === true, appId: typeof input.appId === "string" ? input.appId.trim().slice(0, 32) : "" };
+    updateConfig({ discord: settings });
+    discord.configure(settings.enabled, settings.appId);
+    return discordInfo();
+  });
+  handle("discord:update", (raw) => discord.update(nowPlaying(raw)));
+
+  handle("update:get", () => updateState());
+  handle("update:check", () => checkForUpdates());
+  handle("update:install", () => installUpdate());
+}
+
+function discordInfo() {
+  const settings = readConfig().discord ?? { enabled: false, appId: "" };
+  return { ...settings, state: discord.state, detail: discord.detail };
+}
+
+/** What the page says is playing, checked field by field before it reaches Discord. */
+function nowPlaying(raw: unknown): NowPlaying | null {
+  if (!raw || typeof raw !== "object") return null;
+  const input = raw as Record<string, unknown>;
+  const text = (value: unknown) => (typeof value === "string" ? value.slice(0, 200) : "");
+  const number = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0);
+  if (!text(input.title)) return null;
+  return {
+    title: text(input.title),
+    artist: text(input.artist),
+    album: text(input.album) || undefined,
+    imageUrl: text(input.imageUrl) || undefined,
+    durationMs: number(input.durationMs),
+    positionMs: number(input.positionMs),
+    paused: input.paused === true,
+  };
 }
 
 const MINI = { width: 340, height: 440 };
@@ -165,4 +208,7 @@ void app.whenReady().then(async () => {
   if (!DEV_SERVER_URL) serveRenderer();
   [drm] = await Promise.all([prepareWidevine(), auth.load()]);
   mainWindow = createWindow();
+  const settings = readConfig().discord;
+  if (settings) discord.configure(settings.enabled, settings.appId);
+  startUpdater(() => mainWindow);
 });

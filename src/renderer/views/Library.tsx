@@ -1,8 +1,10 @@
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { MediaCard } from "../components/MediaCard";
 import { cn } from "../lib/cn";
 import * as api from "../lib/spotify";
+import { ui } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import { openCollection, playCollection } from "./Home";
 
@@ -19,7 +21,13 @@ export function Library() {
   return (
     <div className="animate-skeleton-fade">
       <div className="flex items-end justify-between gap-4 px-1">
-        <h1 className="font-display text-4xl tracking-tight">Bibliothèque</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-4xl tracking-tight">Bibliothèque</h1>
+          <button onClick={() => ui.set({ playlistDialog: { uris: [] } })} className="btn-ghost min-h-0 px-4 py-2 text-sm">
+            <Plus className="h-4 w-4" />
+            Nouvelle playlist
+          </button>
+        </div>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
           {(["playlists", "albums"] as Tab[]).map((value) => (
             <button

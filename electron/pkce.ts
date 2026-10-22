@@ -19,6 +19,9 @@ export const SCOPES = [
   "user-top-read",
   "playlist-read-private",
   "playlist-read-collaborative",
+  // creating playlists and adding tracks to them
+  "playlist-modify-public",
+  "playlist-modify-private",
   "user-library-read",
   "user-library-modify",
 ];

@@ -1,9 +1,10 @@
-import { BarChart3, Home, Library, LogOut, Palette, Search, X } from "lucide-react";
+import { BarChart3, Download, Home, Library, LogOut, Palette, Search, Settings, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
 import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
 import { setTheme, theme } from "../lib/theme";
+import { updates } from "../lib/updates";
 import { navigate, ui, type Route } from "../lib/ui";
 
 const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
@@ -33,6 +34,18 @@ export function ThemeToggle() {
     >
       <Palette className="h-4 w-4" />
       {current === "mystic" ? "Mystic" : "Movix"}
+    </button>
+  );
+}
+
+/** Shown once a new version has downloaded: one click restarts into it. */
+function UpdatePill() {
+  const state = useStore(updates, (s) => s.state);
+  if (state.status !== "ready") return null;
+  return (
+    <button onClick={() => void window.vitrine.updates.install()} className="accent-bg kicker flex shrink-0 items-center gap-2 whitespace-nowrap rounded-btn px-3 py-2 font-semibold" title={`Redémarrer Vitrine pour installer la version ${state.version ?? ""}`}>
+      <Download className="h-4 w-4" />
+      Installer {state.version}
     </button>
   );
 }
@@ -117,7 +130,16 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
         )}
       </div>
 
+      <UpdatePill />
       <ThemeToggle />
+      <button
+        onClick={() => navigate({ name: "settings" })}
+        className={cn("rounded-lg p-2 transition-colors", route.name === "settings" ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
+        aria-label="Réglages"
+        title="Réglages"
+      >
+        <Settings className="h-4 w-4" />
+      </button>
 
       {profile && (
         <div className="flex shrink-0 items-center gap-2">

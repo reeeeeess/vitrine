@@ -5,6 +5,7 @@ import { app, net, safeStorage, shell } from "electron";
 import { createServer, type Server } from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { readConfig, updateConfig } from "./config";
 import {
   authorizeUrl,
   createPkcePair,
@@ -40,7 +41,6 @@ export class AuthManager {
   private server: Server | null = null;
   private cancelPending: ((error: Error) => void) | null = null;
   private readonly sessionFile = path.join(app.getPath("userData"), "session.bin");
-  private readonly configFile = path.join(app.getPath("userData"), "config.json");
   private readonly builtInClientId = (process.env.VITRINE_CLIENT_ID ?? "").trim();
 
   async load(): Promise<void> {
@@ -57,7 +57,7 @@ export class AuthManager {
   async status(): Promise<AuthStatus> {
     return {
       loggedIn: this.tokens !== null,
-      clientId: this.tokens?.clientId ?? (await this.savedClientId()) ?? this.builtInClientId,
+      clientId: this.tokens?.clientId ?? this.savedClientId() ?? this.builtInClientId,
       clientIdBuiltIn: isClientId(this.builtInClientId),
       persistent: safeStorage.isEncryptionAvailable(),
     };
@@ -79,7 +79,8 @@ export class AuthManager {
       code_verifier: verifier,
     });
     this.tokens = parseTokenResponse(body, clientId);
-    await Promise.all([this.save(), this.saveClientId(clientId)]);
+    updateConfig({ clientId });
+    await this.save();
     return this.status();
   }
 
@@ -190,18 +191,9 @@ export class AuthManager {
     await fs.writeFile(this.sessionFile, safeStorage.encryptString(JSON.stringify(this.tokens)), { mode: 0o600 });
   }
 
-  private async savedClientId(): Promise<string | undefined> {
-    try {
-      const config = JSON.parse(await fs.readFile(this.configFile, "utf8")) as { clientId?: unknown };
-      return typeof config.clientId === "string" && isClientId(config.clientId) ? config.clientId : undefined;
-    } catch {
-      return undefined;
-    }
-  }
-
-  private async saveClientId(clientId: string): Promise<void> {
-    await fs.mkdir(path.dirname(this.configFile), { recursive: true });
-    await fs.writeFile(this.configFile, JSON.stringify({ clientId }, null, 2));
+  private savedClientId(): string | undefined {
+    const clientId = readConfig().clientId;
+    return typeof clientId === "string" && isClientId(clientId) ? clientId : undefined;
   }
 }
 

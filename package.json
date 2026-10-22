@@ -1,7 +1,7 @@
 {
   "name": "vitrine-pc",
   "productName": "Vitrine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Lecteur Spotify de bureau au design verre, sur l'API officielle de Spotify.",
   "main": "dist-electron/main.js",
@@ -28,6 +28,7 @@
     "clsx": "2.1.1",
     "electron": "github:castlabs/electron-releases#v43.7.7+wvcus",
     "electron-builder": "26.0.12",
+    "electron-updater": "6.6.2",
     "embla-carousel-autoplay": "8.6.0",
     "embla-carousel-react": "8.6.0",
     "esbuild": "0.25.10",
@@ -86,7 +87,14 @@
       "identity": null,
       "artifactName": "Vitrine-${version}-${arch}.${ext}"
     },
-    "publish": []
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "reeeeeess",
+        "repo": "vitrine",
+        "releaseType": "release"
+      }
+    ]
   },
   "author": {
     "name": "Vitrine",

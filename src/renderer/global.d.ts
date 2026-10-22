@@ -28,6 +28,48 @@ export interface VitrineBridge {
   lyrics: { get(query: { track: string; artist: string; album?: string; durationMs?: number }): Promise<LyricsResult | null> };
   openExternal(url: string): Promise<void>;
   window: { setMini(on: boolean): Promise<boolean> };
+  info(): Promise<AppInfo>;
+  discord: {
+    get(): Promise<DiscordInfo>;
+    set(settings: { enabled: boolean; appId: string }): Promise<DiscordInfo>;
+    update(nowPlaying: DiscordNowPlaying | null): Promise<void>;
+  };
+  updates: {
+    get(): Promise<UpdateState>;
+    check(): Promise<UpdateState>;
+    install(): Promise<void>;
+    subscribe(listener: (state: UpdateState) => void): () => void;
+  };
+}
+
+export interface AppInfo {
+  version: string;
+  platform: string;
+  packaged: boolean;
+}
+
+export interface DiscordInfo {
+  enabled: boolean;
+  appId: string;
+  state: "off" | "connecting" | "connected" | "unavailable" | "error";
+  detail: string;
+}
+
+export interface DiscordNowPlaying {
+  title: string;
+  artist: string;
+  album?: string;
+  imageUrl?: string;
+  durationMs: number;
+  positionMs: number;
+  paused: boolean;
+}
+
+export interface UpdateState {
+  status: "unsupported" | "idle" | "checking" | "downloading" | "ready" | "latest" | "error";
+  version?: string;
+  percent?: number;
+  message?: string;
 }
 
 // The part of the Web Playback SDK this app uses.
@@ -63,6 +105,7 @@ export namespace SpotifySdk {
       cb: (error: { message: string }) => void,
     ): void;
     togglePlay(): Promise<void>;
+    pause(): Promise<void>;
     nextTrack(): Promise<void>;
     previousTrack(): Promise<void>;
     seek(ms: number): Promise<void>;

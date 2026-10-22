@@ -51,6 +51,9 @@ export const playback = createStore<PlaybackState>({
 });
 
 let player: SpotifySdk.Player | null = null;
+let recentErrors: number[] = [];
+const ERROR_WINDOW_MS = 30_000;
+const ERRORS_BEFORE_GIVING_UP = 2;
 /** the SDK reports a state only while this computer is the one playing */
 let localActive = false;
 
@@ -126,7 +129,12 @@ async function poll(): Promise<void> {
     }
     playback.set({
       device: remote.device
-        ? { ...remote.device, local: remote.device.id === localId, name: remote.device.id === localId ? DEVICE_NAME : remote.device.name }
+        ? {
+            ...remote.device,
+            // once the local player has stepped aside, Spotify may still report it for a moment
+            local: remote.device.id === localId || (!localId && remote.device.name === DEVICE_NAME),
+            name: remote.device.id === localId ? DEVICE_NAME : remote.device.name,
+          }
         : undefined,
       track: remote.track ?? undefined,
       contextUri: remote.contextUri,
@@ -189,11 +197,16 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
       notify(`${message} (${detail})`, "error");
     });
   }
-  // the SDK skips to the next track after a playback error: say so, or the skip looks random
+  // the SDK skips to the next track after a playback error: say so, or the skip looks random;
+  // errors in a row mean Spotify refuses this computer, and the player steps aside
   player.addListener("playback_error", ({ message }) => {
-    const text = `Lecture interrompue sur cet ordinateur : ${message}. Si cela se répète, la protection DRM de l'appli n'est pas reconnue par Spotify (signature castlabs) ; choisissez un autre appareil dans le menu des appareils.`;
-    playback.set({ sdkMessage: text });
-    notify(text, "error");
+    const now = Date.now();
+    recentErrors = [...recentErrors.filter((time) => now - time < ERROR_WINDOW_MS), now];
+    if (recentErrors.length >= ERRORS_BEFORE_GIVING_UP) {
+      void giveUpLocalPlayback();
+      return;
+    }
+    notify(`Titre sauté : Spotify a interrompu la lecture sur cet ordinateur (${message}).`, "error");
   });
   if (!(await player.connect())) playback.set({ sdk: "error", sdkMessage: "Le lecteur intégré a été refusé." });
 }
@@ -279,11 +292,42 @@ let chosenDevice: string | undefined;
 export function startTarget(state: Pick<PlaybackState, "device" | "localDeviceId" | "sdk">, chosen?: string): string | undefined {
   if (chosen && state.device?.id === chosen) return chosen;
   if (state.sdk === "ready" && state.localDeviceId) return state.localDeviceId;
-  return state.device?.id;
+  // without a working player here, this computer is no target, even if Spotify still lists it
+  return state.device && !state.device.local ? state.device.id : undefined;
+}
+
+/** Another Spotify device to play on: the active one, else a computer, else any. */
+async function otherDevice(): Promise<string | undefined> {
+  const localId = playback.get().localDeviceId;
+  const list = (await api.devices()).filter((device) => device.id !== localId && !device.name.startsWith("Vitrine"));
+  return (list.find((d) => d.isActive) ?? list.find((d) => d.type === "Computer") ?? list[0])?.id;
+}
+
+/**
+ * Spotify refused to play on this computer more than once in a short while: most likely the DRM
+ * (Widevine without castlabs' VMP signature). The local player leaves Spotify Connect, so playback
+ * goes to the person's other devices instead of skipping track after track.
+ */
+async function giveUpLocalPlayback(): Promise<void> {
+  if (!player) return;
+  const local = player;
+  player = null;
+  localActive = false;
+  await local.pause().catch(() => undefined);
+  local.disconnect();
+  playback.set((state) => ({
+    sdk: "error",
+    sdkMessage:
+      "Spotify refuse la lecture sur cet ordinateur (protection DRM de l'appli non reconnue : signature castlabs manquante). Vitrine pilote vos autres appareils Spotify à la place.",
+    localDeviceId: undefined,
+    device: state.device?.local ? undefined : state.device,
+    paused: true,
+  }));
+  notify("Lecture impossible sur cet ordinateur (DRM). Vitrine passe en mode télécommande : la musique jouera sur un autre appareil Spotify ouvert.", "error");
 }
 
 async function start(body: api.PlayBody): Promise<void> {
-  const device = startTarget(playback.get(), chosenDevice);
+  const device = startTarget(playback.get(), chosenDevice) ?? (await otherDevice());
   if (!device) throw new NoDeviceError();
   // the click that started playback also unlocks audio for the SDK
   if (device === playback.get().localDeviceId) await player?.activateElement().catch(() => undefined);

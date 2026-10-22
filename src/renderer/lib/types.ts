@@ -26,6 +26,9 @@ export interface Collection {
   description?: string;
   image?: string;
   total?: number;
+  /** playlists only: who owns it, and whether others may add to it */
+  ownerId?: string;
+  collaborative?: boolean;
 }
 
 export interface Artist {
@@ -93,6 +96,8 @@ export function mapPlaylist(raw: Raw): Collection | null {
     description: stripHtml(str(raw.description)) || undefined,
     image: pickImage(raw.images, 640),
     total: typeof total === "number" ? total : undefined,
+    ownerId: str(obj(raw.owner)?.id) || undefined,
+    collaborative: raw.collaborative === true,
   };
 }
 

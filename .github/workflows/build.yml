@@ -1,8 +1,13 @@
 # Builds the Windows installer and the macOS disk images on every push to main and every tag.
+# A tag vX.Y.Z (matching "version" in package.json) also publishes a GitHub release with both,
+# which the Windows app's automatic updates read from.
 # Optional repository secrets:
 #   VITRINE_CLIENT_ID                Spotify Client ID built into the app (otherwise people enter their own)
 #   EVS_ACCOUNT_NAME / EVS_PASSWD    castlabs EVS account, to sign Widevine VMP (needed for reliable playback)
 name: Build
+
+permissions:
+  contents: write
 
 on:
   push:
@@ -61,14 +66,31 @@ jobs:
           python -m pip install --upgrade castlabs-evs
           python -m castlabs_evs.account reauth -A "$EVS_ACCOUNT_NAME" -P "$EVS_PASSWD"
         shell: bash
-      - run: npm run dist:${{ matrix.target }} -- --publish never
+      # on a version tag, the Windows build publishes the release (installer + latest.yml for updates)
+      - run: npm run dist:${{ matrix.target }} -- --publish ${{ matrix.target == 'win' && startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
         env:
           VITRINE_CLIENT_ID: ${{ secrets.VITRINE_CLIENT_ID }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: vitrine-${{ matrix.target }}
           path: |
             release/*.exe
             release/*.dmg
+            release/latest.yml
           if-no-files-found: error
+
+  release:
+    # adds the macOS disk images to the release the Windows build published
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vitrine-mac
+          path: mac
+      - run: gh release upload "$GITHUB_REF_NAME" mac/*.dmg --clobber --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

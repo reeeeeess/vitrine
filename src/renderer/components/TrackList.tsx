@@ -1,10 +1,10 @@
-import { Clock3, ListPlus, Play } from "lucide-react";
+import { Clock3, ListPlus, Play, Plus } from "lucide-react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
 import { useStore } from "../lib/store";
 import type { Track } from "../lib/types";
 import { errorMessage } from "../lib/format";
-import { navigate, notify } from "../lib/ui";
+import { navigate, notify, ui } from "../lib/ui";
 import { addToQueue, playback } from "../player/engine";
 import { Artwork } from "./Artwork";
 import { ArtistLinks } from "./NowPlayingBar";
@@ -33,7 +33,7 @@ function Equalizer() {
 export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: TrackListProps) {
   const currentUri = useStore(playback, (s) => s.track?.uri);
   const paused = useStore(playback, (s) => s.paused);
-  const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_5.5rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_5.5rem]";
+  const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_7rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
 
   return (
     <div className="mt-6" role="table" aria-label="Titres">
@@ -85,6 +85,14 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true }: 
                 </button>
               )}
               <span className="flex items-center justify-end gap-2 text-sm tabular-nums text-gray-400">
+                <button
+                  className="hidden text-gray-400 hover:text-white group-hover:block"
+                  onClick={() => ui.set({ playlistDialog: { uris: [track.uri] } })}
+                  aria-label={`Ajouter ${track.name} à une playlist`}
+                  title="Ajouter à une playlist"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
                 <button
                   className="hidden text-gray-400 hover:text-white group-hover:block"
                   onClick={() =>

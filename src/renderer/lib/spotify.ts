@@ -43,6 +43,10 @@ async function request<T = Json>(path: string, init: RequestInit = {}, retry = t
     } catch {
       // not JSON
     }
+    // a session opened before the app asked for a permission does not carry it
+    if (response.status === 403 && /scope/i.test(message)) {
+      message = "Cette action demande une autorisation Spotify de plus : déconnectez-vous puis reconnectez-vous.";
+    }
     throw new SpotifyApiError(response.status, message);
   }
   const text = await response.text();
@@ -288,3 +292,44 @@ export async function areSaved(ids: string[]): Promise<boolean[]> {
 
 export const saveTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "PUT" });
 export const removeTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "DELETE" });
+
+// ── editing playlists ─────────────────────────────────────────────────────
+
+/** Tries the current endpoint, then the older one Spotify may still serve. */
+async function withFallback<T>(current: () => Promise<T>, older: () => Promise<T>): Promise<T> {
+  try {
+    return await current();
+  } catch (error) {
+    if (error instanceof SpotifyApiError && (error.status === 404 || error.status === 405)) return older();
+    throw error;
+  }
+}
+
+/** The person's playlists they may add tracks to: their own and the collaborative ones. */
+export async function editablePlaylists(): Promise<Collection[]> {
+  const [profile, playlists] = await Promise.all([me(), myPlaylists()]);
+  return playlists.filter((playlist) => playlist.ownerId === profile.id || playlist.collaborative);
+}
+
+export async function createPlaylist(name: string, description = ""): Promise<Collection> {
+  const body = JSON.stringify({ name: name.trim().slice(0, 100), description: description.slice(0, 300), public: false });
+  const raw = await withFallback(
+    () => request<Json>("/me/playlists", { method: "POST", body }),
+    async () => request<Json>(`/users/${encodeURIComponent((await me()).id)}/playlists`, { method: "POST", body }),
+  );
+  const playlist = mapPlaylist(raw);
+  if (!playlist) throw new SpotifyApiError(500, "Spotify n'a pas renvoyé la playlist créée");
+  return playlist;
+}
+
+export async function addToPlaylist(playlistId: string, uris: string[]): Promise<void> {
+  const path = `/playlists/${encodeURIComponent(playlistId)}`;
+  // Spotify takes a hundred at a time
+  for (let i = 0; i < uris.length; i += 100) {
+    const body = JSON.stringify({ uris: uris.slice(i, i + 100) });
+    await withFallback(
+      () => request(`${path}/items`, { method: "POST", body }),
+      () => request(`${path}/tracks`, { method: "POST", body }),
+    );
+  }
+}

@@ -36,6 +36,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Lecture / pause, précédent / suivant, avance, aléatoire, répétition
 - 🟡 Volume : appliqué sur l'ordinateur ; synchronisation avec Spotify Connect corrigée, à revérifier
 - ✅ Choix et transfert de l'appareil de lecture
+- 🧪 Si Spotify refuse la lecture sur l'ordinateur (erreurs en série), le lecteur intégré se retire et Vitrine passe
+  d'elle-même en mode télécommande, au lieu de sauter les titres un par un
 - 🧪 File d'attente visible (« En cours » / « À suivre ») et « Ajouter à la file » sur chaque titre
 - 🧪 Touches multimédia du clavier et contrôles système (Media Session : barre des tâches Windows, Centre de contrôle macOS)
 - ⬜ Réorganiser la file (l'API officielle ne le permet pas aujourd'hui)
@@ -47,7 +49,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ✅ Pages playlist et album avec liste des titres et lecture en un clic
 - 🧪 Pages artiste (abonnés, genres, titres populaires, albums et singles), artistes cliquables partout
 - 🧪 Ajouter / retirer un titre des titres likés (cœur dans la barre et le plein écran)
-- ⬜ Créer et modifier des playlists
+- 🧪 Créer une playlist (Bibliothèque ou fenêtre d'ajout) et y ajouter des titres (« + » sur chaque titre, bouton dans le
+  lecteur plein écran) ; demande deux autorisations Spotify de plus : une session ouverte avant la v0.2 doit se reconnecter
 
 ### Immersion (l'esprit Vitrine)
 - ✅ Lecteur plein écran avec pochette géante et fond coloré tiré de la pochette
@@ -66,8 +69,11 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - ⬜ Récapitulatif mensuel partageable (image)
 
 ### Intégrations
-- ⬜ Discord Rich Presence (« En écoute sur Vitrine »)
-- ⬜ Mises à jour automatiques
+- 🧪 Discord Rich Presence « Écoute » (titre, artiste, pochette, progression), désactivé par défaut, dans Réglages ;
+  vérifié dans la vraie appli contre un Discord simulé
+- 🧪 Mises à jour automatiques sous Windows depuis les Releases GitHub (téléchargement en arrière-plan, bouton
+  « Installer » dans l'en-tête) ; macOS exige une signature Apple, prévue plus tard
+- 🧪 Page Réglages : thème, état du lecteur, Discord, mises à jour, compte, à propos
 - ⬜ Langues : français (par défaut), anglais
 
 ---
@@ -92,6 +98,8 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - **Sprint 1 (fait)** : file d'attente, touches multimédia et contrôles système, pages artiste, titres likés
   — vérifiés sur données fictives, à valider sur compte réel avec le volume
 - **Sprint 2 (fait)** : thème « Mystic » (mysticsaba.com) en option, mini-lecteur
+- **Sprint 3 (fait, v0.2.0)** : mises à jour automatiques, Réglages, Discord, playlists, repli automatique en
+  télécommande quand la lecture est refusée
 - **Prochaine étape** : une session de test sur compte réel pour valider les éléments 🧪 (volume, file
   d'attente, titres likés, pages artiste, contrôles système), puis envoi sur GitHub pour produire
   l'installateur Windows et écouter sur un vrai PC
@@ -100,7 +108,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
 
 ### Phase 3 — Version 1.0 *(+8 semaines)*
-- Mises à jour automatiques, Discord, traduction anglaise
+- Traduction anglaise, récapitulatif mensuel partageable
 - Demande de « quota étendu » auprès de Spotify pour ouvrir l'appli au-delà de 25 utilisateurs
 - Tests de charge mémoire/CPU, accessibilité clavier
 
@@ -136,7 +144,7 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 |---|---|---|
 | Pochettes floues | Vignettes 64 px de Spotify agrandies à 168 px | Corrigé : 300 px pour les cartes et listes, 640 px pour les grands lecteurs |
 | Après une avance dans le titre, plus de son mais la barre avance | Très probablement la licence DRM refusée hors de la partie non chiffrée du titre (Widevine non signé VMP) | À confirmer : signature castlabs EVS à ajouter (secrets GitHub) ; les erreurs du lecteur s'affichent désormais |
-| Un titre joue 1 s puis passe au suivant | Même cause : le lecteur Spotify saute le titre après l'erreur DRM | Idem |
+| Un titre joue 1 s puis passe au suivant | Même cause : le lecteur Spotify saute le titre après l'erreur DRM | Confirmé par la capture des erreurs (« Playback error » sur chaque titre) ; en attente de la signature EVS. En attendant, la v0.2 bascule seule en mode télécommande |
 
 ---
 
