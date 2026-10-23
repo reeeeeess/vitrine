@@ -114,6 +114,11 @@
     0% { transform: translate(0, 0) scale(1); }
     100% { transform: translate(9%, 7%) scale(1.15); }
   }
+  /* the lyrics' dots during a silence (Apple Music) */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+  }
   @keyframes grain {
     0%, 100% { transform: translate(0, 0); }
     10% { transform: translate(-5%, -10%); }
@@ -136,6 +141,9 @@
   html.no-blur * {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+  html.no-blur .lyric-line {
+    filter: none !important;
   }
   html.no-blur .glass {
     background: rgb(var(--c-panel, 17 17 17) / 0.97) !important;

@@ -11,12 +11,12 @@ ou des données déjà chargées en vient.
 
 ## Étape 1 — Paroles
 
-- [ ] B1 Points pendant les silences (intro et passages instrumentaux)
-- [ ] B2 Mot par mot (temps estimé par mot, vrai temps si le fichier le donne)
-- [ ] B3 Chœurs entre parenthèses plus petits, sous la ligne
-- [ ] B5 Flou et taille selon la distance à la ligne chantée
-- [ ] B6 Défiler librement, retour automatique après 3 s ou au clic
-- [ ] B8 Prononciation en lettres latines (coréen, japonais en kana, russe et autres cyrilliques, grec)
+- [x] B1 Points pendant les silences (intro et passages instrumentaux)
+- [x] B2 Mot par mot (temps estimé par mot, vrai temps si le fichier le donne)
+- [x] B3 Chœurs entre parenthèses plus petits, sous la ligne
+- [x] B5 Flou et taille selon la distance à la ligne chantée
+- [x] B6 Défiler librement, retour automatique après 3 s ou au clic
+- [x] B8 Prononciation en lettres latines (coréen, japonais en kana, russe et autres cyrilliques, grec)
 
 ## Étape 2 — Le lecteur
 

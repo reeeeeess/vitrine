@@ -5,7 +5,8 @@ vi.mock("electron", () => ({ net: { fetch: vi.fn() }, BrowserWindow: class {}, s
 const { LEAN_FLAGS } = await import("../electron/browserPlayer");
 const { fromPlayer, fromSdkState } = await import("../electron/remote");
 const { autoReason, effective } = await import("../src/renderer/lib/lite");
-const { aurora, lineProgress } = await import("../src/renderer/components/LyricsStage");
+const { aurora } = await import("../src/renderer/components/LyricsStage");
+const { fill, sungLength } = await import("../src/renderer/lib/lyricsView");
 const { stopOffset } = await import("../src/renderer/components/Roulette");
 
 describe("lighter browser player", () => {
@@ -59,11 +60,11 @@ describe("karaoke lyrics (after Musix)", () => {
   ];
 
   it("fills a line at an even pace, over the time its words take before a long silence", () => {
-    expect(lineProgress(lines, 0, 10_000)).toBe(0);
+    const progress = (position: number) => fill(lines[0].timeMs, lines[0].timeMs + sungLength(lines[0], lines[1]?.timeMs), position);
+    expect(progress(10_000)).toBe(0);
     // four words: 1.8 s at least, here 4 × 380 ms → 1.8 s
-    expect(lineProgress(lines, 0, 10_900)).toBeCloseTo(0.5, 1);
-    expect(lineProgress(lines, 0, 25_000)).toBe(1);
-    expect(lineProgress(lines, -1, 5000)).toBe(0);
+    expect(progress(10_900)).toBeCloseTo(0.5, 1);
+    expect(progress(25_000)).toBe(1);
   });
 
   it("draws three aurora colours from the artwork's", () => {
