@@ -19,6 +19,7 @@ import { restore, trash } from "../lib/trash";
 import { EFFECTS, lite, REASONS, setEffect, setLiteSetting, type LiteSetting } from "../lib/lite";
 import { languageSetting, LOCALE, setLanguage, t, type LanguageSetting } from "../lib/i18n";
 import { shortcuts } from "../lib/shortcuts";
+import { scrobblesEverywhere, setScrobblesEverywhere } from "../player/scrobbler";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -508,7 +509,10 @@ function LastfmSettings() {
   const [status, setStatus] = useState<LastfmStatus>();
   const [apiKey, setApiKey] = useState("");
   const [secret, setSecret] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState<"login" | "browser" | null>(null);
+  const [everywhere, setEverywhere] = useState(scrobblesEverywhere);
   const [message, setMessage] = useState<string>();
   useEffect(() => {
     void window.vitrine.lastfm?.status().then((value) => {
@@ -517,51 +521,97 @@ function LastfmSettings() {
     }, () => undefined);
   }, []);
   if (!status) return null;
-  const act = async (task: () => Promise<LastfmStatus>) => {
-    setBusy(true);
+  const act = async (kind: "login" | "browser" | null, task: () => Promise<LastfmStatus>) => {
+    setBusy(kind ?? "login");
     setMessage(undefined);
     try {
       setStatus(await task());
     } catch (error) {
       setMessage(errorMessage(error));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
   if (status.connected) {
     return (
-      <Line label={`Connecté : ${status.user ?? "Last.fm"}`} hint={`Ce qui joue sur cet ordinateur est envoyé à Last.fm (la moitié du titre, ou 4 min).${status.waiting ? ` ${status.waiting} écoute(s) en attente de connexion.` : ""}`}>
-        <button onClick={() => void act(() => window.vitrine.lastfm.disconnect())} className="btn-ghost min-h-0 px-4 py-2 text-sm" disabled={busy}>
-          Déconnecter
-        </button>
-      </Line>
+      <>
+        <Line label={`Connecté : ${status.user ?? "Last.fm"}`} hint={`Ce qui joue sur cet ordinateur est envoyé à Last.fm (la moitié du titre, ou 4 min).${status.waiting ? ` ${status.waiting} écoute(s) en attente de connexion.` : ""}`}>
+          <button onClick={() => void act(null, () => window.vitrine.lastfm.disconnect())} className="btn-ghost min-h-0 px-4 py-2 text-sm" disabled={busy !== null}>
+            Déconnecter
+          </button>
+        </Line>
+        <Line
+          label="Aussi ce qui joue sur vos autres appareils"
+          hint="L'appli Spotify officielle, le téléphone, une enceinte : envoyé tant que Vitrine est ouverte. Coupez-le si Spotify envoie déjà vos écoutes à Last.fm (sinon elles comptent deux fois)."
+        >
+          <Switch on={everywhere} onChange={(on) => (setScrobblesEverywhere(on), setEverywhere(on))} label="Aussi ce qui joue sur vos autres appareils" />
+        </Line>
+      </>
     );
   }
+  // the application's key and secret first (unless built in), saved before each connection
+  const keysFirst = async () => {
+    if (status.builtIn) return status;
+    const saved = await window.vitrine.lastfm.keys({ apiKey, secret });
+    setSecret("");
+    if (!saved.configured) throw new Error("Il manque le secret partagé de votre application Last.fm (à côté de la clé, sur last.fm/api/accounts).");
+    return saved;
+  };
+  const field = "w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-xs";
   return (
     <>
-      <p className="text-xs text-gray-400">
-        Créez une application (gratuite) sur last.fm/api/account/create, puis collez sa clé et son secret. Vitrine ouvrira ensuite Last.fm pour que vous l'autorisiez.
-      </p>
-      <Line label="Clé de l'application (API key)">
-        <input value={apiKey} onChange={(event) => setApiKey(event.target.value)} className="w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-xs" aria-label="Clé Last.fm" />
+      {!status.builtIn && (
+        <>
+          <p className="text-xs text-gray-400">
+            Créez une application (gratuite) sur last.fm/api/account/create, puis collez sa clé et son secret. Vitrine ouvrira ensuite Last.fm pour que vous l'autorisiez.
+          </p>
+          <Line label="Clé de l'application (API key)">
+            <input value={apiKey} onChange={(event) => setApiKey(event.target.value)} className={`${field} font-mono`} aria-label="Clé Last.fm" spellCheck={false} />
+          </Line>
+          <Line label="Secret partagé" hint="Gardé sur cet ordinateur, jamais affiché ni envoyé : il sert à signer les demandes.">
+            <input value={secret} onChange={(event) => setSecret(event.target.value)} type="password" placeholder={status.configured ? "déjà enregistré" : ""} className={`${field} font-mono`} aria-label="Secret Last.fm" />
+          </Line>
+        </>
+      )}
+      <Line label="Compte Last.fm" hint="Votre nom d'utilisateur (ou e-mail) et votre mot de passe Last.fm : envoyés à Last.fm seulement, le mot de passe n'est pas gardé.">
+        <div className="flex flex-col gap-2">
+          <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Nom d'utilisateur" autoComplete="username" className={field} aria-label="Nom d'utilisateur Last.fm" spellCheck={false} />
+          <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Mot de passe" autoComplete="current-password" className={field} aria-label="Mot de passe Last.fm" />
+        </div>
       </Line>
-      <Line label="Secret partagé" hint="Gardé sur cet ordinateur, jamais affiché ni envoyé : il sert à signer les demandes.">
-        <input value={secret} onChange={(event) => setSecret(event.target.value)} type="password" placeholder={status.configured ? "déjà enregistré" : ""} className="w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-xs" aria-label="Secret Last.fm" />
-      </Line>
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <button
-          onClick={() => void act(async () => {
-            const saved = await window.vitrine.lastfm.keys({ apiKey, secret });
-            setSecret("");
-            return saved.configured ? window.vitrine.lastfm.connect() : saved;
-          })}
-          className="btn-primary min-h-0 px-4 py-2 text-sm"
-          disabled={busy || !apiKey}
+          onClick={() =>
+            void act("browser", async () => {
+              await keysFirst();
+              return window.vitrine.lastfm.connect();
+            })
+          }
+          className="btn-ghost min-h-0 px-4 py-2 text-sm"
+          disabled={busy !== null || (!status.builtIn && !apiKey)}
         >
-          {busy ? "En attente de votre accord sur Last.fm…" : "Connecter Last.fm"}
+          {busy === "browser" ? "En attente de votre accord sur Last.fm…" : "Autoriser dans le navigateur"}
+        </button>
+        <button
+          onClick={() =>
+            void act("login", async () => {
+              await keysFirst();
+              const connected = await window.vitrine.lastfm.login({ username, password });
+              setPassword("");
+              return connected;
+            })
+          }
+          className="btn-primary min-h-0 px-4 py-2 text-sm"
+          disabled={busy !== null || (!status.builtIn && !apiKey) || !username.trim() || !password}
+        >
+          {busy === "login" ? "Connexion…" : "Connecter Last.fm"}
         </button>
       </div>
-      {message && <p className="text-xs text-amber-200">{message}</p>}
+      {message && (
+        <p className="text-xs text-amber-200" role="alert">
+          {message}
+        </p>
+      )}
     </>
   );
 }

@@ -84,6 +84,45 @@ export function sidesFor(parts: string[][], main: string): LyricLine["side"][] {
   });
 }
 
+/** lines a pair of voices sings before the other takes over, when nobody says who sings which */
+const TURN = 4;
+
+/**
+ * Two voices taking turns, the first on the left: a stanza each, or four lines of a longer one. For the lines
+ * `shared` picks (a part Genius gives to both, or a whole feat it says nothing about); a new run of them starts
+ * on the left again. Blank lines only end a turn.
+ */
+export function takeTurns(lines: LyricLine[], shared: (index: number) => boolean): LyricLine[] {
+  let running = false;
+  let turn = 0;
+  let inTurn = 0;
+  return lines.map((line, index) => {
+    if (!line.text.trim()) {
+      if (inTurn > 0) {
+        turn++;
+        inTurn = 0;
+      }
+      return line;
+    }
+    if (!shared(index)) {
+      running = false;
+      return line;
+    }
+    if (!running) {
+      running = true;
+      turn = 0;
+      inTurn = 0;
+    }
+    if (inTurn === TURN) {
+      turn++;
+      inTurn = 0;
+    }
+    inTurn++;
+    const { side: _side, ...rest } = line;
+    return turn % 2 ? { ...rest, side: "right" as const } : rest;
+  });
+}
+
 /** a line of the synced lyrics looks for its match this far ahead in the written parts */
 const LOOK_AHEAD = 14;
 const ALIKE = 0.55;
@@ -94,7 +133,9 @@ const ALIKE = 0.55;
  * fewer than two voices.
  */
 export function assignSingers(lines: LyricLine[], sections: SungSection[] | undefined, artists: string[]): LyricLine[] {
-  if (!sections?.length || artists.length < 2 || lines.some((line) => line.side)) return lines;
+  if (artists.length < 2 || lines.some((line) => line.side)) return lines;
+  // a feat Genius says nothing about: the two voices take turns, the track's artist first, on the left
+  if (!sections?.length) return takeTurns(lines, () => true);
   // the written lines, each with its singers; "[Refrain]" takes the singers of the last refrain, or the main artist
   const written: { text: string; singers: string[] }[] = [];
   const byPart = new Map<string, string[]>();
@@ -104,7 +145,7 @@ export function assignSingers(lines: LyricLine[], sections: SungSection[] | unde
     if (part) byPart.set(part, singers);
     for (const text of section.lines) written.push({ text, singers });
   }
-  if (new Set(written.map((line) => line.singers.join("&"))).size < 2) return lines;
+  if (new Set(written.map((line) => line.singers.join("&"))).size < 2) return takeTurns(lines, () => true);
 
   // who sings each line: its match in the written parts (looked for a little ahead), or the line before's
   let cursor = 0;
@@ -142,7 +183,7 @@ export function assignSingers(lines: LyricLine[], sections: SungSection[] | unde
   });
   const sides = sidesFor(parts, artists[0]);
   let voice = "";
-  return sung.map(({ line, singers }, index) => {
+  const assigned = sung.map(({ line, singers }, index) => {
     if (!line.text.trim()) return line;
     const name = singers.join(" & ");
     const label = name !== voice ? name : undefined;
@@ -150,4 +191,8 @@ export function assignSingers(lines: LyricLine[], sections: SungSection[] | unde
     const side = sides[partOf[index]];
     return { ...line, singers, ...(side ? { side } : {}), ...(label ? { voice: label } : {}) };
   });
+  // two voices only: a part they share is not sung in the middle but in turns, left then right (with
+  // three or more, the parts sung together stay in the middle)
+  const voices = new Set(written.flatMap((line) => line.singers));
+  return voices.size <= 2 ? takeTurns(assigned, (index) => assigned[index].side === "both") : assigned;
 }

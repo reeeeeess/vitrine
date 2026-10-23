@@ -134,6 +134,7 @@ export const PATTERNS: Pattern[] = [
   ],
   [re("(.+) — lancer la lecture"), ([kind], tr) => `${tr(kind)} — play`],
   [re("En pause · (.+)"), ([name]) => `Paused · ${name}`],
+  [re("Equalizer APO est relié et agit sur : (.+)\\. Les réglages s'appliquent tout de suite\\."), ([outputs]) => `Equalizer APO is connected and works on: ${outputs}. Settings apply right away.`],
   [re("Écran {n} sur {n}"), ([n, total]) => `Screen ${n} of ${total}`],
   [
     re("{n} erreur\\(s\\) gardée\\(s\\) sur cet ordinateur, la dernière le (.+)\\. (Rien n'est envoyé .+)"),

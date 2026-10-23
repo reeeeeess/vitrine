@@ -22,6 +22,7 @@ const api = {
     status: () => ipcRenderer.invoke("lastfm:status"),
     keys: (keys: unknown) => ipcRenderer.invoke("lastfm:keys", keys),
     connect: () => ipcRenderer.invoke("lastfm:connect"),
+    login: (credentials: unknown) => ipcRenderer.invoke("lastfm:login", credentials),
     disconnect: () => ipcRenderer.invoke("lastfm:disconnect"),
     now: (track: unknown) => ipcRenderer.invoke("lastfm:now", track),
     scrobble: (listen: unknown) => ipcRenderer.invoke("lastfm:scrobble", listen),
@@ -73,6 +74,7 @@ const api = {
     get: () => ipcRenderer.invoke("eq:get"),
     set: (settings: unknown) => ipcRenderer.invoke("eq:set", settings),
     openEditor: () => ipcRenderer.invoke("eq:open"),
+    openConfigurator: () => ipcRenderer.invoke("eq:configurator"),
   },
   moments: {
     get: () => ipcRenderer.invoke("moments:get"),

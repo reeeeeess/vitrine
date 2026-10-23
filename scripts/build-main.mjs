@@ -9,7 +9,11 @@ const shared = {
   target: "node22",
   external: ["electron"],
   sourcemap: true,
-  define: { "process.env.VITRINE_CLIENT_ID": JSON.stringify(process.env.VITRINE_CLIENT_ID ?? "") },
+  define: {
+    "process.env.VITRINE_CLIENT_ID": JSON.stringify(process.env.VITRINE_CLIENT_ID ?? ""),
+    "process.env.VITRINE_LASTFM_KEY": JSON.stringify(process.env.VITRINE_LASTFM_KEY ?? ""),
+    "process.env.VITRINE_LASTFM_SECRET": JSON.stringify(process.env.VITRINE_LASTFM_SECRET ?? ""),
+  },
 };
 
 await build({ ...shared, entryPoints: ["electron/main.ts"], outfile: "dist-electron/main.js" });

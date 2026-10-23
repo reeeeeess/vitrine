@@ -18,20 +18,34 @@ export interface LastfmSettings {
   waiting?: Scrobble[];
 }
 
-const settings = (): LastfmSettings => ({ apiKey: "", secret: "", ...(readConfig().lastfm ?? {}) });
+/** keys built into Vitrine (secrets VITRINE_LASTFM_KEY / VITRINE_LASTFM_SECRET at build time): nobody has to make their own */
+const BUILT_IN = { apiKey: process.env.VITRINE_LASTFM_KEY ?? "", secret: process.env.VITRINE_LASTFM_SECRET ?? "" };
+
+const settings = (): LastfmSettings => {
+  const saved = { apiKey: "", secret: "", ...(readConfig().lastfm ?? {}) };
+  return saved.apiKey && saved.secret ? saved : { ...saved, apiKey: saved.apiKey || BUILT_IN.apiKey, secret: saved.secret || BUILT_IN.secret };
+};
 const save = (change: Partial<LastfmSettings>) => updateConfig({ lastfm: { ...settings(), ...change } });
 
 /** What the Settings page shows: never the secret nor the session. */
-export function lastfmStatus(): { configured: boolean; connected: boolean; user?: string; apiKey: string; waiting: number } {
+export function lastfmStatus(): { configured: boolean; builtIn: boolean; connected: boolean; user?: string; apiKey: string; waiting: number } {
   const current = settings();
-  return { configured: Boolean(current.apiKey && current.secret), connected: Boolean(current.sessionKey), user: current.user, apiKey: current.apiKey, waiting: current.waiting?.length ?? 0 };
+  const builtIn = Boolean(BUILT_IN.apiKey && BUILT_IN.secret && current.apiKey === BUILT_IN.apiKey);
+  return { configured: Boolean(current.apiKey && current.secret), builtIn, connected: Boolean(current.sessionKey), user: current.user, apiKey: builtIn ? "" : current.apiKey, waiting: current.waiting?.length ?? 0 };
+}
+
+/** A key or a secret as pasted: its 32 hexadecimal characters, whatever is around them ("API key: …"). */
+export function lastfmKey(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value.match(/[0-9a-f]{32}/i)?.[0].toLowerCase() ?? "";
 }
 
 export function setLastfmKeys(raw: unknown): ReturnType<typeof lastfmStatus> {
   const input = (raw ?? {}) as { apiKey?: unknown; secret?: unknown };
-  const clean = (value: unknown) => (typeof value === "string" ? value.trim().replace(/[^0-9a-f]/gi, "").slice(0, 64) : "");
-  const apiKey = clean(input.apiKey);
-  const secret = clean(input.secret) || settings().secret;
+  const apiKey = lastfmKey(input.apiKey);
+  if (typeof input.apiKey === "string" && input.apiKey.trim() && !apiKey) throw new Error("Cette clé Last.fm n'a pas le bon format : 32 caractères (chiffres et lettres de a à f).");
+  if (typeof input.secret === "string" && input.secret.trim() && !lastfmKey(input.secret)) throw new Error("Ce secret Last.fm n'a pas le bon format : 32 caractères (chiffres et lettres de a à f).");
+  const secret = lastfmKey(input.secret) || settings().secret;
   // new keys: the old session belongs to the old application
   save({ apiKey, secret, sessionKey: apiKey === settings().apiKey ? settings().sessionKey : undefined, user: apiKey === settings().apiKey ? settings().user : undefined });
   return lastfmStatus();
@@ -69,7 +83,15 @@ export function connectLastfm(): Promise<ReturnType<typeof lastfmStatus>> {
 
 async function authorise(): Promise<ReturnType<typeof lastfmStatus>> {
   if (!lastfmStatus().configured) throw new Error("Entrez d'abord la clé et le secret de votre application Last.fm.");
-  const { token } = await call<{ token: string }>("auth.getToken", {});
+  let token: string;
+  try {
+    ({ token } = await call<{ token: string }>("auth.getToken", {}));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/Invalid API key|suspended/i.test(message)) throw new Error("Last.fm refuse la clé de l'application : vérifiez-la (last.fm/api/accounts).");
+    if (/Invalid method signature/i.test(message)) throw new Error("Last.fm refuse le secret partagé : vérifiez-le (last.fm/api/accounts).");
+    throw error;
+  }
   await shell.openExternal(`https://www.last.fm/api/auth/?api_key=${settings().apiKey}&token=${token}`);
   for (let i = 0; i < 40; i++) {
     await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -81,7 +103,31 @@ async function authorise(): Promise<ReturnType<typeof lastfmStatus>> {
       // not yet authorised: asked again in 3 s
     }
   }
-  throw new Error("Last.fm n'a pas reçu votre accord : réessayez.");
+  throw new Error("Last.fm n'a pas reçu votre accord dans les 2 minutes : réessayez, ou connectez-vous avec votre nom d'utilisateur et votre mot de passe.");
+}
+
+/**
+ * Connects with the Last.fm user name (or e-mail) and password, without going through the browser
+ * (auth.getMobileSession, over HTTPS). The password is sent to Last.fm only, once, and never kept.
+ */
+export async function loginLastfm(raw: unknown): Promise<ReturnType<typeof lastfmStatus>> {
+  const input = (raw ?? {}) as { username?: unknown; password?: unknown };
+  const username = typeof input.username === "string" ? input.username.trim() : "";
+  const password = typeof input.password === "string" ? input.password : "";
+  if (!lastfmStatus().configured) throw new Error("Entrez d'abord la clé et le secret de votre application Last.fm.");
+  if (!username || !password) throw new Error("Entrez votre nom d'utilisateur Last.fm et votre mot de passe.");
+  try {
+    const { session } = await call<{ session: { key: string; name: string } }>("auth.getMobileSession", { username, password }, true);
+    save({ sessionKey: session.key, user: session.name });
+    return lastfmStatus();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    // 4: wrong user name or password; 10 and 26: the application's key; 13: its secret
+    if (/Authentication Failed|Invalid username|incorrect/i.test(message)) throw new Error("Last.fm refuse ce nom d'utilisateur ou ce mot de passe.");
+    if (/Invalid API key|suspended/i.test(message)) throw new Error("Last.fm refuse la clé de l'application : vérifiez-la (last.fm/api/accounts).");
+    if (/Invalid method signature/i.test(message)) throw new Error("Last.fm refuse le secret partagé : vérifiez-le (last.fm/api/accounts).");
+    throw error;
+  }
 }
 
 export function disconnectLastfm(): ReturnType<typeof lastfmStatus> {

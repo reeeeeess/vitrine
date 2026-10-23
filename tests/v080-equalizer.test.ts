@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEqualizer, cleanEqualizer, equalizerConfig, equalizerPaths, hasInclude } from "../electron/equalizer";
+import { applyEqualizer, apoOutputs, cleanEqualizer, equalizerConfig, equalizerPaths, hasInclude } from "../electron/equalizer";
 import { curvePath, presetOf, PRESETS } from "../src/renderer/lib/eqPresets";
 
 const paths = equalizerPaths({ ProgramFiles: "C:\\Program Files", PUBLIC: "C:\\Users\\Public" });
@@ -80,5 +80,41 @@ describe("the equalizer, through Equalizer APO (K1)", () => {
     const path = curvePath(PRESETS.Plat, 500, 200);
     expect(path.startsWith("M 0 100")).toBe(true);
     expect(path.endsWith("500.0 100.0")).toBe(true);
+  });
+});
+
+describe("v1.0.1 : l'égaliseur dit pourquoi il n'agit pas", () => {
+  const REG = [
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render\\{0.0.0.00000000}.{aaaa-1111}",
+    "    DeviceState    REG_DWORD    0x1",
+    "",
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render\\{0.0.0.00000000}.{aaaa-1111}\\FxProperties",
+    "    {d04e05a6-594b-4fb6-a80d-01af5eed7d1d},1    REG_SZ    {eacd2258-fcac-4ff4-b36d-419e924a6d79}",
+    "",
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render\\{0.0.0.00000000}.{aaaa-1111}\\Properties",
+    "    {a45c254e-df1c-4efd-8020-67d146a850e0},2    REG_SZ    Haut-parleurs",
+    "    {b3f8fa53-0004-438e-9003-51a46e139bfc},6    REG_SZ    Realtek(R) Audio",
+    "",
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render\\{0.0.0.00000000}.{bbbb-2222}",
+    "    DeviceState    REG_DWORD    0x4",
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render\\{0.0.0.00000000}.{bbbb-2222}\\Properties",
+    "    {a45c254e-df1c-4efd-8020-67d146a850e0},2    REG_SZ    Casque",
+  ].join("\r\n");
+
+  it("lit les sorties son où Equalizer APO est posé", () => {
+    expect(apoOutputs(REG)).toEqual([{ name: "Haut-parleurs (Realtek(R) Audio)", active: true }]);
+    expect(apoOutputs("")).toEqual([]);
+  });
+
+  it("installé et relié, mais sur aucune sortie : il le dit", () => {
+    const files = { existsSync: () => true, readFileSync: () => `Include: ${paths.file}`, writeFileSync: () => undefined, appendFileSync: () => undefined, mkdirSync: () => undefined };
+    expect(applyEqualizer({ enabled: true, preset: "Basses", gains: PRESETS.Basses }, "win32", paths, files as never, []).state).toBe("no-output");
+    const ready = applyEqualizer({ enabled: true, preset: "Basses", gains: PRESETS.Basses }, "win32", paths, files as never, ["Haut-parleurs (Realtek(R) Audio)"]);
+    expect(ready).toMatchObject({ state: "ready", outputs: ["Haut-parleurs (Realtek(R) Audio)"] });
+  });
+
+  it("le fichier d'Equalizer APO reste en ASCII", () => {
+    const text = equalizerConfig({ enabled: true, preset: "Basses", gains: PRESETS.Basses }) + equalizerConfig({ enabled: false, preset: "Plat", gains: PRESETS.Plat });
+    expect(/^[\x00-\x7f]*$/.test(text)).toBe(true);
   });
 });

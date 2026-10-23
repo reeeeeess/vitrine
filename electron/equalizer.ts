@@ -3,6 +3,7 @@
 // Windows audio service can read, and adds one Include line to Equalizer APO's configuration (or gives
 // it to copy when Windows refuses the write: that folder is under Program Files). Equalizer APO reloads
 // the file by itself on every change. The music itself is never touched by Vitrine.
+import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -33,8 +34,9 @@ export function cleanEqualizer(value: unknown): EqualizerSettings {
  * the ten bands. Off, or flat, it holds nothing but a comment: the sound passes untouched.
  */
 export function equalizerConfig(settings: EqualizerSettings): string {
-  const header = "# Vitrine : ce fichier est écrit par l'égaliseur de Vitrine. Ne pas modifier à la main.\n";
-  if (!settings.enabled || settings.gains.every((gain) => gain === 0)) return `${header}# égaliseur désactivé\n`;
+  // plain ASCII: Equalizer APO reads the file in the system's code page, not always in UTF-8
+  const header = "# Vitrine: written by Vitrine's equalizer, do not edit by hand.\n";
+  if (!settings.enabled || settings.gains.every((gain) => gain === 0)) return `${header}# equalizer off\n`;
   const preamp = Math.max(0, ...settings.gains);
   return `${header}Preamp: ${preamp ? `-${preamp}` : "0"} dB\nGraphicEQ: ${BANDS.map((band, i) => `${band} ${settings.gains[i]}`).join("; ")}\n`;
 }
@@ -45,6 +47,8 @@ export interface EqualizerPaths {
   /** ours */
   file: string;
   editor: string;
+  /** where Equalizer APO is put on a sound output (it does nothing on the others) */
+  configurator: string;
 }
 
 /** Where things are on this Windows: Equalizer APO under Program Files, our file in Public Documents. */
@@ -57,6 +61,7 @@ export function equalizerPaths(env: NodeJS.ProcessEnv = process.env): EqualizerP
     // the audio service (LOCAL SERVICE) cannot read a user's AppData; the public folder it can
     file: path.win32.join(publicDir, "Documents", "Vitrine", "egaliseur.txt"),
     editor: path.win32.join(apo, "Editor.exe"),
+    configurator: path.win32.join(apo, "Configurator.exe"),
   };
 }
 
@@ -68,18 +73,93 @@ export function hasInclude(configText: string, file: string): boolean {
   return configText.split(/\r?\n/).some((line) => /^\s*include\s*:/i.test(line) && line.replace(/^\s*include\s*:\s*/i, "").trim().toLowerCase() === wanted);
 }
 
-export type EqualizerState = "unsupported" | "absent" | "needs-include" | "ready";
+/** Equalizer APO's audio processing object, as Windows lists it on each sound output it is put on */
+const APO_CLSID = "{EACD2258-FCAC-4FF4-B36D-419E924A6D79}";
+const RENDER = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render";
+
+/**
+ * The sound outputs Equalizer APO is on, by name ("Haut-parleurs (Realtek(R) Audio)"), from `reg query` of
+ * Windows' audio devices: a device's FxProperties name the processing objects, its Properties its names, its
+ * DeviceState 1 means plugged in and on.
+ */
+export function apoOutputs(regText: string): { name: string; active: boolean }[] {
+  const devices = new Map<string, { active: boolean; apo: boolean; description: string; device: string }>();
+  let current: { active: boolean; apo: boolean; description: string; device: string } | null = null;
+  let section = "";
+  for (const raw of regText.split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    const key = line.match(/\\Render\\(\{[^\\]+\}\.\{[^\\]+\})(?:\\(.+))?$/i);
+    if (line.startsWith("HKEY_") && key) {
+      const id = key[1].toLowerCase();
+      current = devices.get(id) ?? { active: false, apo: false, description: "", device: "" };
+      devices.set(id, current);
+      section = (key[2] ?? "").toLowerCase();
+      continue;
+    }
+    if (line.startsWith("HKEY_")) {
+      current = null;
+      continue;
+    }
+    if (!current) continue;
+    const value = line.match(/^\s+(\S+)\s+REG_\w+\s*(.*)$/);
+    if (!value) continue;
+    const [, name, data] = value;
+    if (section === "" && /^DeviceState$/i.test(name)) current.active = /^0x0*1$/i.test(data.trim());
+    if (section.startsWith("fxproperties") && data.toUpperCase().includes(APO_CLSID)) current.apo = true;
+    if (section === "properties" && name.toLowerCase() === "{a45c254e-df1c-4efd-8020-67d146a850e0},2") current.description = data.trim();
+    if (section === "properties" && name.toLowerCase() === "{b3f8fa53-0004-438e-9003-51a46e139bfc},6") current.device = data.trim();
+  }
+  return [...devices.values()]
+    .filter((device) => device.apo)
+    .map((device) => ({ name: device.device ? `${device.description || "Sortie"} (${device.device})` : device.description || "Sortie son", active: device.active }));
+}
+
+let outputsCache: { at: number; value: Promise<string[] | null> } | null = null;
+
+/** The plugged-in outputs Equalizer APO is on; null when Windows does not say (kept 20 s). */
+export function readApoOutputs(): Promise<string[] | null> {
+  if (process.platform !== "win32") return Promise.resolve(null);
+  if (outputsCache && Date.now() - outputsCache.at < 20_000) return outputsCache.value;
+  const value = new Promise<string[] | null>((resolve) => {
+    execFile("reg", ["query", RENDER, "/s"], { encoding: "latin1", maxBuffer: 16 * 1024 * 1024, windowsHide: true, timeout: 8000 }, (error, stdout) => {
+      if (error && !stdout) return resolve(null);
+      resolve(apoOutputs(String(stdout)).filter((output) => output.active).map((output) => output.name));
+    });
+  });
+  outputsCache = { at: Date.now(), value };
+  return value;
+}
+
+export type EqualizerState = "unsupported" | "absent" | "needs-include" | "no-output" | "ready";
 
 export interface EqualizerStatus {
   state: EqualizerState;
   settings: EqualizerSettings;
+  /** the outputs Equalizer APO is on (the sound of the others is not touched) */
+  outputs?: string[];
   /** the line to add by hand to Equalizer APO's configuration, when Windows refused the write */
   includeLine?: string;
   configPath?: string;
 }
 
-/** Writes our file and makes sure Equalizer APO reads it; says how things stand. */
-export function applyEqualizer(settings: EqualizerSettings, platform = process.platform, paths = equalizerPaths(), files: Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync" | "appendFileSync" | "mkdirSync"> = fs): EqualizerStatus {
+/**
+ * Writes our file and makes sure Equalizer APO reads it; says how things stand. `outputs`: the sound outputs
+ * Equalizer APO is on (null when unknown): none, and nothing can be heard whatever the settings.
+ */
+export function applyEqualizer(
+  settings: EqualizerSettings,
+  platform = process.platform,
+  paths = equalizerPaths(),
+  files: Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync" | "appendFileSync" | "mkdirSync"> = fs,
+  outputs: string[] | null = null,
+): EqualizerStatus {
+  const status = applyFiles(settings, platform, paths, files);
+  if (outputs === null || status.state === "unsupported" || status.state === "absent") return status;
+  if (outputs.length === 0) return { ...status, state: status.state === "ready" ? "no-output" : status.state, outputs };
+  return { ...status, outputs };
+}
+
+function applyFiles(settings: EqualizerSettings, platform: NodeJS.Platform, paths: EqualizerPaths, files: Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync" | "appendFileSync" | "mkdirSync">): EqualizerStatus {
   if (platform !== "win32") return { state: "unsupported", settings };
   if (!files.existsSync(paths.config)) return { state: "absent", settings };
   try {

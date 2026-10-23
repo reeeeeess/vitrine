@@ -1,5 +1,6 @@
-// Sends to Last.fm what plays on this computer (P7): "listening now" at each new track, and the listen once
-// it counts (half the track, or 4 minutes). The main process signs and sends (electron/lastfm.ts).
+// Sends to Last.fm what plays (P7): "listening now" at each new track, and the listen once it counts (half the
+// track, or 4 minutes). On this computer, and by default on the person's other devices too (the official
+// Spotify app, the phone), as long as Vitrine is open. The main process signs and sends (electron/lastfm.ts).
 import type { Track } from "../lib/types";
 import { currentPosition, playback } from "./engine";
 
@@ -8,20 +9,40 @@ export function scrobbleDue(playedMs: number, durationMs: number): boolean {
   return durationMs > 30_000 && playedMs >= Math.min(durationMs / 2, 240_000);
 }
 
+const EVERYWHERE_KEY = "vitrine.lastfm.everywhere";
+
+/** Whether what plays on the person's other devices goes to Last.fm too (off when Spotify already sends it). */
+export function scrobblesEverywhere(): boolean {
+  try {
+    return localStorage.getItem(EVERYWHERE_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+export function setScrobblesEverywhere(on: boolean): void {
+  try {
+    localStorage.setItem(EVERYWHERE_KEY, on ? "1" : "0");
+  } catch {
+    // for this session only
+  }
+}
+
 export function connectScrobbler(): () => void {
   let connected = false;
   let session: { track: Track; startedAt: number; playedMs: number; sent: boolean } | null = null;
   let last = Date.now();
   const check = () => void window.vitrine.lastfm?.status().then((status) => (connected = status.connected), () => undefined);
   check();
-  const statusTimer = setInterval(check, 60_000);
+  // a connection made in the Settings counts within seconds
+  const statusTimer = setInterval(check, 15_000);
   const timer = setInterval(() => {
     const now = Date.now();
     const gap = Math.min(now - last, 5000);
     last = now;
     const state = playback.get();
     const track = state.track;
-    if (!connected || !track || !state.device?.local) return;
+    if (!connected || !track || (!state.device?.local && !scrobblesEverywhere())) return;
     if (!session || session.track.uri !== track.uri) {
       session = { track, startedAt: now - currentPosition(state), playedMs: 0, sent: false };
       void window.vitrine.lastfm.now({ artist: track.artists[0] ?? "", track: track.name, album: track.albumName }).catch(() => undefined);

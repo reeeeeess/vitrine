@@ -70,7 +70,25 @@ describe("who sings which part of a feat (Genius's headings)", () => {
     expect(assignSingers(lines, sections, ["Solo"])).toBe(lines);
     const duet = [{ ...line(0, "x"), side: "right" as const }];
     expect(assignSingers(duet, sections, ["A", "B"])).toBe(duet);
-    expect(assignSingers(lines, undefined, ["A", "B"])).toBe(lines);
+  });
+
+  it("feat à deux sans en-têtes : les deux voix se relaient, le premier artiste à gauche", () => {
+    const texts = ["a1", "a2", "a3", "a4", "b1", "b2", "", "c1", "c2"];
+    const sung = assignSingers(texts.map((text, i) => line(i * 1000, text)), undefined, ["Vacra", "La Rvfleuze"]);
+    // four lines, then the other voice; a blank line ends a turn
+    expect(sung.map((entry) => (entry.text ? (entry.side ?? "left") : "·"))).toEqual(["left", "left", "left", "left", "right", "right", "·", "left", "left"]);
+  });
+
+  it("feat à deux : une partie donnée aux deux par Genius se chante en relais, plus au milieu", () => {
+    const sections = [
+      { label: "La Rvfleuze", lines: ["T'inquiète, j'vais faire ça bien", "C'est une fille à papa"] },
+      { label: "Vacra & La Rvfleuze", lines: ["Fille en bikini, vie de rockstar", "J'ai vu maman pleurer à chaudes larmes", "Teq' paf, 'teille de tequila", "On fait les euros, les euros", "Quitter le terrain comme Sadio Mané", "C'est pas le vent qui décoiffe"] },
+      { label: "Vacra", lines: ["Juste un coup d'FACOM et j'suis dedans"] },
+    ];
+    const texts = sections.flatMap((section) => section.lines);
+    const sung = assignSingers(texts.map((text, i) => line(i * 1000, text)), sections, ["Vacra", "La Rvfleuze"]);
+    expect(sung.map((entry) => entry.side ?? "left")).toEqual(["right", "right", "left", "left", "left", "left", "right", "right", "left"]);
+    expect(sung.some((entry) => entry.side === "both")).toBe(false);
   });
 
   it("never shows a heading as a sung line", () => {

@@ -29,10 +29,10 @@ import { formatListening } from "../src/renderer/lib/listening";
 import { clearLyricsCache, fetchLyrics } from "./lyrics";
 import { setTranslationSettings, translateLyrics, translationSettings } from "./translate";
 import { fetchCredits } from "./credits";
-import { connectLastfm, disconnectLastfm, lastfmStatus, nowPlaying as lastfmNowPlaying, scrobble, setLastfmKeys } from "./lastfm";
+import { connectLastfm, disconnectLastfm, lastfmStatus, loginLastfm, nowPlaying as lastfmNowPlaying, scrobble, setLastfmKeys } from "./lastfm";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
-import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
+import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths, readApoOutputs } from "./equalizer";
 import { cleanMoments } from "./moments";
 import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
@@ -222,11 +222,16 @@ function handle(channel: string, listener: (...args: unknown[]) => unknown): voi
 }
 
 function registerIpc(): void {
-  handle("eq:get", () => applyEqualizer(cleanEqualizer(readConfig().equalizer ?? DEFAULT_EQUALIZER)));
-  handle("eq:set", (value) => {
+  handle("eq:get", async () => applyEqualizer(cleanEqualizer(readConfig().equalizer ?? DEFAULT_EQUALIZER), process.platform, equalizerPaths(), fs, await readApoOutputs()));
+  handle("eq:set", async (value) => {
     const settings = cleanEqualizer(value);
     updateConfig({ equalizer: settings });
-    return applyEqualizer(settings);
+    return applyEqualizer(settings, process.platform, equalizerPaths(), fs, await readApoOutputs());
+  });
+  handle("eq:configurator", async () => {
+    // where Equalizer APO is put on a sound output
+    const { configurator } = equalizerPaths();
+    if (process.platform === "win32" && fs.existsSync(configurator)) await shell.openPath(configurator);
   });
   handle("eq:open", async () => {
     // Equalizer APO's editor when it is installed, its download page otherwise
@@ -263,6 +268,7 @@ function registerIpc(): void {
   handle("lastfm:status", () => lastfmStatus());
   handle("lastfm:keys", (keys) => setLastfmKeys(keys));
   handle("lastfm:connect", () => connectLastfm());
+  handle("lastfm:login", (credentials) => loginLastfm(credentials));
   handle("lastfm:disconnect", () => disconnectLastfm());
   handle("lastfm:now", (track) => lastfmNowPlaying(track));
   handle("lastfm:scrobble", (listen) => scrobble(listen));

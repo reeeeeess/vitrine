@@ -7,6 +7,7 @@ import { bandLabel, BANDS, curvePath, MAX_GAIN, presetOf, PRESETS } from "../lib
 import { SPRING } from "../lib/motion";
 import { createStore, useStore } from "../lib/store";
 import { notify } from "../lib/ui";
+import { playback } from "../player/engine";
 
 export const equalizerOpen = createStore({ open: false });
 export const openEqualizer = () => equalizerOpen.set({ open: true });
@@ -18,8 +19,41 @@ const HEIGHT = 180;
 /** What to do, depending on how Equalizer APO stands on this PC. */
 function StatusNote({ status }: { status: EqualizerStatus }) {
   const bridge = window.vitrine.equalizer;
+  // the music plays on the phone, a speaker…: the PC's equalizer cannot reach it
+  const device = useStore(playback, (s) => s.device);
+  const elsewhere = status.state === "ready" && device && !device.local && !/ordinateur|computer|pc/i.test(device.type) ? device.name : null;
   if (status.state === "ready") {
-    return <p className="text-xs text-emerald-300/90">Equalizer APO est relié : les réglages s'appliquent à la sortie son de Windows, tout de suite.</p>;
+    return (
+      <div className="space-y-2">
+        <p className="text-xs text-emerald-300/90">
+          {status.outputs?.length
+            ? `Equalizer APO est relié et agit sur : ${status.outputs.join(", ")}. Les réglages s'appliquent tout de suite.`
+            : "Equalizer APO est relié : les réglages s'appliquent à la sortie son de Windows, tout de suite."}
+        </p>
+        {elsewhere && (
+          <p className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-50">
+            La musique joue sur « {elsewhere} » : l'égaliseur ne change que le son qui sort de cet ordinateur. Choisissez « Cet ordinateur » dans Appareils.
+          </p>
+        )}
+      </div>
+    );
+  }
+  if (status.state === "no-output") {
+    return (
+      <div className="space-y-2 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-50">
+        <p className="font-semibold">Equalizer APO n'est activé sur aucune sortie son</p>
+        <p className="text-amber-50/90">C'est pour cela que rien ne change. Une fois :</p>
+        <ol className="list-decimal space-y-1 pl-5 text-amber-50/90">
+          <li>Ouvrez le Configurator d'Equalizer APO (bouton ci-dessous).</li>
+          <li>Cochez la sortie que vous écoutez (haut-parleurs, casque, écran HDMI…), puis OK.</li>
+          <li>Redémarrez Windows : l'égaliseur agit dès le retour.</li>
+        </ol>
+        <button onClick={() => void bridge?.openConfigurator()} className="btn-ghost min-h-0 px-3 py-1.5 text-sm">
+          <ExternalLink className="h-4 w-4" />
+          Ouvrir le Configurator
+        </button>
+      </div>
+    );
   }
   if (status.state === "unsupported") {
     return (

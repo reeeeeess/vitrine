@@ -12,6 +12,8 @@ export interface DrmStatus {
 
 export interface LastfmStatus {
   configured: boolean;
+  /** Vitrine's own Last.fm application, built in: only the person's account is asked */
+  builtIn?: boolean;
   connected: boolean;
   user?: string;
   apiKey: string;
@@ -65,6 +67,7 @@ export interface VitrineBridge {
     status(): Promise<LastfmStatus>;
     keys(keys: { apiKey: string; secret?: string }): Promise<LastfmStatus>;
     connect(): Promise<LastfmStatus>;
+    login(credentials: { username: string; password: string }): Promise<LastfmStatus>;
     disconnect(): Promise<LastfmStatus>;
     now(track: { artist: string; track: string; album?: string }): Promise<void>;
     scrobble(listen: { artist: string; track: string; album?: string; timestamp: number; durationMs: number }): Promise<void>;
@@ -102,6 +105,7 @@ export interface VitrineBridge {
     get(): Promise<EqualizerStatus>;
     set(settings: EqualizerSettings): Promise<EqualizerStatus>;
     openEditor(): Promise<void>;
+    openConfigurator(): Promise<void>;
   };
   moments: {
     get(): Promise<MomentMark[]>;
@@ -209,8 +213,10 @@ export interface EqualizerSettings {
 
 /** how the equalizer stands: Windows only, through Equalizer APO */
 export interface EqualizerStatus {
-  state: "unsupported" | "absent" | "needs-include" | "ready";
+  state: "unsupported" | "absent" | "needs-include" | "no-output" | "ready";
   settings: EqualizerSettings;
+  /** the sound outputs Equalizer APO is on */
+  outputs?: string[];
   includeLine?: string;
   configPath?: string;
 }
