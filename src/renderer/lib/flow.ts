@@ -6,6 +6,7 @@ import { rankByTaste, readTaste, seedArtists } from "./flowTaste";
 import * as api from "./spotify";
 import { trash, trashed } from "./trash";
 import { songKey, type Artist, type Track } from "./types";
+import { t } from "./i18n";
 
 export { songKey };
 
@@ -236,7 +237,7 @@ export async function collect(track: Track): Promise<void> {
       if (!(error instanceof api.SpotifyApiError) || ![403, 404].includes(error.status)) throw error;
     }
   }
-  const playlist = await api.createPlaylist("Trouvé dans Flow", "Les titres aimés dans Flow, sur Vitrine.");
+  const playlist = await api.createPlaylist(t("Trouvé dans Flow"), t("Les titres aimés dans Flow, sur Vitrine."));
   try {
     localStorage.setItem(PLAYLIST_KEY, playlist.id);
   } catch {

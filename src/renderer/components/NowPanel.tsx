@@ -25,6 +25,7 @@ import { PlainLyrics, StagedLyrics } from "./StagedLyrics";
 import { SOURCE_NAMES } from "../lib/lyricsPrefs";
 import { shareStory } from "./StoryButton";
 import { openVersions } from "./VersionsPanel";
+import { LOCALE } from "../lib/i18n";
 
 // ── open or closed ────────────────────────────────────────────────────────
 
@@ -158,8 +159,8 @@ function NextCard() {
       <div className="flex items-center gap-3">
         <Artwork src={next.thumb ?? next.image} className="h-12 w-12 shrink-0 rounded-lg" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{next.name}</p>
-          <p className="truncate text-xs text-gray-400">{next.artists.join(", ")}</p>
+          <p translate="no" className="truncate text-sm font-semibold">{next.name}</p>
+          <p translate="no" className="truncate text-xs text-gray-400">{next.artists.join(", ")}</p>
         </div>
       </div>
     </Card>
@@ -183,7 +184,7 @@ function trackStats(): Promise<Record<string, TrackStat>> {
 }
 
 const longDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("fr-FR", {
+  new Date(iso).toLocaleDateString(LOCALE, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -296,7 +297,7 @@ function CreditsCard({ track }: { track: Track }) {
             <ul className="mt-1 space-y-1">
               {credits[key].slice(0, 6).map((credit) => (
                 <li key={credit.name} className="text-sm leading-tight">
-                  <span className="font-semibold">{credit.name}</span>
+                  <span translate="no" className="font-semibold">{credit.name}</span>
                   <span className="text-xs text-gray-400"> · {credit.roles.join(", ")}</span>
                 </li>
               ))}
@@ -333,8 +334,8 @@ function ArtistCard({ track }: { track: Track }) {
         <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
         <span className="absolute left-4 top-3 text-sm font-bold">À propos de l'artiste</span>
         <span className="absolute bottom-3 left-4 right-4">
-          <span className="block truncate font-display text-xl tracking-tight">{artist.name}</span>
-          {artist.followers ? <span className="text-xs text-white/70">{artist.followers.toLocaleString("fr-FR")} abonnés</span> : null}
+          <span translate="no" className="block truncate font-display text-xl tracking-tight">{artist.name}</span>
+          {artist.followers ? <span className="text-xs text-white/70">{artist.followers.toLocaleString(LOCALE)} abonnés</span> : null}
         </span>
       </button>
       {artist.genres.length > 0 && (

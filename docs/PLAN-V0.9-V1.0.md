@@ -45,7 +45,9 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 
 ## v1.0 — Prête pour tout le monde
 
-- [ ] Version anglaise (choix de la langue, automatique selon le système)
+- [x] Version anglaise (choix de la langue, automatique selon le système) : 580 textes et une centaine de phrases
+      composées traduits à l'écran ; titres, artistes et paroles jamais traduits ; dates et nombres à l'anglaise ;
+      menus de la zone de notification, boîtes de dialogue et cartes à partager aussi
 - [ ] Accessibilité : clavier partout (contour visible, aller au contenu), « ? » liste les raccourcis, titres
       annoncés aux lecteurs d'écran, contrastes vérifiés
 - [ ] Raccourcis personnalisables

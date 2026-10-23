@@ -38,8 +38,8 @@ export function Top10({ tracks, number }: { tracks: Track[]; number?: number }) 
                 </span>
               </span>
             </span>
-            <span className="mt-2 block truncate text-sm font-semibold">{track.name}</span>
-            <span className="block truncate text-xs text-gray-400">{track.artists.join(", ")}</span>
+            <span translate="no" className="mt-2 block truncate text-sm font-semibold">{track.name}</span>
+            <span translate="no" className="block truncate text-xs text-gray-400">{track.artists.join(", ")}</span>
           </button>
         </div>
       ))}

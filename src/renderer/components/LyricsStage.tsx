@@ -143,8 +143,8 @@ export function LyricsStage() {
             <div className="flex shrink-0 items-end gap-5">
               {cover("w-[min(30vw,260px)] shrink-0")}
               <div className="min-w-0 pb-1">
-                <p className="truncate text-[clamp(22px,3.4vw,34px)] font-extrabold leading-tight tracking-tight">{track.name}</p>
-                <p className="truncate text-[clamp(14px,2vw,19px)] text-white/65">{track.artists.join(", ")}</p>
+                <p translate="no" className="truncate text-[clamp(22px,3.4vw,34px)] font-extrabold leading-tight tracking-tight">{track.name}</p>
+                <p translate="no" className="truncate text-[clamp(14px,2vw,19px)] text-white/65">{track.artists.join(", ")}</p>
               </div>
             </div>
           )}
@@ -159,8 +159,8 @@ export function LyricsStage() {
             {cover("w-[min(32vw,52vh)]")}
             {track && (
               <div className="mt-7 w-[min(32vw,52vh)]">
-                <p className="truncate text-center text-[clamp(20px,1.9vw,30px)] font-extrabold leading-tight tracking-tight">{track.name}</p>
-                <p className="truncate text-center text-[clamp(14px,1.2vw,18px)] text-white/65">{track.artists.join(", ")}</p>
+                <p translate="no" className="truncate text-center text-[clamp(20px,1.9vw,30px)] font-extrabold leading-tight tracking-tight">{track.name}</p>
+                <p translate="no" className="truncate text-center text-[clamp(14px,1.2vw,18px)] text-white/65">{track.artists.join(", ")}</p>
                 <ProgressBar className="mt-4" />
                 <div className="mt-2 flex items-center justify-center gap-4">
                   <TransportControls />

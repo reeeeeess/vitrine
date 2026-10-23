@@ -391,7 +391,7 @@ function Card({ item, active, playing, burst, onToggle, onLike }: { item: FlowIt
           <SourceIcon className="h-3.5 w-3.5 text-red-400" />
           {item.reason}
         </span>
-        <h2 className="mt-3 truncate font-display text-3xl tracking-tight">{track.name}</h2>
+        <h2 translate="no" className="mt-3 truncate font-display text-3xl tracking-tight">{track.name}</h2>
         <div className="pointer-events-auto">
           <ArtistLinks track={track} className="text-base text-white/75" />
         </div>
@@ -419,6 +419,7 @@ function Caption({ item }: { item: FlowItem }) {
         {text && (
           <motion.p
             key={`${index}-${text}`}
+            translate="no"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}

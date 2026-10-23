@@ -4,6 +4,7 @@
 import { app, type JumpListCategory } from "electron";
 import { isPlayableUri } from "./cli";
 import type { Pin } from "./config";
+import { tr } from "./locale";
 
 export const MAX_PINS = 6;
 
@@ -41,7 +42,7 @@ export function jumpList(pins: Pin[], program: string): JumpListCategory[] {
       items: pins.map((pin) => ({
         type: "task",
         title: pin.name.slice(0, 60),
-        description: `${KIND_LABEL[pin.kind]} — lancer la lecture`,
+        description: tr(`${KIND_LABEL[pin.kind]} — lancer la lecture`),
         program,
         args: `--play=${pin.uri}`,
         iconPath: program,

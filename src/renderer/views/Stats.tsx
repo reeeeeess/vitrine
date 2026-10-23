@@ -76,8 +76,8 @@ export function Stats() {
                     <Artwork src={track.thumb ?? track.image} className="rounded-md" />
                   </button>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{track.name}</span>
-                    <span className="block truncate text-xs text-gray-400">{track.artists.join(", ")}</span>
+                    <span translate="no" className="block truncate text-sm font-semibold">{track.name}</span>
+                    <span translate="no" className="block truncate text-xs text-gray-400">{track.artists.join(", ")}</span>
                   </span>
                   {track.albumId && (
                     <button className="truncate text-xs text-gray-500 opacity-0 hover:text-white group-hover:opacity-100" onClick={() => navigate({ name: "album", id: track.albumId! })}>
@@ -104,7 +104,7 @@ export function Stats() {
                     <Artwork src={artist.image} round className="ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-105" />
                     <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full accent-bg text-xs font-bold">{index + 1}</span>
                   </div>
-                  <span className="mt-2 block truncate text-sm font-semibold">{artist.name}</span>
+                  <span translate="no" className="mt-2 block truncate text-sm font-semibold">{artist.name}</span>
                   <span className="block truncate text-xs text-gray-400">{artist.genres.slice(0, 2).join(", ") || "Artiste"}</span>
                 </motion.button>
               ))}

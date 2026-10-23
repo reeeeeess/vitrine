@@ -3,6 +3,7 @@
 import { artworkColor, rgbVar } from "./palette";
 import { cssVar, fit, loadImage, rgb, roundedImage } from "./recap";
 import type { Track } from "./types";
+import { t } from "./i18n";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -72,7 +73,7 @@ export async function renderStory({ track, lyric }: { track: Track; lyric?: stri
   ctx.fillStyle = rgb(white, 0.75);
   ctx.font = `500 26px ${mono}`;
   ctx.textAlign = "center";
-  ctx.fillText("● EN ÉCOUTE SUR VITRINE", WIDTH / 2, 190);
+  ctx.fillText(t("● EN ÉCOUTE SUR VITRINE"), WIDTH / 2, 190);
 
   // the artwork itself, with its shadow
   const size = 780;
@@ -116,7 +117,7 @@ export async function renderStory({ track, lyric }: { track: Track; lyric?: stri
 
   ctx.fillStyle = rgb(white, 0.45);
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText(fit(ctx, `${track.albumName ? `${track.albumName} · ` : ""}données Spotify`, WIDTH - 160), WIDTH / 2, HEIGHT - 90);
+  ctx.fillText(fit(ctx, `${track.albumName ? `${track.albumName} · ` : ""}${t("données Spotify")}`, WIDTH - 160), WIDTH / 2, HEIGHT - 90);
 
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image vide"))), "image/png"));
 }

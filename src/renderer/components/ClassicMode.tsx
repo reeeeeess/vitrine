@@ -98,8 +98,8 @@ function ScreenView({ screen }: { screen: Screen }) {
           <div className="flex gap-3">
             <Artwork src={track.image} className="h-[104px] w-[104px] shrink-0 rounded-sm shadow-md" />
             <div className="min-w-0 pt-1">
-              <p className="truncate text-sm font-bold">{track.name}</p>
-              <p className="truncate text-xs">{track.artists.join(", ")}</p>
+              <p translate="no" className="truncate text-sm font-bold">{track.name}</p>
+              <p translate="no" className="truncate text-xs">{track.artists.join(", ")}</p>
               <p className="truncate text-xs text-black/60">{track.albumName}</p>
             </div>
           </div>

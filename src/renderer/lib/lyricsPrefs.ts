@@ -4,6 +4,7 @@ import type { LyricsKind, LyricsResult, LyricsSource } from "../global";
 import { parseLrc, shiftLines, type LyricLine } from "./lrc";
 import { createStore } from "./store";
 import type { Track } from "./types";
+import { LOCALE } from "./i18n";
 
 const KEY = "vitrine.lyricsPrefs";
 const NETEASE_KEY = "vitrine.lyricsNetease";
@@ -67,7 +68,7 @@ export function nextSource(sources: { source: LyricsSource }[] | undefined, curr
 /** "+0,25 s", "−1,5 s", or "" at 0 */
 export function offsetLabel(offsetMs: number | undefined): string {
   if (!offsetMs) return "";
-  const seconds = (Math.abs(offsetMs) / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  const seconds = (Math.abs(offsetMs) / 1000).toLocaleString(LOCALE, { maximumFractionDigits: 2 });
   return `${offsetMs > 0 ? "+" : "−"}${seconds} s`;
 }
 

@@ -8,6 +8,7 @@ import path from "node:path";
 import { iceberg, lastWeek, milestones, momentMix, quickPicks, topTracksSince, trackStats, type Milestone, type WeekRecap } from "../src/renderer/lib/insights";
 import { summarize, type HistoryInfo, type ListeningSummary } from "../src/renderer/lib/listening";
 import { readConfig, updateConfig } from "./config";
+import { tr } from "./locale";
 import { extendLine, fromRecentlyPlayed, fromStreamingHistory, newPlays, parsePlay, playLine, readPlays, toCsv, type Play, type PlaySource } from "./historyFile";
 import { spotifyFetch } from "./spotifyPauses";
 import { readZip } from "./zip";
@@ -178,9 +179,9 @@ const isHistoryFile = (name: string) => /Streaming_?History[^/]*\.json$/i.test(n
 /** Reads the plays in the JSON files, or in Spotify's ZIP archive, the person picks. */
 export async function importHistory(window: BrowserWindow | null): Promise<{ added: number; read: number; files: number } | null> {
   const options = {
-    title: "Importer votre historique Spotify",
+    title: tr("Importer votre historique Spotify"),
     properties: ["openFile", "multiSelections"] as ("openFile" | "multiSelections")[],
-    filters: [{ name: "Historique Spotify (ZIP ou JSON)", extensions: ["zip", "json"] }],
+    filters: [{ name: tr("Historique Spotify (ZIP ou JSON)"), extensions: ["zip", "json"] }],
   };
   const choice = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
   if (choice.canceled || choice.filePaths.length === 0) return null;
@@ -204,7 +205,7 @@ export async function importHistory(window: BrowserWindow | null): Promise<{ add
 /** Asks where to save, then writes the CSV; false when the person cancelled. */
 export async function exportHistory(window: BrowserWindow | null): Promise<boolean> {
   const options = {
-    title: "Exporter l'historique d'écoute",
+    title: tr("Exporter l'historique d'écoute"),
     defaultPath: path.join(app.getPath("documents"), `vitrine-historique-${new Date().toISOString().slice(0, 10)}.csv`),
     filters: [{ name: "CSV", extensions: ["csv"] }],
   };

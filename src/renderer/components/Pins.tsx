@@ -71,7 +71,7 @@ export function PinnedRow() {
             onContextMenu={(event) => collectionMenu(event, pin)}
           >
             <Artwork src={pin.image} round={pin.kind === "artist"} className="h-14 w-14 shrink-0 rounded-xl" />
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{pin.name}</span>
+            <span translate="no" className="min-w-0 flex-1 truncate text-sm font-semibold">{pin.name}</span>
             <button
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full accent-bg opacity-0 shadow-lg transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
               onClick={(event) => {

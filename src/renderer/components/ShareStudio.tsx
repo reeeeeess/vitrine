@@ -10,6 +10,7 @@ import type { Artist, Track } from "../lib/types";
 import { navigate, notify } from "../lib/ui";
 import { showImage } from "./ImagePreview";
 import { openRetro } from "./RetroVitrine";
+import { t } from "../lib/i18n";
 
 /** The tracks a smart playlist holds; [] when the history does not know enough yet. */
 async function recipeUris(recipe: SmartRecipe["id"]): Promise<string[]> {
@@ -96,7 +97,7 @@ export function ShareStudio({ period, tracks, artists }: { period: string; track
         notify(`Pas assez d'écoutes connues pour « ${recipe.name} » : Vitrine compte vos écoutes depuis son installation.`);
         return;
       }
-      const playlist = await api.createPlaylist(`${recipe.name} · Vitrine`, `Faite par Vitrine — ${recipe.description}`);
+      const playlist = await api.createPlaylist(t(`${recipe.name} · Vitrine`), t(`Faite par Vitrine — ${recipe.description}`));
       await api.addToPlaylist(playlist.id, uris);
       notify(`« ${recipe.name} » créée sur Spotify : ${uris.length} titres.`);
       navigate({ name: "playlist", id: playlist.id });
@@ -126,7 +127,7 @@ export function ShareStudio({ period, tracks, artists }: { period: string; track
       <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
         <span className="kicker flex items-center gap-1.5 font-mono font-medium text-red-400">
           <Sparkles className="h-3.5 w-3.5" />
-          IMAGES À PARTAGER · {period.toUpperCase()}
+          IMAGES À PARTAGER · {t(period).toUpperCase()}
         </span>
         <div className="mt-4 grid grid-cols-2 gap-2">
           {images.map(({ key, label, icon: Icon, run }) => (

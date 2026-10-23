@@ -49,8 +49,8 @@ export function VersionsPanel() {
               <Layers className="h-3.5 w-3.5" />
               AUTRES VERSIONS
             </span>
-            <p className="mt-1 truncate font-display text-2xl tracking-tight">{track.name}</p>
-            <p className="truncate text-sm text-gray-400">{track.artists.join(", ")}</p>
+            <p translate="no" className="mt-1 truncate font-display text-2xl tracking-tight">{track.name}</p>
+            <p translate="no" className="truncate text-sm text-gray-400">{track.artists.join(", ")}</p>
           </div>
           <button onClick={close} className="rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white" aria-label="Fermer">
             <X className="h-5 w-5" />
@@ -84,7 +84,7 @@ export function VersionsPanel() {
                         </span>
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{version.track.name}</span>
+                        <span translate="no" className="block truncate text-sm font-medium">{version.track.name}</span>
                         <span className="block truncate text-xs text-gray-400">
                           {version.track.artists.join(", ")}
                           {version.sameArtist ? " · officielle" : ""}

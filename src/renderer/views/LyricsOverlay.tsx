@@ -13,7 +13,7 @@ export function LyricsOverlay() {
   }, []);
 
   return (
-    <div className="flex h-screen select-none flex-col items-center justify-center gap-1 overflow-hidden px-6 text-center">
+    <div translate="no" className="flex h-screen select-none flex-col items-center justify-center gap-1 overflow-hidden px-6 text-center">
       <AnimatePresence mode="wait">
         {line.line && (
           <motion.p

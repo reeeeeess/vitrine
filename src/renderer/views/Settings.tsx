@@ -17,6 +17,7 @@ import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
 import { restore, trash } from "../lib/trash";
 import { EFFECTS, lite, REASONS, setEffect, setLiteSetting, type LiteSetting } from "../lib/lite";
+import { languageSetting, setLanguage, t, type LanguageSetting } from "../lib/i18n";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -39,6 +40,33 @@ function Line({ label, hint, children }: { label: string; hint?: ReactNode; chil
       </div>
       {children}
     </div>
+  );
+}
+
+const INTERFACE_LANGUAGES: { value: LanguageSetting; name: string }[] = [
+  { value: "auto", name: "Auto" },
+  { value: "fr", name: "Français" },
+  { value: "en", name: "English" },
+];
+
+/** The interface's language: written in both, so it can be found whatever the one shown. */
+function LanguageLine() {
+  const chosen = languageSetting();
+  return (
+    <Line label="Langue · Language" hint="Auto : la langue de l'ordinateur. Vitrine se recharge pour l'appliquer.">
+      <div translate="no" className="flex gap-1 rounded-full border border-white/10 p-1">
+        {INTERFACE_LANGUAGES.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => option.value !== chosen && setLanguage(option.value)}
+            aria-pressed={chosen === option.value}
+            className={cn("rounded-full px-3 py-1 text-xs font-medium transition-colors", chosen === option.value ? "bg-white/15 text-white" : "text-gray-400 hover:text-white")}
+          >
+            {option.name}
+          </button>
+        ))}
+      </div>
+    </Line>
   );
 }
 
@@ -220,7 +248,7 @@ function DesktopSettingsLines() {
         label="Raccourcis clavier globaux"
         hint={
           <>
-            Depuis n'importe quelle appli : {SHORTCUTS.map(([keys, what]) => `${keys} ${what}`).join(" · ")} (⌘ au lieu de Ctrl sur Mac).
+            Depuis n'importe quelle appli : {SHORTCUTS.map(([keys, what]) => `${t(keys)} ${t(what)}`).join(" · ")} (⌘ au lieu de Ctrl sur Mac).
             {settings.globalShortcuts && settings.takenShortcuts?.length ? ` Déjà pris par une autre appli : ${settings.takenShortcuts.join(", ")}.` : ""}
           </>
         }
@@ -338,7 +366,7 @@ function HistorySettings() {
             Exporter
           </button>
           <button
-            onClick={() => window.confirm("Effacer tout l'historique d'écoute de ce PC ?") && void act(() => window.vitrine.history.clear(), "Historique effacé.")}
+            onClick={() => window.confirm(t("Effacer tout l'historique d'écoute de ce PC ?")) && void act(() => window.vitrine.history.clear(), "Historique effacé.")}
             className="btn-ghost min-h-0 px-4 py-2 text-sm"
           >
             <Trash2 className="h-4 w-4" />
@@ -557,6 +585,7 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
       </h1>
 
       <Section title="Apparence">
+        <LanguageLine />
         <div className="grid grid-cols-3 gap-3">
           {THEMES.map((option) => (
             <button
@@ -597,7 +626,7 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         </Line>
       </Section>
 
-      <Section title="Lecture">
+      <Section title="Lecture et file d'attente">
         <InfiniteLine />
       </Section>
 
@@ -613,7 +642,7 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         <DesktopSettingsLines />
       </Section>
 
-      <Section title="Lecture">
+      <Section title="Lecture et file d'attente">
         <Line label="Lecteur intégré" hint={player}>
           {sdk !== "ready" && sdk !== "loading" && (
             <button onClick={retryLocalPlayback} className="btn-ghost min-h-0 shrink-0 px-4 py-2 text-sm">

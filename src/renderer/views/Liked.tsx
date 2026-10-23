@@ -11,8 +11,9 @@ import * as api from "../lib/spotify";
 import { goBack } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
+import { LOCALE } from "../lib/i18n";
 
-const count = new Intl.NumberFormat("fr-FR");
+const count = new Intl.NumberFormat(LOCALE);
 
 type LikedSort = "added" | "plays" | "recent" | "never";
 

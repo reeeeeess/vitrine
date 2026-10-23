@@ -4,7 +4,8 @@ import type { HistoryPlay } from "../src/renderer/global";
 import { iceberg, lastPlayedLabel, lastWeek, milestones, momentMix, quickPicks, trackStats } from "../src/renderer/lib/insights";
 
 vi.mock("electron", () => ({ app: { isPackaged: false, setJumpList: vi.fn() } }));
-const memory = new Map<string, string>();
+// the interface in French, whatever the language of the machine running the tests
+const memory = new Map<string, string>([["vitrine.language", "fr"]]);
 Object.assign(globalThis, {
   localStorage: { getItem: (k: string) => memory.get(k) ?? null, setItem: (k: string, v: string) => memory.set(k, v), removeItem: (k: string) => memory.delete(k) },
   window: { vitrine: { auth: { token: async () => "t" } } },

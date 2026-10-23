@@ -9,6 +9,7 @@ import * as engine from "../player/engine";
 import { Artwork } from "./Artwork";
 import { run } from "./NowPlayingBar";
 import { trackMenu } from "./TrackMenu";
+import { LOCALE } from "../lib/i18n";
 
 type Period = 7 | 30 | 365 | 0;
 const PERIODS: { value: Period; label: string }[] = [
@@ -25,10 +26,10 @@ const SOURCES: { value: Source; label: string }[] = [
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 const PRIVACY_PAGE = "https://www.spotify.com/account/privacy/";
-const when = new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const date = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-const time = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
-const number = new Intl.NumberFormat("fr-FR");
+const when = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const date = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", year: "numeric" });
+const time = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
+const number = new Intl.NumberFormat(LOCALE);
 
 function Toggle<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (value: T) => void }) {
   return (
@@ -70,7 +71,7 @@ function RankedList({ title, items, onOpen, tracks }: { title: string; items: Ra
               <span className={cn("w-5 text-right font-display tabular-nums", index === 0 ? "text-red-500" : "text-white/40")}>{index + 1}</span>
               {tracks && <Artwork src={item.image} className="h-9 w-9 shrink-0 rounded-md" />}
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{item.name}</span>
+                <span translate="no" className="block truncate text-sm font-medium">{item.name}</span>
                 <span className="block truncate text-xs text-gray-400">{tracks ? `${item.detail} · ${item.plays} écoute${item.plays > 1 ? "s" : ""}` : item.detail}</span>
               </span>
               <span className="shrink-0 text-xs tabular-nums text-gray-400">{formatListening(item.ms)}</span>
@@ -279,7 +280,7 @@ export function Listening() {
                   <li key={`${play.at}-${play.uri}`} className="flex items-center gap-3 rounded-xl px-2 py-1.5">
                     <Artwork src={play.image} className="h-9 w-9 shrink-0 rounded-md" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{play.name}</span>
+                      <span translate="no" className="block truncate text-sm font-medium">{play.name}</span>
                       <span className="block truncate text-xs text-gray-400">
                         {play.artists.join(", ")}
                         {play.source === "spotify" ? " · via Spotify" : play.source === "import" ? " · importé" : " · Vitrine"}

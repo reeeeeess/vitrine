@@ -97,7 +97,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
               <span className="flex min-w-0 items-center gap-3">
                 {showArt && <Artwork src={track.thumb ?? track.image} className="h-10 w-10 shrink-0 rounded-md" />}
                 <span className="min-w-0">
-                  <span className={cn("block truncate text-sm font-medium", current ? "text-red-400" : "text-white")}>{track.name}</span>
+                  <span translate="no" className={cn("block truncate text-sm font-medium", current ? "text-red-400" : "text-white")}>{track.name}</span>
                   <span className="flex min-w-0 items-center gap-1.5 text-xs text-gray-400">
                     {track.explicit && <span className="rounded-sm bg-white/20 px-1 text-[10px] font-bold leading-4 text-white/80">E</span>}
                     <ArtistLinks track={track} className="min-w-0" />

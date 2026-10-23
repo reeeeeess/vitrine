@@ -55,8 +55,8 @@ export function UpNext() {
           <Artwork src={next.thumb ?? next.image} className="h-11 w-11 shrink-0 rounded-lg" />
           <div className="min-w-0">
             <p className="kicker font-mono text-[10px] font-medium text-red-400">ENSUITE</p>
-            <p className="truncate text-sm font-semibold">{next.name}</p>
-            <p className="truncate text-xs text-gray-400">{next.artists.join(", ")}</p>
+            <p translate="no" className="truncate text-sm font-semibold">{next.name}</p>
+            <p translate="no" className="truncate text-xs text-gray-400">{next.artists.join(", ")}</p>
           </div>
         </motion.div>
       )}

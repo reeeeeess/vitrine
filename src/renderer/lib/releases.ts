@@ -4,6 +4,7 @@
 import * as api from "./spotify";
 import { createStore } from "./store";
 import type { Artist, Collection } from "./types";
+import { LOCALE } from "./i18n";
 
 const KEY = "vitrine.releases";
 const FRESH_MS = 12 * 3_600_000;
@@ -90,7 +91,7 @@ export function releaseLabel(date: string | undefined, now = Date.now()): string
   if (days <= 0) return "aujourd'hui";
   if (days === 1) return "hier";
   if (days < 7) return `il y a ${days} j`;
-  return new Date(time).toLocaleDateString("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
+  return new Date(time).toLocaleDateString(LOCALE, { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

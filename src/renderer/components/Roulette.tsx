@@ -134,7 +134,7 @@ export function Roulette() {
               {settled && motionOn && <Confetti key={round} />}
               {settled && choice ? (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
-                  <p className="font-display text-2xl">{choice.name}</p>
+                  <p translate="no" className="font-display text-2xl">{choice.name}</p>
                   <p className="mt-0.5 text-sm text-gray-400">{choice.subtitle}</p>
                   <div className="mt-4 flex flex-wrap justify-center gap-3">
                     <button

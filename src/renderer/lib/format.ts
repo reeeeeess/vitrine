@@ -1,3 +1,5 @@
+import { LANG } from "./i18n";
+
 export function formatTime(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(total / 3600);
@@ -12,8 +14,9 @@ export function formatTotal(ms: number): string {
   return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`;
 }
 
-export function greeting(date = new Date()): string {
+export function greeting(date = new Date(), language = LANG): string {
   const hour = date.getHours();
+  if (language === "en") return hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 18 ? "Good afternoon" : "Good evening";
   if (hour < 5) return "Bonne nuit";
   if (hour < 18) return "Bonjour";
   return "Bonsoir";

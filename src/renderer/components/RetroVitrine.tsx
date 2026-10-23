@@ -13,6 +13,7 @@ import { createStore, useStore } from "../lib/store";
 import { notify } from "../lib/ui";
 import { Artwork } from "./Artwork";
 import { showImage } from "./ImagePreview";
+import { LOCALE } from "../lib/i18n";
 
 /** which period Rétro Vitrine tells, while it is open */
 export const retro = createStore<{ period: RetroPeriod | null }>({ period: null });
@@ -22,7 +23,7 @@ const close = () => retro.set({ period: null });
 /** each slide stays this long before the next, as in a story */
 const SLIDE_MS = 6500;
 
-const number = new Intl.NumberFormat("fr-FR");
+const number = new Intl.NumberFormat(LOCALE);
 
 /** Counts up to `to` in a second and a half (the minutes slide). */
 function Counter({ to }: { to: number }) {
@@ -251,7 +252,7 @@ function buildSlides(summary: ListeningSummary, range: { since: number; until: n
                 </motion.div>
                 <div className="min-w-0">
                   <Kicker>Votre artiste n° 1</Kicker>
-                  <p className="mt-4 font-display text-[clamp(48px,7vw,112px)] uppercase leading-[0.92] tracking-tight">{artist.name}</p>
+                  <p translate="no" className="mt-4 font-display text-[clamp(48px,7vw,112px)] uppercase leading-[0.92] tracking-tight">{artist.name}</p>
                   <p className="mt-4 text-2xl text-white/75">
                     {artist.plays} écoutes · {formatListening(artist.ms)}
                   </p>
@@ -272,7 +273,7 @@ function buildSlides(summary: ListeningSummary, range: { since: number; until: n
                 <span className="w-14 text-right font-display text-5xl text-white/80">{i + 1}</span>
                 <Artwork src={track.image} className="h-20 w-20 shrink-0 rounded-xl" />
                 <span className="min-w-0">
-                  <span className="block truncate text-3xl font-semibold">{track.name}</span>
+                  <span translate="no" className="block truncate text-3xl font-semibold">{track.name}</span>
                   <span className="block truncate text-lg text-white/65">
                     {track.detail} · {track.plays} écoutes
                   </span>
@@ -294,7 +295,7 @@ function buildSlides(summary: ListeningSummary, range: { since: number; until: n
               ["Votre jour", weekday ?? "—", "le jour de la semaine le plus musical"],
               [
                 "Jour record",
-                record ? new Date(record.day).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "—",
+                record ? new Date(record.day).toLocaleDateString(LOCALE, { day: "numeric", month: "long" }) : "—",
                 record ? `${formatListening(record.ms)} d'écoute ce jour-là` : "",
               ],
             ].map(([title, value, hint]) => (

@@ -45,7 +45,7 @@ export function MiniPlayer() {
         <div className="mt-4 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="truncate font-display text-lg leading-tight">{track?.name ?? "Rien en cours"}</p>
-            <p className="truncate text-sm text-white/60">{track?.artists.join(", ") ?? ""}</p>
+            <p translate="no" className="truncate text-sm text-white/60">{track?.artists.join(", ") ?? ""}</p>
           </div>
           {track && <LikeButton track={track} />}
         </div>

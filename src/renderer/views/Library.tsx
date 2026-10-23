@@ -13,6 +13,7 @@ import { navigate, ui } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import { usePageTitle } from "../lib/pageTitle";
 import { openCollection, pinOf, playAllLiked, playCollection } from "./Home";
+import { LOCALE } from "../lib/i18n";
 
 type Tab = "playlists" | "albums";
 export type Sort = "spotify" | "name" | "creator" | "added";
@@ -24,7 +25,7 @@ const SORTS: { value: Sort; label: string; albumsOnly?: boolean }[] = [
   { value: "added", label: "Date d'ajout", albumsOnly: true },
 ];
 
-const collator = new Intl.Collator("fr", { sensitivity: "base", numeric: true });
+const collator = new Intl.Collator(LOCALE, { sensitivity: "base", numeric: true });
 
 /** The library in the order asked: Spotify's own (recently played or added first), by name, by creator, by date added. */
 export function sortCollections(items: Collection[], sort: Sort): Collection[] {
@@ -125,7 +126,7 @@ export function Library() {
               key={collection.id}
               index={index}
               title={collection.name}
-              subtitle={collection.addedAt ? `Ajouté le ${new Date(collection.addedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : collection.subtitle}
+              subtitle={collection.addedAt ? `Ajouté le ${new Date(collection.addedAt).toLocaleDateString(LOCALE, { day: "numeric", month: "short" })}` : collection.subtitle}
               image={collection.card ?? collection.image}
               onOpen={() => openCollection(collection)}
               onPlay={() => playCollection(collection)}
@@ -187,7 +188,7 @@ export function Library() {
             >
               <Artwork src={collection.thumb ?? collection.image} className="h-12 w-12 shrink-0 rounded-md" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">{collection.name}</span>
+                <span translate="no" className="block truncate text-sm font-semibold">{collection.name}</span>
                 <span className="block truncate text-xs text-gray-400">{collection.subtitle}</span>
               </span>
               {collection.total !== undefined && <span className="shrink-0 text-xs text-gray-500">{collection.total} titres</span>}

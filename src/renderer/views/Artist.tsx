@@ -15,8 +15,9 @@ import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
 import { releaseLabel } from "./Collection";
 import { openCollection, pinOf, playCollection } from "./Home";
+import { LOCALE } from "../lib/i18n";
 
-const followers = new Intl.NumberFormat("fr-FR");
+const followers = new Intl.NumberFormat(LOCALE);
 
 /** The newest of the artist's albums and singles (iOS 27's "latest release" banner). */
 export function latestRelease(releases: Collection[]): Collection | undefined {
@@ -115,7 +116,7 @@ export function ArtistView({ id }: { id: string }) {
           <Artwork src={latest.card ?? latest.image} className="h-28 w-28 shrink-0 rounded-2xl" />
           <div className="min-w-0 flex-1">
             <span className="kicker font-mono font-medium text-red-400">DERNIÈRE SORTIE</span>
-            <p className="mt-1 truncate font-display text-3xl tracking-tight">{latest.name}</p>
+            <p translate="no" className="mt-1 truncate font-display text-3xl tracking-tight">{latest.name}</p>
             <p className="mt-1 text-sm text-gray-400">
               {[releaseLabel(latest.releaseDate), latest.group === "single" ? (latest.total && latest.total > 1 ? "EP" : "Single") : "Album", latest.total ? `${latest.total} titre${latest.total > 1 ? "s" : ""}` : ""]
                 .filter(Boolean)

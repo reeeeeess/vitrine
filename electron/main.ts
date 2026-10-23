@@ -36,6 +36,7 @@ import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } fro
 import { cleanMoments } from "./moments";
 import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
+import { setLanguage } from "./locale";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
 
@@ -320,6 +321,11 @@ function registerIpc(): void {
   handle("history:enabled", () => historyEnabled());
   handle("history:set-enabled", (on) => setHistoryEnabled(on === true));
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
+  handle("app:language", (raw) => {
+    setLanguage(raw);
+    desktop.relabel();
+    applyJumpList(readConfig().pins ?? []);
+  });
 
   handle("discord:get", () => discordInfo());
   handle("discord:set", (raw) => {

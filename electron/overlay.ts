@@ -1,6 +1,7 @@
 // Lyrics over the desktop, as Liner does: a transparent window above every other, that the mouse goes
 // through, showing the line being sung. The main window works the line out and sends it here.
 import { BrowserWindow, screen } from "electron";
+import { tr } from "./locale";
 
 export interface OverlayLine {
   line: string;
@@ -49,7 +50,7 @@ export class LyricsOverlay {
       hasShadow: false,
       alwaysOnTop: true,
       show: false,
-      title: "Vitrine — paroles",
+      title: tr("Vitrine — paroles"),
       webPreferences: { preload: this.preload, contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
     });
     // above full-screen apps too, and never in the way of a click

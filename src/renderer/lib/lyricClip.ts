@@ -7,6 +7,7 @@ import { fill, stageLyrics, type LyricEntry, type SungWord } from "./lyricsView"
 import { artworkColor, rgbVar } from "./palette";
 import { cssVar, fit, loadImage, rgb, roundedImage } from "./recap";
 import type { Track } from "./types";
+import { t } from "./i18n";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -186,7 +187,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, assets: Assets, track: 
   ctx.fillStyle = rgb(assets.white, 0.5);
   ctx.font = `500 24px ${assets.mono}`;
   ctx.textAlign = "center";
-  ctx.fillText("♪ PAROLES · VITRINE", WIDTH / 2, HEIGHT - 90);
+  ctx.fillText(t("♪ PAROLES · VITRINE"), WIDTH / 2, HEIGHT - 90);
 }
 
 /**

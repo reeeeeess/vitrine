@@ -6,6 +6,7 @@ import { createServer, type Server } from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { readConfig, updateConfig } from "./config";
+import { language, tr } from "./locale";
 import {
   authorizeUrl,
   createPkcePair,
@@ -30,7 +31,7 @@ export interface AuthStatus {
   persistent: boolean;
 }
 
-const page = (title: string, text: string) => `<!doctype html><html lang="fr"><meta charset="utf-8">
+const page = (title: string, text: string) => `<!doctype html><html lang="${language()}"><meta charset="utf-8">
 <title>Vitrine</title><body style="margin:0;height:100vh;display:grid;place-items:center;background:#000;color:#fff;
 font-family:system-ui,-apple-system,'Segoe UI',sans-serif"><div style="text-align:center"><h1 style="font-size:28px">${title}</h1>
 <p style="color:#9ca3af">${text}</p></div></body></html>`;
@@ -161,8 +162,8 @@ export class AuthManager {
         response.writeHead(ok ? 200 : 400, { "content-type": "text/html; charset=utf-8" });
         response.end(
           ok
-            ? page("Connecté à Spotify", "Vous pouvez fermer cet onglet et revenir dans Vitrine.")
-            : page("Connexion refusée", "Revenez dans Vitrine pour réessayer."),
+            ? page(tr("Connecté à Spotify"), tr("Vous pouvez fermer cet onglet et revenir dans Vitrine."))
+            : page(tr("Connexion refusée"), tr("Revenez dans Vitrine pour réessayer.")),
         );
         if (ok) finish(null, code);
         else finish(new Error(error === "access_denied" ? "Connexion refusée dans Spotify." : "Réponse de Spotify invalide."));

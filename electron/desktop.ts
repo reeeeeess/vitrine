@@ -6,6 +6,7 @@ import { app, BrowserWindow, globalShortcut, Menu, nativeImage, net, Notificatio
 import path from "node:path";
 import { GLOBAL_SHORTCUTS, type DesktopCommand } from "./cli";
 import { readConfig, updateConfig, type DesktopSettings, type Pin } from "./config";
+import { tr } from "./locale";
 
 export type { DesktopSettings };
 
@@ -142,27 +143,33 @@ export class Desktop {
     this.refreshTray();
   }
 
+  /** The tray and the taskbar's buttons again, in a new language. */
+  relabel(): void {
+    this.refreshTray();
+    this.updateThumbar();
+  }
+
   private refreshTray(): void {
     if (!this.tray) return;
     const playing = this.nowPlaying;
     this.tray.setToolTip(playing ? `${playing.title} — ${playing.artist}`.slice(0, 120) : "Vitrine");
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
-        { label: playing ? `${playing.title} — ${playing.artist}`.slice(0, 60) : "Rien en cours", enabled: false },
+        { label: playing ? `${playing.title} — ${playing.artist}`.slice(0, 60) : tr("Rien en cours"), enabled: false },
         { type: "separator" },
-        { label: playing?.paused === false ? "Pause" : "Lecture", enabled: Boolean(playing), click: () => this.send("toggle") },
-        { label: "Suivant", enabled: Boolean(playing), click: () => this.send("next") },
-        { label: "Précédent", enabled: Boolean(playing), click: () => this.send("previous") },
+        { label: tr(playing?.paused === false ? "Pause" : "Lecture"), enabled: Boolean(playing), click: () => this.send("toggle") },
+        { label: tr("Suivant"), enabled: Boolean(playing), click: () => this.send("next") },
+        { label: tr("Précédent"), enabled: Boolean(playing), click: () => this.send("previous") },
         ...(this.pins.length
           ? [
               { type: "separator" as const },
-              { label: "Épinglés", submenu: this.pins.map((pin) => ({ label: pin.name.slice(0, 50), click: () => this.send(`play:${pin.uri}`) })) },
+              { label: tr("Épinglés"), submenu: this.pins.map((pin) => ({ label: pin.name.slice(0, 50), click: () => this.send(`play:${pin.uri}`) })) },
             ]
           : []),
         { type: "separator" },
-        { label: "Afficher Vitrine", click: () => this.showWindow() },
+        { label: tr("Afficher Vitrine"), click: () => this.showWindow() },
         {
-          label: "Quitter",
+          label: tr("Quitter"),
           click: () => {
             this.quitting = true;
             app.quit();
@@ -185,9 +192,9 @@ export class Desktop {
     const playing = this.nowPlaying;
     const flags: ("enabled" | "disabled")[] = playing ? ["enabled"] : ["disabled"];
     window.setThumbarButtons([
-      { tooltip: "Précédent", icon: this.icons.previous, flags, click: () => this.send("previous") },
-      { tooltip: playing?.paused === false ? "Pause" : "Lecture", icon: playing?.paused === false ? this.icons.pause : this.icons.play, flags, click: () => this.send("toggle") },
-      { tooltip: "Suivant", icon: this.icons.next, flags, click: () => this.send("next") },
+      { tooltip: tr("Précédent"), icon: this.icons.previous, flags, click: () => this.send("previous") },
+      { tooltip: tr(playing?.paused === false ? "Pause" : "Lecture"), icon: playing?.paused === false ? this.icons.pause : this.icons.play, flags, click: () => this.send("toggle") },
+      { tooltip: tr("Suivant"), icon: this.icons.next, flags, click: () => this.send("next") },
     ]);
   }
 
@@ -200,7 +207,7 @@ export class Desktop {
   announce(title: string, body: string): boolean {
     if (!desktopSettings().recaps || !Notification.isSupported() || Date.now() - this.lastAnnounce < 20 * 3_600_000) return false;
     this.lastAnnounce = Date.now();
-    const notification = new Notification({ title, body, silent: true });
+    const notification = new Notification({ title: tr(title), body: tr(body), silent: true });
     notification.on("click", () => {
       this.showWindow();
       this.command("stats");

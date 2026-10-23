@@ -47,6 +47,8 @@ export interface Config {
   lastfm?: import("./lastfm").LastfmSettings;
   /** the translation of lyrics: the service, the person's DeepL key, the language wanted */
   translation?: import("./translate").TranslationSettings;
+  /** the interface's language, as chosen in Vitrine ("auto": the system's) */
+  language?: "auto" | "fr" | "en";
 }
 
 const file = () => path.join(app.getPath("userData"), "config.json");

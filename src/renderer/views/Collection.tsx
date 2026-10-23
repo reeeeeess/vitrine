@@ -14,13 +14,14 @@ import { usePageTitle } from "../lib/pageTitle";
 import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
 import { openCollection, pinOf, playCollection } from "./Home";
+import { LOCALE } from "../lib/i18n";
 
 /** "12 mars 2024", or just the year or the month when Spotify knows no more. */
 export function releaseLabel(date: string | undefined): string {
   if (!date) return "";
   const [year, month, day] = date.split("-").map(Number);
-  if (day) return new Date(year, month - 1, day).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  if (month) return new Date(year, month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  if (day) return new Date(year, month - 1, day).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" });
+  if (month) return new Date(year, month - 1, 1).toLocaleDateString(LOCALE, { month: "long", year: "numeric" });
   return String(year);
 }
 

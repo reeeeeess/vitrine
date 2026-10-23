@@ -259,6 +259,7 @@ export function StagedLyrics({
             <button
               key={`${entry.timeMs}-${index}`}
               data-entry={index}
+              translate="no"
               onClick={() => {
                 setFreeUntil(0);
                 run(() => engine.seek(entry.timeMs));
@@ -324,7 +325,7 @@ export function PlainLyrics({ text, position, durationMs, className }: { text: s
   }, [freeUntil]);
   const letGo = () => setFreeUntil(Date.now() + FREE_SCROLL_MS);
   return (
-    <div ref={box} onWheel={letGo} onTouchMove={letGo} className={cn("scrollbar-hide h-full overflow-y-auto whitespace-pre-line", className)}>
+    <div ref={box} translate="no" onWheel={letGo} onTouchMove={letGo} className={cn("scrollbar-hide h-full overflow-y-auto whitespace-pre-line", className)}>
       {text}
     </div>
   );

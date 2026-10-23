@@ -1,5 +1,6 @@
 // Rétro Vitrine (Wrapped, Replay): a month or a year of listening, told in slides. The numbers come from
 // the history on this computer (lib/listening.ts); here, the periods and the facts worth a slide.
+import { LOCALE } from "./i18n";
 
 export type RetroPeriod = "month" | "lastMonth" | "year";
 
@@ -10,7 +11,7 @@ export function periodRange(period: RetroPeriod, now = Date.now()): { since: num
   const month = period === "month" ? date.getMonth() : date.getMonth() - 1;
   const start = new Date(date.getFullYear(), month, 1);
   const end = period === "month" ? now : new Date(date.getFullYear(), month + 1, 1).getTime() - 1;
-  return { since: start.getTime(), until: end, label: start.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) };
+  return { since: start.getTime(), until: end, label: start.toLocaleDateString(LOCALE, { month: "long", year: "numeric" }) };
 }
 
 const WEEKDAYS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];

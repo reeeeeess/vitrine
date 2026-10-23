@@ -11,6 +11,7 @@ import { usePosition } from "../player/hooks";
 import { useLyrics } from "../player/useLyrics";
 import { Artwork } from "./Artwork";
 import { run } from "./NowPlayingBar";
+import { LOCALE } from "../lib/i18n";
 
 export const salon = createStore({ open: false });
 
@@ -50,8 +51,8 @@ export function salonKey(key: string): "toggle" | "next" | "previous" | "louder"
   }
 }
 
-const clockFormat = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
-const dayFormat = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const clockFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
+const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "long" });
 /** "vendredi 23 octobre" → "Vendredi 23 octobre": only the first letter, the French way */
 export const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -170,6 +171,7 @@ export function Salon() {
             {line && (
               <motion.p
                 key={`${index}-${line}`}
+                translate="no"
                 className="absolute left-[5vw] right-[30vw] top-[24vh] text-[clamp(28px,3.6vw,64px)] font-extrabold leading-tight tracking-tight text-white/90"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -186,8 +188,8 @@ export function Salon() {
             <div className="flex items-end gap-[2vw]">
               <Artwork src={track.imageLarge ?? track.image} className="h-[clamp(96px,13vw,220px)] w-[clamp(96px,13vw,220px)] shrink-0 rounded-2xl shadow-2xl ring-1 ring-white/15" />
               <div className="min-w-0 pb-1">
-                <p className="truncate font-display text-[clamp(36px,5.6vw,110px)] leading-[0.95] tracking-tight">{track.name}</p>
-                <p className="mt-3 truncate text-[clamp(18px,2vw,34px)] text-white/75">{track.artists.join(", ")}</p>
+                <p translate="no" className="truncate font-display text-[clamp(36px,5.6vw,110px)] leading-[0.95] tracking-tight">{track.name}</p>
+                <p translate="no" className="mt-3 truncate text-[clamp(18px,2vw,34px)] text-white/75">{track.artists.join(", ")}</p>
               </div>
             </div>
             <div className="mt-[4vh] h-1.5 overflow-hidden rounded-full bg-white/20">
@@ -201,8 +203,8 @@ export function Salon() {
               <Artwork src={next.thumb ?? next.image} className="h-16 w-16 shrink-0 rounded-xl" />
               <div className="min-w-0">
                 <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/55">Ensuite</p>
-                <p className="truncate text-lg font-semibold">{next.name}</p>
-                <p className="truncate text-sm text-white/60">{next.artists.join(", ")}</p>
+                <p translate="no" className="truncate text-lg font-semibold">{next.name}</p>
+                <p translate="no" className="truncate text-sm text-white/60">{next.artists.join(", ")}</p>
               </div>
             </div>
           )}

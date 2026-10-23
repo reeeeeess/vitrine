@@ -6,6 +6,7 @@ import { matchScore, parseImport, searchQuery, type ImportedSong } from "../lib/
 import * as api from "../lib/spotify";
 import { createStore, useStore } from "../lib/store";
 import { navigate } from "../lib/ui";
+import { t } from "../lib/i18n";
 
 export const importDialog = createStore({ open: false });
 
@@ -72,7 +73,7 @@ export function ImportDialog() {
         if (!list[i].uri) await wait(PACE_MS);
       }
       const unique = [...new Set(found)];
-      const playlist = await api.createPlaylist(name.trim() || file, `Importée dans Vitrine depuis ${file}`);
+      const playlist = await api.createPlaylist(name.trim() || file, t(`Importée dans Vitrine depuis ${file}`));
       if (unique.length) await api.addToPlaylist(playlist.id, unique);
       setStep({ kind: "done", playlistId: playlist.id, found: unique.length, missing: [...missing, ...songs.slice(IMPORT_MAX)] });
     } catch (error) {

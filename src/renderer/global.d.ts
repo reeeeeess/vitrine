@@ -80,6 +80,9 @@ export interface VitrineBridge {
   };
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
+  app: {
+    setLanguage(language: "auto" | "fr" | "en"): Promise<void>;
+  };
   launchSpotify(): Promise<"app" | "protocol" | null>;
   equalizer: {
     get(): Promise<EqualizerStatus>;

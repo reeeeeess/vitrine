@@ -57,6 +57,10 @@ const api = {
     setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
   },
   info: () => ipcRenderer.invoke("app:info"),
+  app: {
+    /** the interface's language, for the tray, the dialogs and the notifications */
+    setLanguage: (language: string) => ipcRenderer.invoke("app:language", language),
+  },
   launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
   equalizer: {
     get: () => ipcRenderer.invoke("eq:get"),

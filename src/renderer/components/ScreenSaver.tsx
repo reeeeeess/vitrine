@@ -7,9 +7,10 @@ import { ui } from "../lib/ui";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
 import { useLyrics } from "../player/useLyrics";
+import { LOCALE } from "../lib/i18n";
 
 const IDLE_MS = 2 * 60_000;
-const clock = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const clock = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 
 /**
  * Movix's screen saver: after two minutes without the mouse or the keyboard, with the player or the
@@ -70,9 +71,9 @@ function Saver() {
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
       <div className="absolute bottom-16 left-16 right-16">
         <p className="font-mono text-sm uppercase tracking-[0.3em] text-white/60">{clock.format(now)}</p>
-        <p className="mt-3 font-display text-6xl leading-none tracking-tight">{track.name}</p>
-        <p className="mt-3 text-2xl text-white/70">{track.artists.join(", ")}</p>
-        {line && <p className="mt-8 max-w-4xl font-display text-3xl text-white/90">{line}</p>}
+        <p translate="no" className="mt-3 font-display text-6xl leading-none tracking-tight">{track.name}</p>
+        <p translate="no" className="mt-3 text-2xl text-white/70">{track.artists.join(", ")}</p>
+        {line && <p translate="no" className="mt-8 max-w-4xl font-display text-3xl text-white/90">{line}</p>}
       </div>
     </motion.div>
   );

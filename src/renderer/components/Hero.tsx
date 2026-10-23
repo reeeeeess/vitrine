@@ -56,7 +56,7 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
               </span>
             ))}
           </div>
-          <h1 className="mt-5 line-clamp-2 font-display text-5xl leading-[1.05] tracking-tight xl:text-6xl">{slide.title}</h1>
+          <h1 translate="no" className="mt-5 line-clamp-2 font-display text-5xl leading-[1.05] tracking-tight xl:text-6xl">{slide.title}</h1>
           {slide.subtitle && <p className="mt-4 line-clamp-2 max-w-xl text-base text-white/70">{slide.subtitle}</p>}
           <div className="mt-7 flex flex-wrap items-center gap-3">
             {slide.onPlay && (

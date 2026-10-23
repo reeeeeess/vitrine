@@ -1,6 +1,7 @@
 // A shareable picture of the person's top tracks and artists (1080 × 1350, the portrait size social
 // networks show whole), drawn on a canvas in the current theme's colours and fonts.
 import type { Artist, Track } from "./types";
+import { t } from "./i18n";
 
 const WIDTH = 1080;
 const HEIGHT = 1350;
@@ -87,12 +88,12 @@ export async function renderRecap({ period, name, tracks, artists }: RecapInput)
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = rgb(white, 0.6);
   ctx.font = `500 26px ${mono}`;
-  ctx.fillText(`● VITRINE · ${period.toUpperCase()}`, 80, 120);
+  ctx.fillText(`● VITRINE · ${t(period).toUpperCase()}`, 80, 120);
   ctx.fillStyle = rgb(white);
   ctx.font = `700 92px ${display}`;
-  ctx.fillText(fit(ctx, name ? `${name.split(" ")[0]},` : "Mon écoute,", WIDTH - 160), 80, 225);
+  ctx.fillText(fit(ctx, name ? `${name.split(" ")[0]},` : t("Mon écoute,"), WIDTH - 160), 80, 225);
   ctx.fillStyle = accent;
-  ctx.fillText("en vitrine.", 80, 325);
+  ctx.fillText(t("en vitrine."), 80, 325);
 
   // top tracks
   const [trackArt, artistArt] = await Promise.all([
@@ -101,7 +102,7 @@ export async function renderRecap({ period, name, tracks, artists }: RecapInput)
   ]);
   ctx.fillStyle = rgb(white, 0.55);
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText("TOP TITRES", 80, 420);
+  ctx.fillText(t("TOP TITRES"), 80, 420);
   tracks.slice(0, 5).forEach((track, index) => {
     const y = 450 + index * 112;
     ctx.fillStyle = index === 0 ? accent : rgb(white, 0.35);
@@ -119,7 +120,7 @@ export async function renderRecap({ period, name, tracks, artists }: RecapInput)
   // top artists
   ctx.fillStyle = rgb(white, 0.55);
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText("TOP ARTISTES", 80, 1065);
+  ctx.fillText(t("TOP ARTISTES"), 80, 1065);
   artists.slice(0, 3).forEach((artist, index) => {
     const x = 80 + index * 315;
     ctx.save();
@@ -142,7 +143,7 @@ export async function renderRecap({ period, name, tracks, artists }: RecapInput)
 
   ctx.fillStyle = rgb(white, 0.35);
   ctx.font = `500 22px ${mono}`;
-  ctx.fillText("Fait avec Vitrine · données Spotify", 80, HEIGHT - 60);
+  ctx.fillText(t("Fait avec Vitrine · données Spotify"), 80, HEIGHT - 60);
 
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Image vide"))), "image/png"));
 }

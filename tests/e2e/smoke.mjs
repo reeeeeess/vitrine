@@ -60,7 +60,7 @@ const lrc = ["Dans la ville qui s'éteint", "Je cherche encore ton nom", "Les n�
 // ── the run ─────────────────────────────────────────────────────────────
 
 const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
-const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" });
 await context.addInitScript((lyrics) => {
   try {
     sessionStorage.setItem("vitrine.introShown", "1");
@@ -134,6 +134,29 @@ await check("le mode salon s'ouvre et se ferme", async () => {
   await page.locator(".z-\\[88\\]").waitFor({ timeout: 5000 });
   await page.keyboard.press("Escape");
   await page.locator(".z-\\[88\\]").waitFor({ state: "detached", timeout: 5000 });
+});
+await check("en anglais : l'interface traduite, les paroles et les titres intacts", async () => {
+  const english = await context.newPage();
+  english.on("pageerror", (error) => errors.push(error.message));
+  await english.addInitScript(() => localStorage.setItem("vitrine.language", "en"));
+  await english.goto(base);
+  await english.getByRole("heading", { name: /Good (morning|afternoon|evening)/ }).waitFor({ timeout: 15_000 });
+  await english.getByRole("button", { name: "Settings" }).first().waitFor({ timeout: 5000 });
+  await english.locator("footer").getByText("Minuit à Paris").first().waitFor({ timeout: 10_000 });
+  await english.getByRole("button", { name: "Lyrics", exact: true }).click();
+  await english.locator(".lyric-line").getByText("Je cherche encore ton nom").first().waitFor({ timeout: 10_000 });
+  const french = await english.evaluate(() => {
+    // what is still French outside the names and lyrics: a few known words are enough to tell
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const left = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (node.parentElement?.closest("[translate='no'], script, style")) continue;
+      if (/\b(Réglages|Bibliothèque|Accueil|Paroles|Lecture|titres|écoute)\b/.test(node.data)) left.push(node.data.trim());
+    }
+    return left;
+  });
+  if (french.length) throw new Error(`encore en français : ${french.slice(0, 5).join(" | ")}`);
+  await english.close();
 });
 await check("aucune erreur dans la page", async () => {
   if (errors.length) throw new Error(errors.join(" | "));

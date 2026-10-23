@@ -4,6 +4,7 @@
 import type { IcebergLevel } from "./insights";
 import type { Rgb } from "./palette";
 import { cssVar, fit, rgb } from "./recap";
+import { LOCALE, t } from "./i18n";
 
 // ── layout, pure ──────────────────────────────────────────────────────────
 
@@ -138,18 +139,18 @@ export async function renderReceipt(input: { name: string; period: string; track
   ctx.font = `700 46px ${mono}`;
   ctx.fillText("VITRINE", 540, top + 90);
   ctx.font = `500 26px ${mono}`;
-  ctx.fillText(`REÇU N° ${String(Math.floor(Date.now() / 86_400_000) % 10_000).padStart(4, "0")}`, 540, top + 135);
+  ctx.fillText(t(`REÇU N° ${String(Math.floor(Date.now() / 86_400_000) % 10_000).padStart(4, "0")}`), 540, top + 135);
   ctx.fillText(input.period.toUpperCase(), 540, top + 175);
-  ctx.fillText(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }), 540, top + 215);
+  ctx.fillText(new Date().toLocaleDateString(LOCALE, { day: "2-digit", month: "2-digit", year: "numeric" }), 540, top + 215);
   const rule = (y: number) => {
     ctx.fillText("-".repeat(44), 540, y);
   };
   rule(top + 265);
   ctx.textAlign = "left";
   ctx.font = `500 26px ${mono}`;
-  ctx.fillText("QTÉ  ARTICLE", left + 50, top + 315);
+  ctx.fillText(t("QTÉ  ARTICLE"), left + 50, top + 315);
   ctx.textAlign = "right";
-  ctx.fillText("DURÉE", left + width - 50, top + 315);
+  ctx.fillText(t("DURÉE"), left + width - 50, top + 315);
   lines.forEach((line, index) => {
     const y = top + 385 + index * 98;
     ctx.textAlign = "left";
@@ -174,8 +175,8 @@ export async function renderReceipt(input: { name: string; period: string; track
   ctx.fillText(clock(totalMs), left + width - 50, end + 60);
   ctx.textAlign = "center";
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText(`CLIENT : ${(input.name || "MÉLOMANE").toUpperCase()}`, 540, end + 120);
-  ctx.fillText("MERCI DE VOTRE ÉCOUTE !", 540, end + 160);
+  ctx.fillText(t(`CLIENT : ${(input.name || t("MÉLOMANE")).toUpperCase()}`), 540, end + 120);
+  ctx.fillText(t("MERCI DE VOTRE ÉCOUTE !"), 540, end + 160);
   // a barcode, for the look
   for (let i = 0, x = 330; x < 750; i++) {
     const w = [2, 4, 3, 6][(i * 7) % 4];
@@ -184,7 +185,7 @@ export async function renderReceipt(input: { name: string; period: string; track
   }
   ctx.fillStyle = "rgb(255 255 255 / 0.4)";
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText("Fait avec Vitrine · données Spotify", 540, 1860);
+  ctx.fillText(t("Fait avec Vitrine · données Spotify"), 540, 1860);
   return toBlob(element);
 }
 
@@ -214,7 +215,7 @@ export async function renderFestival(input: { name: string; artists: string[]; c
   ctx.fillText(fit(ctx, fest, 960), 540, 150);
   ctx.font = `500 28px ${mono}`;
   ctx.fillStyle = "rgb(255 255 255 / 0.8)";
-  ctx.fillText("3 JOURS · UNE SEULE SCÈNE · VOS ARTISTES", 540, 200);
+  ctx.fillText(t("3 JOURS · UNE SEULE SCÈNE · VOS ARTISTES"), 540, 200);
 
   festivalDays(input.artists).forEach((day, index) => {
     const y = 300 + index * 320;
@@ -236,7 +237,7 @@ export async function renderFestival(input: { name: string; artists: string[]; c
   });
   ctx.fillStyle = "rgb(255 255 255 / 0.5)";
   ctx.font = `500 22px ${mono}`;
-  ctx.fillText("Fait avec Vitrine · données Spotify", 540, 1315);
+  ctx.fillText(t("Fait avec Vitrine · données Spotify"), 540, 1315);
   return toBlob(element);
 }
 
@@ -275,7 +276,7 @@ export async function renderIceberg(levels: IcebergLevel[]): Promise<Blob> {
   ctx.textAlign = "center";
   ctx.fillStyle = "#0b2340";
   ctx.font = `700 60px ${display}`;
-  ctx.fillText("MON ICEBERG", 540, 90);
+  ctx.fillText(t("MON ICEBERG"), 540, 90);
   levels.forEach((level, index) => {
     const y = index === 0 ? 215 : 300 + index * 210;
     ctx.fillStyle = index === 0 ? "rgb(11 35 64 / 0.7)" : "rgb(255 255 255 / 0.6)";
@@ -289,7 +290,7 @@ export async function renderIceberg(levels: IcebergLevel[]): Promise<Blob> {
   });
   ctx.fillStyle = "rgb(255 255 255 / 0.45)";
   ctx.font = `500 22px ${mono}`;
-  ctx.fillText("Vos artistes, des plus écoutés aux pépites enfouies · Vitrine", 540, 1315);
+  ctx.fillText(t("Vos artistes, des plus écoutés aux pépites enfouies · Vitrine"), 540, 1315);
   return toBlob(element);
 }
 
@@ -313,7 +314,7 @@ export async function renderAura(input: { name: string; colors: Rgb[] }): Promis
   ctx.textAlign = "center";
   ctx.fillStyle = "rgb(255 255 255 / 0.75)";
   ctx.font = `500 26px ${mono}`;
-  ctx.fillText(`L'AURA MUSICALE DE ${(input.name.split(" ")[0] || "VOUS").toUpperCase()}`, 540, 140);
+  ctx.fillText(t(`L'AURA MUSICALE DE ${(input.name.split(" ")[0] || "VOUS").toUpperCase()}`), 540, 140);
   ctx.fillStyle = "#fff";
   ctx.font = `700 96px ${display}`;
   ctx.fillText(fit(ctx, aura.name, 980), 540, 1090);
@@ -325,7 +326,7 @@ export async function renderAura(input: { name: string; colors: Rgb[] }): Promis
   });
   ctx.fillStyle = "rgb(255 255 255 / 0.45)";
   ctx.font = `500 22px ${mono}`;
-  ctx.fillText("Les couleurs des pochettes que vous écoutez le plus · Vitrine", 540, 1300);
+  ctx.fillText(t("Les couleurs des pochettes que vous écoutez le plus · Vitrine"), 540, 1300);
   return toBlob(element);
 }
 
@@ -359,14 +360,14 @@ export async function renderRetroCard(input: {
   ctx.fillText(`RÉTRO VITRINE · ${input.label.toUpperCase()}`, 90, 150);
   ctx.fillStyle = "#fff";
   ctx.font = `700 120px ${display}`;
-  ctx.fillText(new Intl.NumberFormat("fr-FR").format(input.minutes), 90, 330);
+  ctx.fillText(new Intl.NumberFormat(LOCALE).format(input.minutes), 90, 330);
   ctx.font = `600 40px ${body}`;
-  ctx.fillText("minutes d'écoute", 90, 395);
+  ctx.fillText(t("minutes d'écoute"), 90, 395);
 
   if (input.topArtist) {
     ctx.fillStyle = "rgb(255 255 255 / 0.7)";
     ctx.font = `500 28px ${mono}`;
-    ctx.fillText("ARTISTE N° 1", 90, 540);
+    ctx.fillText(t("ARTISTE N° 1"), 90, 540);
     ctx.fillStyle = "#fff";
     ctx.font = `700 96px ${display}`;
     ctx.fillText(fit(ctx, input.topArtist, 900), 90, 640);
@@ -374,7 +375,7 @@ export async function renderRetroCard(input: {
 
   ctx.fillStyle = "rgb(255 255 255 / 0.7)";
   ctx.font = `500 28px ${mono}`;
-  ctx.fillText("TOP TITRES", 90, 790);
+  ctx.fillText(t("TOP TITRES"), 90, 790);
   input.topTracks.slice(0, 5).forEach((track, index) => {
     const y = 870 + index * 130;
     ctx.fillStyle = index === 0 ? "#fff" : "rgb(255 255 255 / 0.55)";
@@ -390,12 +391,12 @@ export async function renderRetroCard(input: {
 
   ctx.fillStyle = "rgb(255 255 255 / 0.7)";
   ctx.font = `500 28px ${mono}`;
-  ctx.fillText("MON AURA", 90, 1600);
+  ctx.fillText(t("MON AURA"), 90, 1600);
   ctx.fillStyle = "#fff";
   ctx.font = `700 64px ${display}`;
   ctx.fillText(aura.name, 90, 1680);
   ctx.fillStyle = "rgb(255 255 255 / 0.45)";
   ctx.font = `500 24px ${mono}`;
-  ctx.fillText(`${input.name ? `${input.name.split(" ")[0]} · ` : ""}Fait avec Vitrine`, 90, 1850);
+  ctx.fillText(`${input.name ? `${input.name.split(" ")[0]} · ` : ""}${t("Fait avec Vitrine")}`, 90, 1850);
   return toBlob(element);
 }

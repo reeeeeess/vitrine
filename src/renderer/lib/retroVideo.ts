@@ -6,6 +6,7 @@ import { clipFormat, videoFile } from "./lyricClip";
 import type { Ranked } from "./listening";
 import type { Rgb } from "./palette";
 import { cssVar, fit, loadImage, rgb, roundedImage } from "./recap";
+import { LOCALE, t } from "./i18n";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -85,7 +86,7 @@ export async function recordRetro(input: RetroInput, onProgress: (share: number)
     ctx.fillStyle = "rgb(255 255 255 / 0.65)";
     ctx.font = `500 28px ${mono}`;
     ctx.textAlign = "left";
-    ctx.fillText(text.toUpperCase(), 90, y);
+    ctx.fillText(t(text).toUpperCase(), 90, y);
   };
   const big = (text: string, y: number, size: number, alpha = 1) => {
     ctx.fillStyle = `rgb(255 255 255 / ${alpha})`;
@@ -99,15 +100,15 @@ export async function recordRetro(input: RetroInput, onProgress: (share: number)
     switch (SCENES[index].key) {
       case "intro":
         kicker("Rétro Vitrine", 760);
-        big(input.name ? `${input.name.split(" ")[0]},` : "Votre", 900 + rise(), 130);
+        big(input.name ? `${input.name.split(" ")[0]},` : t("Votre"), 900 + rise(), 130);
         big(input.label, 1040 + rise(120), 130);
         ctx.fillStyle = "rgb(255 255 255 / 0.75)";
         ctx.font = `600 44px ${body}`;
-        ctx.fillText("en musique. On rembobine ?", 90, 1140 + rise(240));
+        ctx.fillText(t("en musique. On rembobine ?"), 90, 1140 + rise(240));
         break;
       case "minutes":
         kicker("Temps d'écoute", 760);
-        big(Math.round(input.minutes * ease(progress * 1.4)).toLocaleString("fr-FR"), 960, 220);
+        big(Math.round(input.minutes * ease(progress * 1.4)).toLocaleString(LOCALE), 960, 220);
         big("minutes", 1060 + rise(200), 80, 0.85);
         break;
       case "artist": {

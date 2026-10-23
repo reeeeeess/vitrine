@@ -29,7 +29,7 @@ export function QuickAccess() {
           >
             <Artwork src={pick.image} round={pick.kind === "artist"} className="h-14 w-14 shrink-0 rounded-none" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{pick.name}</p>
+              <p translate="no" className="truncate text-sm font-semibold">{pick.name}</p>
               <p className="truncate text-xs text-gray-400">{pick.detail}</p>
             </div>
             <button

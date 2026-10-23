@@ -21,6 +21,7 @@ export function Marquee({ text, className }: { text: string; className?: string 
   return (
     <span
       ref={box}
+      translate="no"
       className={cn("marquee-box block overflow-hidden whitespace-nowrap", shift > 0 && "[mask-image:linear-gradient(to_right,transparent,black_3%,black_95%,transparent)]", className)}
       title={shift ? text : undefined}
     >

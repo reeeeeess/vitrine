@@ -206,7 +206,7 @@ export function DevicesButton() {
 
 export function ArtistLinks({ track, className }: { track: Track; className?: string }) {
   return (
-    <p className={cn("truncate", className)}>
+    <p translate="no" className={cn("truncate", className)}>
       {track.artists.map((name, index) => {
         const id = track.artistIds[index];
         return (

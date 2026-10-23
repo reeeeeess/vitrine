@@ -132,7 +132,7 @@ export function PlaylistDialog() {
                     >
                       <Artwork src={playlist.image} className="h-11 w-11 shrink-0 rounded-md" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{playlist.name}</span>
+                        <span translate="no" className="block truncate text-sm font-medium">{playlist.name}</span>
                         <span className="block truncate text-xs text-gray-400">{playlist.total != null ? `${playlist.total} titres` : playlist.subtitle}</span>
                       </span>
                       {busy === playlist.id && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
