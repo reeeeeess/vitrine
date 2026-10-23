@@ -231,10 +231,12 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   (AMLL TTML DB mot à mot avec duos et chœurs, LRCLIB, NetEase, lyrics.ovh), choix de la source et décalage par titre,
   cache disque. **Karaoké façon Apple Music Sing** : vague des lignes, mots tenus qui brillent, duo à droite, curseur
   Voix, micro avec réverbération ou écho, Duo chacun son tour. **Clip TikTok** des paroles (15 s, vertical)
-- **Sprint 10 (prochain, v0.9.0)** : mini-lecteur qui grandit en plein écran, barre qui rétrécit et thème « Verre »
-  (Liquid Glass), dock flottant façon Musix, traduction des paroles (clé DeepL), calendrier des sorties de vos
-  artistes et import de playlists (avec un budget de demandes à Spotify), crédits (MusicBrainz), Last.fm, file ∞ ;
-  tests de bout en bout dans la CI
+- **v0.8.2 (fait)** : chaque artiste d'un feat de son côté (en-têtes de Genius alignés sur les paroles
+  synchronisées), paroles fluides (lumière des mots peinte à chaque image, fonds floutés une seule fois)
+- **Sprint 10 (fait, v0.9.0)** : docs/PLAN-V0.9-V1.0.md. Pochette qui grandit jusqu'au plein écran, barre qui se
+  replie, thème « Verre » (Liquid Glass), mode salon, traduction des paroles (MyMemory ou DeepL), sorties de vos
+  artistes (budget de demandes), import de playlists, crédits (MusicBrainz), file infinie, Last.fm, Rétro Vitrine en
+  vidéo, essai de bout en bout de la page dans la CI
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)

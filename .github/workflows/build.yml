@@ -41,6 +41,10 @@ jobs:
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       - run: npm run typecheck
       - run: npm test
+      # the built page in a real Chromium, desktop bridge and Spotify made up (tests/e2e/smoke.mjs)
+      - run: npm run build:renderer
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
 
   package:
     needs: test

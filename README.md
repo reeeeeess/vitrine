@@ -16,6 +16,28 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Le lecteur, la découverte, les connexions (v0.9.0)
+
+La liste cochée : **[PLAN-V0.9-V1.0.md](docs/PLAN-V0.9-V1.0.md)**.
+
+- **Feats** (v0.8.2) : chaque artiste de son côté, son nom quand la voix change, les voix ensemble au centre, les
+  couplets d'un posse cut en alternance (les en-têtes de Genius alignés sur les paroles synchronisées). **Paroles
+  fluides** : la lumière des mots peinte à chaque image, fonds floutés une seule fois au lieu de l'être à chaque image.
+- **Le lecteur** : la pochette de la barre grandit jusqu'au plein écran ; la barre se replie quand on fait défiler ;
+  thème **Verre** (Liquid Glass) ; **mode salon** (Ctrl+Maj+S) pour une télé ou un deuxième écran, lisible de loin.
+- **Traduction des paroles** sous chaque ligne (MyMemory sans clé, ou DeepL avec la vôtre).
+- **Sorties de vos artistes**, **import de playlists** (CSV d'Exportify, TuneMyMusic, Excel, ou liste « Artiste -
+  Titre »), **crédits** de chaque titre (MusicBrainz), **file infinie** quand une liste se termine.
+- **Last.fm** (avec votre clé) et **Rétro Vitrine en vidéo** verticale de 15 s.
+- **Intégration continue** : types, tests, et un essai de bout en bout de la page à chaque envoi sur GitHub.
+
+<p align="center">
+  <img src="docs/screenshots/74-feat-chacun-son-cote.jpg" width="49%" alt="Feat : chaque artiste de son côté">
+  <img src="docs/screenshots/70-theme-verre.jpg" width="49%" alt="Thème Verre">
+  <img src="docs/screenshots/71-mode-salon.jpg" width="49%" alt="Mode salon">
+  <img src="docs/screenshots/73-retro-video.jpg" width="49%" alt="Rétro Vitrine en vidéo">
+</p>
+
 ### Le deuxième écran, les paroles de partout, le karaoké d'Apple Music (v0.8.1)
 
 La liste cochée : **[PLAN-V0.8.1.md](docs/PLAN-V0.8.1.md)**, avec ce qui vient des thèmes Spicetify, d'AMLL, de

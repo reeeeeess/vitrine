@@ -40,7 +40,7 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 - [x] Rétro Vitrine en vidéo verticale (en plus des images)
 
 ### La qualité
-- [ ] Intégration continue : vérification des types, tests, construction, et un essai de bout en bout de la page
+- [x] Intégration continue : vérification des types, tests, construction, et un essai de bout en bout de la page
       (données fictives) à chaque envoi sur GitHub
 
 ## v1.0 — Prête pour tout le monde
