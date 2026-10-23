@@ -200,3 +200,37 @@ describe("the microphone (Apple Music Sing)", async () => {
     expect(levelOf(new Float32Array(256).fill(0.05))).toBeCloseTo(0.2, 5);
   });
 });
+
+describe("the lyric clip for TikTok", async () => {
+  const { clipFormat, clipLines, clipStart, wrapWords, CLIP_MS } = await import("../src/renderer/lib/lyricClip");
+  const lines = [
+    { timeMs: 10_000, text: "Première ligne" },
+    { timeMs: 14_000, text: "Deuxième ligne" },
+    { timeMs: 20_000, text: "Troisième" },
+    { timeMs: 40_000, text: "Bien plus tard" },
+  ];
+
+  it("starts on the line being sung, and keeps the lines of the 15 s", () => {
+    expect(clipStart(lines, 15_500)).toBe(14_000);
+    expect(clipStart(lines, 2_000)).toBe(2_000);
+    expect(CLIP_MS).toBe(15_000);
+    expect(clipLines(lines, 14_000).map((line) => line.main)).toEqual(["Deuxième ligne", "Troisième"]);
+  });
+
+  it("records in H.264 when it can, in WebM before an MP4 of VP9", () => {
+    expect(clipFormat(() => true)).toEqual({ mime: "video/mp4;codecs=avc1.640028", ext: "mp4" });
+    expect(clipFormat((type) => type.startsWith("video/webm") || type === "video/mp4")).toEqual({ mime: "video/webm;codecs=vp9", ext: "webm" });
+    expect(() => clipFormat(() => false)).toThrow();
+  });
+
+  it("wraps the words of a line, syllables staying together", () => {
+    const measure = { measureText: (text: string) => ({ width: text.length * 10 }) as TextMetrics };
+    const words = [
+      { text: "abc", startMs: 0, endMs: 1 },
+      { text: "de", startMs: 1, endMs: 2, glue: true },
+      { text: "f", startMs: 2, endMs: 3 },
+      { text: "ghij", startMs: 3, endMs: 4 },
+    ];
+    expect(wrapWords(measure, words, 80).map((row) => row.map((word) => word.text))).toEqual([["abc", "de", "f"], ["ghij"]]);
+  });
+});

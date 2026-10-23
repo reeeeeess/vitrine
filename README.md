@@ -16,6 +16,39 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Le deuxième écran, les paroles de partout, le karaoké d'Apple Music (v0.8.1)
+
+La liste cochée : **[PLAN-V0.8.1.md](docs/PLAN-V0.8.1.md)**, avec ce qui vient des thèmes Spicetify, d'AMLL, de
+Spicy Lyrics, d'Apple Music Sing et de TikTok.
+
+- **Sur un écran vertical** (ou très large), le panneau **« À l'écoute »** s'ouvre à droite : la pochette et le titre,
+  les **paroles en direct** dans une carte aux couleurs de la pochette, la suite, **vos écoutes** de ce titre (combien,
+  depuis quand), **vos moments**, l'artiste, et les boutons Versions, Story, Clip TikTok. L'en-tête se resserre.
+- **Ambiance** : la pochette en cours, floutée, en fond de toute l'appli, sous des panneaux en verre (comme les thèmes
+  Hazy et Glowify de Spicetify). Réglable, masquée en mode léger.
+- **Paroles de quatre sources** : **AMLL TTML DB** (mot à mot, duos, chœurs), **LRCLIB**, **NetEase** (beaucoup de rap
+  français ; pas une API officielle, désactivable) et **lyrics.ovh**. La meilleure d'abord ; « Paroles : … » change de
+  source ou **décale la synchro** pour un titre ; « Ce ne sont pas les bonnes paroles ». Gardées sur l'ordinateur.
+- **Écran des paroles façon Apple Music** : pochette, titre et barre à gauche, paroles à droite (empilé en vertical),
+  lignes qui arrivent **en vague**, **mots tenus qui brillent**, **duo** (le deuxième chanteur à droite), chœurs qui se
+  remplissent aussi, paroles non synchronisées qui défilent avec la chanson.
+- **Karaoké façon Apple Music Sing** : curseur **Voix** (originale ou instrumentale officielle, au même instant), le
+  **micro de l'ordinateur** avec réverbération (studio, salle, stade) ou écho et vumètre, mode **Duo** chacun son tour.
+- **Clip TikTok** : 15 s des paroles en vidéo verticale (1080 × 1920), mot à mot, à poster avec le son ajouté dans TikTok.
+- Corrigé : les boutons du haut à droite passaient sous ceux de la fenêtre ; un fin trait blanc apparaissait sur le mot
+  suivant.
+
+<p align="center">
+  <img src="docs/screenshots/60-ecran-vertical.jpg" width="32%" alt="Écran vertical avec le panneau À l'écoute">
+  <img src="docs/screenshots/61-paroles-vertical.jpg" width="32%" alt="Paroles sur un écran vertical">
+  <img src="docs/screenshots/65-clip-tiktok.jpg" width="32%" alt="Clip TikTok des paroles">
+  <img src="docs/screenshots/62-duo-mot-a-mot.jpg" width="49%" alt="Duo mot à mot (AMLL)">
+  <img src="docs/screenshots/64-micro.jpg" width="49%" alt="Micro avec réverbération">
+</p>
+
+Captures sur données fictives (le compte Spotify était en pause) ; les paroles d'« APT. » sont les vraies, venues
+d'AMLL TTML DB.
+
 ### Apple Music, TikTok, et bien plus (v0.8.0)
 
 Tout vient de trois études : **[Apple Music](docs/INSPIRATION-APPLE-MUSIC.md)**, **[TikTok et les projets

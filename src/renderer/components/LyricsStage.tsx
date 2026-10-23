@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { cn } from "../lib/cn";
 import { createStore, useStore } from "../lib/store";
 import { ui } from "../lib/ui";
-import { playback } from "../player/engine";
+import { currentPosition, playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
 import { karaoke, lyricsSource } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
@@ -15,6 +15,7 @@ import { Aurora } from "./Aurora";
 import { ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
 import { PlainLyrics, RomanizeToggle, StagedLyrics } from "./StagedLyrics";
 import { LyricsMenu } from "./LyricsMenu";
+import { ClipButton } from "./ClipButton";
 import { MicButton, VoiceSlider } from "./SingControls";
 import { stopMic } from "../player/microphone";
 
@@ -142,8 +143,9 @@ export function LyricsStage() {
                 <div className="mt-2 flex items-center justify-center gap-4">
                   <TransportControls />
                 </div>
-                <div className="mt-1 flex justify-center">
+                <div className="mt-1 flex items-center justify-center gap-3">
                   <VolumeControl />
+                  <ClipButton track={track} lines={lines} positionMs={() => source.toLyrics(currentPosition(playback.get()))} className="px-3 py-1.5" />
                 </div>
               </div>
             )}
@@ -161,6 +163,7 @@ export function LyricsStage() {
             <div className="mt-2 flex items-center justify-center gap-6">
               <TransportControls />
               <VolumeControl />
+              {track && <ClipButton track={track} lines={lines} positionMs={() => source.toLyrics(currentPosition(playback.get()))} className="px-3 py-1.5" />}
             </div>
           </div>
         </div>

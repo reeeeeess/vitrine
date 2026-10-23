@@ -52,8 +52,8 @@ comme pour le lecteur web de Spotify (refusé au même titre).
 
 ## Étape 5 — TikTok
 
-- [ ] Clip de paroles vertical (1080 × 1920, 15 s, sans le son) à poster sur TikTok ou en story
+- [x] Clip de paroles vertical (1080 × 1920, 15 s, sans le son) à poster sur TikTok ou en story
 
 ## Étape 6 — Livraison
 
-- [ ] Tests, captures, README, ROADMAP ; version 0.8.1, installateur, paquet
+- [x] Tests, captures, README, ROADMAP ; version 0.8.1, installateur, paquet

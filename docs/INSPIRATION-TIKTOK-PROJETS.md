@@ -148,6 +148,22 @@ v0.7.0) ; la romanisation et le mot par mot sont dans la liste Apple (B2, B8).
 
 **P9. La daylist de Spotify** — T7.
 
+### Suite (v0.8.1) : ce que les thèmes et extensions Spicetify font de beau
+
+Vu sur un deuxième écran vertical, Spotify avec Spicetify est plus beau que Vitrine. Ce qu'on reprend, sans copier ce qui
+ne sert qu'à Spotify (boutique, podcasts, livres audio) — détail et cases cochées dans [PLAN-V0.8.1.md](PLAN-V0.8.1.md) :
+
+| Projet | Ce qu'il fait | Repris dans Vitrine |
+|---|---|---|
+| **Hazy**, **Glowify** (thèmes) | La pochette en cours, floutée, en fond de toute l'appli ; panneaux translucides posés dessus | ✅ Ambiance de la pochette (réglable, masquée en mode léger) |
+| **Lucid**, **Bloom**, **Comfy** (thèmes) | Verre dépoli façon Fluent, coins arrondis, palettes (Catppuccin, Rosé Pine…) | 🟡 le verre existait (`glass`) ; palettes à choisir : v0.9 |
+| Vue **« À l'écoute »** de Spotify, sous ces thèmes | Colonne de droite : grande pochette et titre, carte de paroles en direct teintée, artiste, crédits, concerts | ✅ panneau « À l'écoute », avec ce que seul Vitrine sait : vos écoutes du titre et vos moments |
+| **Spicy Lyrics**, **Beautiful Lyrics** | Plein écran : pochette, barre et titre à gauche, paroles à droite ; fond dynamique ; chœurs ; duos | ✅ écran des paroles en deux colonnes, empilé en vertical, pochettes qui tournent en fond |
+| **lyrics-plus** | Plusieurs sources de paroles, décalage réglable | ✅ AMLL, LRCLIB, NetEase, lyrics.ovh ; source et synchro par titre |
+| **AMLL** (Apple Music-like Lyrics) | Base libre de paroles mot à mot (TTML), vague des lignes, mots tenus qui brillent | ✅ source « mot à mot » et le même rendu |
+| **Full Screen** (daksh2k) | Mode TV : photo de l'artiste en fond, la suite, le volume | ⬜ mode salon, v0.9 |
+| **Cat Jam** (le chat qui hoche la tête au tempo) | Suit le tempo de Spotify | ❌ l'analyse audio est fermée aux nouvelles applis |
+
 ---
 
 ## 3. L'égaliseur intégré et le karaoké « sans la voix »

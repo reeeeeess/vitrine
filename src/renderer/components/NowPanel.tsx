@@ -16,6 +16,7 @@ import { usePosition } from "../player/hooks";
 import { toggleOverlay } from "../player/overlayBridge";
 import { useLyrics } from "../player/useLyrics";
 import { Artwork } from "./Artwork";
+import { ClipButton } from "./ClipButton";
 import { LikeButton } from "./LikeButton";
 import { Marquee } from "./Marquee";
 import { ArtistLinks, run } from "./NowPlayingBar";
@@ -304,6 +305,12 @@ function ArtistCard({ track }: { track: Track }) {
   );
 }
 
+/** The lyric clip for TikTok, from the line being sung (the lyrics are already known: no new request). */
+function PanelClip({ track }: { track: Track }) {
+  const { lines } = useLyrics(track);
+  return <ClipButton track={track} lines={lines} positionMs={() => engine.currentPosition(playback.get())} className="col-span-2" />;
+}
+
 // ── the panel ─────────────────────────────────────────────────────────────
 
 /**
@@ -371,6 +378,7 @@ export function NowPanel() {
                 <Share2 className="h-3.5 w-3.5" />
                 Story
               </button>
+              <PanelClip track={track} />
             </div>
           </div>
         </motion.aside>

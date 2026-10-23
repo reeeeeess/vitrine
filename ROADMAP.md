@@ -224,6 +224,13 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   et d'artiste, recherche dans la bibliothèque, grands titres repliés ; Rétro Vitrine, reçu, affiche de festival,
   iceberg, aura, playlists intelligentes, bilan de la semaine et étapes ; autres versions d'un titre et karaoké sans la
   voix (version instrumentale officielle) ; égaliseur par Equalizer APO ; Vitrine Classic, Moments, intro, raccourcis
+- **v0.8.1 (fait)** : docs/PLAN-V0.8.1.md, 19 cases cochées. Corrigés : boutons du haut à droite sous ceux de la fenêtre
+  (paroles, Rétro Vitrine, versions), trait blanc sur le mot suivant. **Deuxième écran** : en-tête qui se resserre,
+  panneau « À l'écoute » (ouvert d'office sur un écran vertical ou très large), ambiance de la pochette floutée
+  (thèmes Hazy et Glowify de Spicetify), écran des paroles en deux colonnes ou empilé. **Paroles de quatre sources**
+  (AMLL TTML DB mot à mot avec duos et chœurs, LRCLIB, NetEase, lyrics.ovh), choix de la source et décalage par titre,
+  cache disque. **Karaoké façon Apple Music Sing** : vague des lignes, mots tenus qui brillent, duo à droite, curseur
+  Voix, micro avec réverbération ou écho, Duo chacun son tour. **Clip TikTok** des paroles (15 s, vertical)
 - **Sprint 10 (prochain, v0.9.0)** : mini-lecteur qui grandit en plein écran, barre qui rétrécit et thème « Verre »
   (Liquid Glass), dock flottant façon Musix, traduction des paroles (clé DeepL), calendrier des sorties de vos
   artistes et import de playlists (avec un budget de demandes à Spotify), crédits (MusicBrainz), Last.fm, file ∞ ;
@@ -336,6 +343,13 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | RetroPod (l'iPod sur téléphone) | Vitrine Classic, avec molette | M | ✅ v0.8.0 |
 | | Daylist, Airbuds (bilan de la semaine) | « Ce moment », notification du lundi, étapes | S | ✅ v0.8.0 |
 | **Spicetify** | Loopy Loop, Bookmark, Upcoming Song, Beautiful Lyrics | Boucle A–B, Moments, « Ensuite », paroles mot par mot et prononciation | S | ✅ v0.8.0 |
+| | Thèmes Hazy, Glowify (pochette floutée en fond), vue « À l'écoute » de Spotify | Ambiance de la pochette, panneau « À l'écoute » avec vos écoutes et vos moments | M | ✅ v0.8.1 |
+| | Spicy Lyrics, Beautiful Lyrics (plein écran, fond dynamique) | Écran des paroles en deux colonnes, empilé en vertical, pochette qui tourne en fond | M | ✅ v0.8.1 |
+| | lyrics-plus (plusieurs sources, décalage) | AMLL, LRCLIB, NetEase, lyrics.ovh ; source et synchro choisies par titre | M | ✅ v0.8.1 |
+| | Full Screen (mode TV avec la photo de l'artiste) | Mode salon plein écran | M | ⬜ v0.9 |
+| **AMLL** (Apple Music-like Lyrics) | Base TTML mot à mot (CC0), vague des lignes, mots tenus qui brillent, duos | Source « mot à mot » par identifiant Spotify ou NetEase, et le même rendu | M | ✅ v0.8.1 |
+| **Apple Music Sing** | Curseur de voix, duo, iPhone comme micro | Curseur Voix (version instrumentale officielle), micro du PC avec effets, Duo chacun son tour | M | ✅ v0.8.1 |
+| **TikTok** | « Lyric edits » (clips de paroles) | Clip TikTok : 15 s de paroles en vidéo verticale, le son ajouté dans TikTok | S | ✅ v0.8.1 |
 | **Equalizer APO** | Égaliseur de Windows, libre | Égaliseur 10 bandes de Vitrine, écrit pour Equalizer APO | M | ✅ v0.8.0 |
 | **SoundCloud** | Commentaires horodatés | Notes perso à un moment d'un titre, affichées pendant l'écoute | S | ⬜ v0.7 |
 | **Last.fm** | Scrobbling | Envoyer vos écoutes à Last.fm (clé personnelle) | S | ⬜ v0.7 |
@@ -458,6 +472,22 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Vitrine cachée 1 min : la page se ferme, la musique continue, `--next` passe au titre suivant | ✅ « Omens » → « 488 », avec du son |
 | La page revient au clic, sur le bon titre | ✅ |
 
+**23 octobre 2026 — v0.8.1 : sources de paroles interrogées en vrai depuis l'appli Electron (sans compte Spotify)**
+
+| Test | Résultat |
+|---|---|
+| « Fille à Papa » (Vacra) : LRCLIB et NetEase | ✅ 63 et 47 lignes synchronisées, crédits « 作词 / 作曲 » retirés ; 3,1 s la première fois, 1 ms ensuite (cache) |
+| « APT. » (ROSÉ, Bruno Mars) par identifiant Spotify : AMLL TTML DB | ✅ 80 lignes mot à mot, 7 lignes du deuxième chanteur à droite, 6 chœurs chronométrés |
+| NetEase désactivé dans les Réglages | ✅ seule LRCLIB répond |
+| Titre inconnu partout (lyrics.ovh compris) | ✅ « Pas de paroles », rien d'inventé |
+| Cache disque | ✅ un fichier par titre (72 Ko pour trois titres) |
+| Micro (Chromium, faux micro) : ouverture, effet « Stade », vumètre | ✅ jusqu'à 5 barres sur le bip du faux micro |
+| Clip TikTok enregistré | ✅ 15,0 s, 1080 × 1920, 30 images/s (WebM ou MP4 selon l'ordinateur) |
+
+Non testé ici, faute de Windows et pendant la pause Spotify : le micro et la sortie son réels sous Windows, le panneau
+« À l'écoute » sur votre écran vertical avec vos vraies données, et le format MP4 en H.264 (Chromium de test sans
+codec H.264 : il produit du WebM).
+
 Mesures de mémoire avant / après : voir la section Performance ci-dessus et docs/INSPIRATION-MOVIX-MYSTIC.md.
 **Défaut trouvé et corrigé** : fermer la page faisait quitter toute l'appli (dernière fenêtre fermée) ; le processus
 principal prend maintenant le relais avant.
@@ -490,4 +520,7 @@ champs genres / popularité / abonnés des artistes.
 | Karaoké : tous les titres n'ont pas de version instrumentale officielle | Pas de karaoké sans la voix pour ces titres | Repli sur la version d'un label de karaoké (synchro approximative, signalée) ; sinon un message clair |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
+| NetEase n'est pas une API officielle (son moteur de recherche public) | Peut changer ou bloquer sans prévenir | Source désactivable, jamais seule : LRCLIB, AMLL et lyrics.ovh restent ; aucune donnée de compte envoyée, seulement le titre et l'artiste |
+| AMLL TTML DB est servie par GitHub (raw.githubusercontent.com) | Indisponible si GitHub bloque ou change d'adresse | Une seule demande par titre, gardée sur le disque ; les autres sources prennent le relais |
+| Micro du karaoké avec des enceintes | Larsen | Conseil du casque dans le panneau ; micro coupé en quittant les paroles ; volume réglable |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |
