@@ -14,9 +14,11 @@ export interface DesktopNowPlaying {
   artist: string;
   imageUrl?: string;
   paused: boolean;
+  /** the music plays inside the page (Electron's own player): freeing the page would stop it */
+  holdsAudio?: boolean;
 }
 
-const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false, globalShortcuts: true };
+const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false, globalShortcuts: true, freeWhenHidden: true };
 /** passed when Windows or macOS starts Vitrine with the session: it opens straight into the tray */
 export const HIDDEN_ARG = "--hidden";
 
@@ -78,9 +80,14 @@ export class Desktop {
   command(command: DesktopCommand): void {
     const own = this.own[command];
     if (own) return own();
+    // the page is freed: the main process answers, or brings the page back for what needs it
+    if (!this.window()) return this.withoutPage?.(command);
     if (command === "flow") this.showWindow();
     this.window()?.webContents.send("desktop:command", command);
   }
+
+  /** set by main.ts: what to do with a command while the page is freed */
+  withoutPage: ((command: DesktopCommand) => void) | null = null;
 
   /** What the page says plays: refreshes the tray, the taskbar buttons and maybe notifies. */
   update(nowPlaying: DesktopNowPlaying | null): void {

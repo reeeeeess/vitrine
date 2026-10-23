@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown, ListPlus } from "lucide-react";
+import { ChevronDown, ListPlus, Mic2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { artworkColor, rgbVar } from "../lib/palette";
 import { useStore } from "../lib/store";
@@ -16,6 +16,8 @@ import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeContr
 export function FullPlayer() {
   const track = useStore(playback, (s) => s.track);
   const art = track?.imageLarge ?? track?.image;
+  // under a 90 px blur, 64 px of image are as good as 640 and weigh a hundredth
+  const backdrop = track?.thumb ?? track?.image;
   const device = useStore(playback, (s) => s.device);
   const [color, setColor] = useState("220 38 38");
 
@@ -41,8 +43,8 @@ export function FullPlayer() {
       exit={{ opacity: 0, y: 40 }}
       transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
     >
-      {art && (
-        <img src={art} alt="" aria-hidden="true" className="absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover opacity-50 blur-[90px]" />
+      {backdrop && (
+        <img src={backdrop} alt="" aria-hidden="true" className="fx-blur absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover opacity-50 blur-[90px]" />
       )}
       <div className="absolute inset-0" style={{ background: `radial-gradient(70% 90% at 25% 40%, rgb(${color} / 0.5), transparent 70%)` }} />
       <div className="absolute inset-0 bg-black/45" />
@@ -77,6 +79,14 @@ export function FullPlayer() {
                       title="Ajouter à une playlist"
                     >
                       <ListPlus className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={() => ui.set({ lyricsStage: true, fullPlayer: false })}
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+                      aria-label="Paroles plein écran"
+                      title="Paroles plein écran (karaoké)"
+                    >
+                      <Mic2 className="h-6 w-6" />
                     </button>
                     <StoryButton track={track} />
                     <LikeButton track={track} size="h-6 w-6" />

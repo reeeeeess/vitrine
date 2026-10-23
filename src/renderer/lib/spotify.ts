@@ -186,7 +186,7 @@ export async function album(id: string): Promise<{ collection: Collection; track
   const raw = await request(`/albums/${encodeURIComponent(id)}`);
   const collection = mapAlbum(raw);
   if (!collection) throw new SpotifyApiError(404, "Album introuvable");
-  const info = { name: collection.name, id: collection.id, image: pickImage(raw.images, 300), imageLarge: pickImage(raw.images, 640) };
+  const info = { name: collection.name, id: collection.id, image: pickImage(raw.images, 300), imageLarge: pickImage(raw.images, 640), thumb: pickImage(raw.images, 64) };
   const first = (raw.tracks as { items?: unknown[]; next?: string | null } | undefined) ?? {};
   const more = first.next ? await collect(first.next, 500) : [];
   const tracks = [...(first.items ?? []), ...more]

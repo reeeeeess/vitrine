@@ -83,6 +83,31 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   monter ou baisser l'artiste ; les artistes aimés dans Flow deviennent des points de départ, les écartés disparaissent
 - 🧪 Option « Mes ♥ dans Trouvé dans Flow » : chaque titre aimé dans Flow va aussi dans une playlist créée pour l'occasion
 
+### Interface façon Movix / Mystic Saba *(v0.7.0 — étude détaillée : docs/INSPIRATION-MOVIX-MYSTIC.md)*
+- ✅ Logo **[Vitrine]** de la famille [ix] (Movix, Loadix) : crochets rouges autour d'un égaliseur ; icône d'appli,
+  icônes de la zone de notification et logo de l'en-tête
+- ✅ Titres de section numérotés (« 01 / ÉCOUTE », mysticsaba.com) avec le trait d'accent de Movix
+- ✅ **Top 10 du mois** aux chiffres géants détourés (« Today's Trends » de Movix) ; vérifié avec vos 10 titres
+- ✅ Bandeau : pilule de commandes avec progression du défilement et bouton pause (Movix)
+- ✅ Transitions entre les pages sur la courbe unique de mysticsaba.com (`cubic-bezier(.22, 1, .36, 1)`)
+- ✅ Grain animé du thème Mystic
+- ✅ **Paroles karaoké plein écran** (Musix) : texte géant, la ligne en cours se remplit au fil du chant, lignes passées
+  floutées, fond « aurore » aux couleurs de la pochette ; vérifié avec de vraies paroles (54 lignes)
+- ✅ Carte « 3 lignes de paroles » avec badge CC et lien « PAROLES ↗ » dans le mini-lecteur (Musix)
+- ✅ **Roulette** (Movix) : une roue choisit parmi vos playlists et albums, confettis, « Lancer la lecture »
+- 🧪 **Écran de veille** (Movix) : après 2 minutes sans bouger, lecteur ou paroles ouverts, la pochette en grand
+  dérive avec l'heure et la ligne chantée
+
+### Performance *(v0.7.0)*
+- ✅ **Mode léger** (Movix) : automatique sur un PC modeste (≤ 2 cœurs, ≤ 4 Go) ou si Windows demande moins
+  d'animations ; réglages séparés : fonds animés, flous, transitions, défilement du bandeau
+- ✅ **Libérer la mémoire quand Vitrine est cachée** : après 1 minute dans la zone de notification, la page se ferme ;
+  la musique, la zone de notification, les raccourcis et Discord continuent (le processus principal répond) ; la page
+  revient au clic. Vérifié : « suivant » envoyé pendant que la page était fermée, puis page revenue sur le bon titre
+- ✅ Lecteur Edge allégé (sans extensions, synchronisation, services Edge, GPU, processus en trop) ; son revérifié
+- ✅ Vignettes 64 px dans les listes, fonds flous en 64 px, cartes en 300 px, une seule diapositive animée à la fois
+- Résultat mesuré : lecteur plein écran −26 % (−36 % en mode léger), lecture via Edge −18 %, Vitrine cachée −39 %
+
 ### Clic droit sur un titre *(v0.6.0, comme dans Spotify)*
 - ✅ Partout où un titre apparaît : playlists, albums, titres likés, recherche, artiste, Stats, file d'attente, barre
   de lecture, lecteur plein écran, Flow ; au clavier aussi (touche Menu ou Maj+F10), flèches pour choisir
@@ -176,9 +201,12 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - **Sprint 7 (fait, v0.6.0)** : historique de **tout le compte** (tous les appareils) et import de l'export Spotify,
   calendrier de l'année, **clic droit** sur les titres, Flow à partir d'un titre, Flow qui apprend, « Trouvé dans
   Flow », paroles sur le bureau, corbeille, mélange parfait
-- **Sprint 8 (prochain, v0.7.0)** : « Rétro Vitrine » (votre année en story animée, façon Wrapped / Replay), thème
-  « Verre » (Vitrine iOS), notes horodatées sur un titre (SoundCloud), scrobbling Last.fm, raccourcis personnalisables ;
-  tests de bout en bout dans la CI
+- **Sprint 8 (fait, v0.7.0)** : étude Movix / Mystic Saba (docs/INSPIRATION-MOVIX-MYSTIC.md), mémoire allégée (mode
+  léger, page libérée quand cachée, Edge allégé, images à la bonne taille), logo [Vitrine], Top 10, titres numérotés,
+  transitions, grain, paroles karaoké, carte 3 lignes, roulette, écran de veille
+- **Sprint 9 (prochain, v0.8.0)** : « Rétro Vitrine » (votre année en diapositives, façon Wrapped de Movix), dock
+  flottant façon Musix (option du thème Mystic), calendrier des sorties de vos artistes, intro au lancement, thème
+  « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; tests de bout en bout dans la CI
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -249,6 +277,17 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | **Liner** | Paroles en surimpression sur le bureau | Fenêtre transparente, toujours au premier plan, la ligne en cours par-dessus tout | M | ✅ v0.6.0 |
 | | Fond animé WebGL (kawarp) | Fond « liquide » animé aux couleurs de la pochette dans le plein écran et Flow | M | ⬜ |
 | | Touch Bar, raccourcis | Touch Bar des MacBook (commandes, pochette) | S | ⬜ |
+| **Movix** | Mode léger automatique et par effet | Mode léger + page libérée quand cachée | M | ✅ v0.7.0 |
+| | Top 10 aux chiffres géants, titres soulignés, pilule du bandeau | Top 10 du mois, titres numérotés, bouton pause | S | ✅ v0.7.0 |
+| | Roulette, écran de veille | Roulette de vos playlists, écran de veille du lecteur | S | ✅ v0.7.0 |
+| | Wrapped (bilan animé) | « Rétro Vitrine » | L | ⬜ v0.8 |
+| | Calendrier des sorties, CineGraph | Calendrier de vos artistes, « Constellation » des featurings | M | ⬜ |
+| **mysticsaba.com / Musix** | Logo « ○ mysticsaba® », famille [ix] | Logo [Vitrine] | S | ✅ v0.7.0 |
+| | Paroles plein écran qui se remplissent, fond aurore | Paroles karaoké | M | ✅ v0.7.0 |
+| | Panneau du lecteur : 3 lignes de paroles, CC, « PAROLES ↗ » | Carte 3 lignes du mini-lecteur | S | ✅ v0.7.0 |
+| | Grain, une seule courbe de mouvement, libellés « 01 / … » | Grain du thème Mystic, transitions, titres numérotés | S | ✅ v0.7.0 |
+| | Dock flottant qui s'ouvre en panneau | Dock Musix en option du thème Mystic | M | ⬜ v0.8 |
+| | Champ de points qui suit la musique | À étudier : le son protégé ne peut pas être analysé | M | ⬜ |
 | **Movix** | WatchParty (regarder ensemble, synchronisé) | « Écouter ensemble » : salons où chacun entend le même titre au même moment, sur son Premium | L | ⬜ |
 | | Profils, appli TV | Mode salon (interface « 10 pieds » plein écran, pilotable au clavier ou à la télécommande) | M | ⬜ |
 | | PreMid (présence Discord) | Discord Rich Presence | S | 🧪 v0.2 |
@@ -354,6 +393,21 @@ Situation reproduite : lecteur intégré refusé par Spotify (le cas de votre PC
 | Paroles sur le bureau qui suivent la chanson ; Ctrl+Alt+K les referme | ✅ |
 | Mélange parfait sur une playlist de 174 titres, sans l'aléatoire de Spotify | ✅ |
 | Corbeille : artiste mis à la corbeille pendant son titre → sauté aussitôt ; restauration | ✅ |
+
+**23 octobre 2026 — v0.7.0 sur votre compte (profil de test séparé), lecture via Microsoft Edge allégé (6/6)**
+
+| Test | Résultat |
+|---|---|
+| Accueil : logo [Vitrine], titres numérotés, Top 10 de vos 4 semaines | ✅ Omens, 488, Mystery Girl… |
+| Edge allégé : la lecture a du son | ✅ niveau sonore 11 033 |
+| Paroles karaoké avec de vraies paroles | ✅ 54 lignes (« Omens ») |
+| Roulette | ✅ « REV Mixes » tiré |
+| Vitrine cachée 1 min : la page se ferme, la musique continue, `--next` passe au titre suivant | ✅ « Omens » → « 488 », avec du son |
+| La page revient au clic, sur le bon titre | ✅ |
+
+Mesures de mémoire avant / après : voir la section Performance ci-dessus et docs/INSPIRATION-MOVIX-MYSTIC.md.
+**Défaut trouvé et corrigé** : fermer la page faisait quitter toute l'appli (dernière fenêtre fermée) ; le processus
+principal prend maintenant le relais avant.
 
 **Défauts trouvés et corrigés** : la page des paroles sur le bureau gardait un fond noir (transparence rétablie) ; la
 corbeille n'agissait qu'au titre suivant (elle agit maintenant dès l'ajout).

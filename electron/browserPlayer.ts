@@ -162,6 +162,33 @@ function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
   });
 }
 
+/** What the player's browser leaves out to weigh less (measured: see docs/INSPIRATION-MOVIX-MYSTIC.md). */
+export const LEAN_FLAGS = [
+  "--disable-extensions",
+  "--disable-sync",
+  "--disable-default-apps",
+  "--no-pings",
+  "--disable-breakpad",
+  "--disable-gpu",
+  "--disable-site-isolation-trials",
+  "--renderer-process-limit=1",
+  "--js-flags=--max-old-space-size=128",
+  `--disable-features=${[
+    "Translate",
+    "MediaRouter",
+    "OptimizationHints",
+    "AutofillServerCommunication",
+    "SpareRendererForSitePerProcess",
+    "IsolateOrigins",
+    "site-per-process",
+    "AudioServiceOutOfProcess",
+    "msEdgeSidebarV2",
+    "msShoppingExp",
+    "EdgeCollections",
+    "msUndersideButton",
+  ].join(",")}`,
+];
+
 export class BrowserPlayer {
   private server: Server | null = null;
   private child: ChildProcess | null = null;
@@ -170,6 +197,9 @@ export class BrowserPlayer {
   /** settles the launch: the device id, or null when the player reported it cannot start */
   private onReady: ((deviceId: string | null) => void) | null = null;
   private commands: PlayerCommand[] = [];
+  /** the player's latest state, for the main process when the page is freed */
+  lastState: Record<string, unknown> | null = null;
+  onState: ((state: Record<string, unknown> | null) => void) | null = null;
   private waiting: ServerResponse | null = null;
   status: BrowserPlayerStatus = { state: "off", browser: findBrowser()?.name ?? null };
 
@@ -180,7 +210,11 @@ export class BrowserPlayer {
   ) {}
 
   start(): Promise<BrowserPlayerStatus> {
-    if (this.status.state === "ready" && this.child && this.child.exitCode === null) return Promise.resolve(this.status);
+    if (this.status.state === "ready" && this.child && this.child.exitCode === null) {
+      // a page opened again (it was freed): it learns what plays, once it listens to the player
+      setTimeout(() => this.window()?.webContents.send("browser-player:state", this.lastState), 600);
+      return Promise.resolve(this.status);
+    }
     this.starting ??= this.launch().finally(() => {
       this.starting = null;
     });
@@ -201,6 +235,7 @@ export class BrowserPlayer {
 
   stop(): void {
     this.onReady = null;
+    this.lastState = null;
     this.commands = [];
     this.waiting = null;
     this.child?.kill();
@@ -242,6 +277,10 @@ export class BrowserPlayer {
         "--disable-background-timer-throttling",
         "--disable-renderer-backgrounding",
         "--disable-backgrounding-occluded-windows",
+        // memory: this browser only plays sound, everything else it would run is left out (extensions,
+        // sync, Edge's shopping and sidebar, the GPU, a process per site, a spare one); the component
+        // updater stays on, it installs the Widevine module in a new profile
+        ...LEAN_FLAGS,
         // out of sight: the window only hosts the player
         "--window-position=-10000,-10000",
         "--window-size=420,240",
@@ -304,7 +343,9 @@ export class BrowserPlayer {
           response.writeHead(204).end();
         } else if (request.method === "POST" && url.pathname === "/state") {
           const body = await readJson(request);
-          this.window()?.webContents.send("browser-player:state", Object.keys(body).length ? body : null);
+          this.lastState = Object.keys(body).length ? body : null;
+          this.window()?.webContents.send("browser-player:state", this.lastState);
+          this.onState?.(this.lastState);
           response.writeHead(204).end();
         } else if (request.method === "GET" && url.pathname === "/command") {
           // long poll: answered with the next command, or empty after a while so the page asks again

@@ -71,7 +71,7 @@ export function ArtistView({ id }: { id: string }) {
               index={index}
               title={release.name}
               subtitle={release.subtitle}
-              image={release.image}
+              image={release.card ?? release.image}
               onOpen={() => openCollection(release)}
               onPlay={() => playCollection(release)}
             />

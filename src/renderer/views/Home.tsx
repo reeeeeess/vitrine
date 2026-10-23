@@ -1,24 +1,27 @@
+import { Disc3 } from "lucide-react";
 import { Hero, type HeroSlide } from "../components/Hero";
 import { MediaCard } from "../components/MediaCard";
 import { run } from "../components/NowPlayingBar";
 import { Row } from "../components/Row";
+import { Top10 } from "../components/Top10";
 import { LikedCover } from "../components/LikedCover";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { greeting } from "../lib/format";
 import * as api from "../lib/spotify";
 import type { Collection } from "../lib/types";
-import { navigate } from "../lib/ui";
+import { navigate, ui } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
 
 const settled = <T,>(result: PromiseSettledResult<T>, fallback: T): T => (result.status === "fulfilled" ? result.value : fallback);
 
 async function loadHome() {
-  const [recent, playlists, albums, artists] = await Promise.allSettled([
+  const [recent, playlists, albums, artists, top] = await Promise.allSettled([
     api.recentlyPlayed(),
     api.myPlaylists(),
     api.savedAlbums(),
     api.topArtists("short_term", 20),
+    api.topTracks("short_term", 10),
   ]);
   if ([recent, playlists, albums, artists].every((result) => result.status === "rejected")) {
     throw (recent as PromiseRejectedResult).reason;
@@ -28,6 +31,7 @@ async function loadHome() {
     playlists: settled(playlists, []),
     albums: settled(albums, []),
     artists: settled(artists, []),
+    top: settled(top, []),
   };
 }
 
@@ -60,6 +64,7 @@ function heroSlides(contexts: string[], collections: Collection[]): HeroSlide[] 
     title: collection.name,
     subtitle: collection.description || collection.subtitle,
     image: collection.image,
+    thumb: collection.thumb,
     onPlay: () => playCollection(collection),
     onOpen: () => openCollection(collection),
   }));
@@ -78,13 +83,19 @@ export function Home({ name }: { name?: string }) {
   return (
     <div className="animate-skeleton-fade">
       <Hero slides={slides} />
-      <h1 className="mt-10 px-1 text-3xl font-bold tracking-tight">
-        {greeting()}
-        {name ? `, ${name.split(" ")[0]}` : ""}
-      </h1>
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 px-1">
+        <h1 className="text-3xl font-bold tracking-tight">
+          {greeting()}
+          {name ? `, ${name.split(" ")[0]}` : ""}
+        </h1>
+        <button onClick={() => ui.set({ roulette: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Pas d'idée ? Une roue choisit parmi vos playlists et albums">
+          <Disc3 className="h-4 w-4" />
+          Roulette
+        </button>
+      </div>
 
       {recentTracks.length > 0 && (
-        <Row title="Écoutés récemment">
+        <Row title="Écoutés récemment" number={1} kicker="ÉCOUTE">
           {recentTracks.map((track, index) => (
             <MediaCard
               key={track.id}
@@ -99,8 +110,10 @@ export function Home({ name }: { name?: string }) {
         </Row>
       )}
 
+      <Top10 tracks={data.top} number={2} />
+
       {data.playlists.length > 0 && (
-        <Row title="Vos playlists">
+        <Row title="Vos playlists" number={3} kicker="BIBLIOTHÈQUE">
           <MediaCard title="Titres likés" subtitle="Playlist" cover={<LikedCover />} onOpen={() => navigate({ name: "liked" })} onPlay={() => playAllLiked()} />
           {data.playlists.slice(0, 30).map((collection, index) => (
             <MediaCard
@@ -108,7 +121,7 @@ export function Home({ name }: { name?: string }) {
               index={index}
               title={collection.name}
               subtitle={collection.subtitle}
-              image={collection.image}
+              image={collection.card ?? collection.image}
               onOpen={() => openCollection(collection)}
               onPlay={() => playCollection(collection)}
             />
@@ -117,7 +130,7 @@ export function Home({ name }: { name?: string }) {
       )}
 
       {data.artists.length > 0 && (
-        <Row title="Vos artistes du moment">
+        <Row title="Vos artistes du moment" number={4} kicker="ARTISTES">
           {data.artists.map((artist, index) => (
             <MediaCard
               key={artist.id}
@@ -125,7 +138,7 @@ export function Home({ name }: { name?: string }) {
               round
               title={artist.name}
               subtitle="Artiste"
-              image={artist.image}
+              image={artist.card ?? artist.image}
               onPlay={() => run(() => engine.playContext(artist.uri))}
               onOpen={() => navigate({ name: "artist", id: artist.id })}
             />
@@ -134,14 +147,14 @@ export function Home({ name }: { name?: string }) {
       )}
 
       {data.albums.length > 0 && (
-        <Row title="Vos albums">
+        <Row title="Vos albums" number={5} kicker="ALBUMS">
           {data.albums.slice(0, 30).map((collection, index) => (
             <MediaCard
               key={collection.id}
               index={index}
               title={collection.name}
               subtitle={collection.subtitle}
-              image={collection.image}
+              image={collection.card ?? collection.image}
               onOpen={() => openCollection(collection)}
               onPlay={() => playCollection(collection)}
             />

@@ -1,9 +1,11 @@
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Info, Play } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Info, Pause, Play } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "../lib/cn";
+import { lite } from "../lib/lite";
+import { useStore } from "../lib/store";
 import { artworkColor, rgbVar } from "../lib/palette";
 import { Artwork } from "./Artwork";
 
@@ -14,6 +16,8 @@ export interface HeroSlide {
   title: string;
   subtitle?: string;
   image?: string;
+  /** 64 px: the blurred backdrop */
+  thumb?: string;
   onPlay?: () => void;
   onOpen?: () => void;
 }
@@ -27,8 +31,9 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
   }, [slide.image]);
   return (
     <div className="relative h-full min-w-0 flex-[0_0_100%] overflow-hidden">
-      {slide.image && (
-        <img src={slide.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full animate-slow-pan object-cover opacity-60 blur-3xl" />
+      {/* only the slide in view gets its moving, blurred backdrop: the others would hold memory for nothing */}
+      {active && (slide.thumb ?? slide.image) && (
+        <img src={slide.thumb ?? slide.image} alt="" aria-hidden="true" className="fx-blur absolute inset-0 h-full w-full animate-slow-pan object-cover opacity-60 blur-3xl" />
       )}
       <div className="absolute inset-0" style={{ background: `radial-gradient(80% 120% at 85% 40%, rgb(${color} / 0.45), transparent 60%)` }} />
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/10" />
@@ -89,8 +94,20 @@ function Slide({ slide, active }: { slide: HeroSlide; active: boolean }) {
 
 /** The big rotating banner at the top of the home page. */
 export function Hero({ slides }: { slides: HeroSlide[] }) {
-  const [viewport, embla] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: AUTOPLAY_MS, stopOnInteraction: false, stopOnMouseEnter: true })]);
+  // light mode, or a pause asked for: the banner stays on its slide
+  const autoplay = useStore(lite, (s) => s.effects.autoplay);
+  const [paused, setPaused] = useState(false);
+  const plugins = useMemo(() => (autoplay ? [Autoplay({ delay: AUTOPLAY_MS, stopOnInteraction: false, stopOnMouseEnter: true })] : []), [autoplay]);
+  const [viewport, embla] = useEmblaCarousel({ loop: true }, plugins);
   const [selected, setSelected] = useState(0);
+  const running = autoplay && !paused;
+
+  useEffect(() => {
+    const plugin = embla?.plugins().autoplay;
+    if (!plugin) return;
+    if (paused) plugin.stop();
+    else plugin.play();
+  }, [embla, paused]);
 
   useEffect(() => {
     if (!embla) return;
@@ -125,8 +142,8 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
                 <span className="block h-1 w-14 overflow-hidden rounded-full bg-white/15">
                   <span
                     key={index === selected ? `on-${selected}` : "off"}
-                    className={cn("block h-full rounded-full bg-white", index === selected ? "animate-[heroProgress_linear_forwards]" : "w-0")}
-                    style={index === selected ? { animationDuration: `${AUTOPLAY_MS}ms` } : undefined}
+                    className={cn("block h-full rounded-full bg-white", index === selected ? (running ? "animate-[heroProgress_linear_forwards]" : "w-full") : "w-0")}
+                    style={index === selected && running ? { animationDuration: `${AUTOPLAY_MS}ms` } : undefined}
                   />
                 </span>
               </button>
@@ -134,6 +151,16 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
             <button onClick={() => embla?.scrollNext()} className="text-white/70 hover:text-white" aria-label="Suivant">
               <ChevronRight className="h-4 w-4" />
             </button>
+            {autoplay && (
+              <button
+                onClick={() => setPaused((value) => !value)}
+                className="ml-1 border-l border-white/15 pl-3 text-white/70 hover:text-white"
+                aria-label={paused ? "Reprendre le défilement" : "Mettre le défilement en pause"}
+                aria-pressed={paused}
+              >
+                {paused ? <Play className="h-4 w-4 fill-current" /> : <Pause className="h-4 w-4 fill-current" />}
+              </button>
+            )}
           </div>
         </div>
       )}

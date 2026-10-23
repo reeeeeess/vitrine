@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Disc3, Plus } from "lucide-react";
 import { useState } from "react";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { MediaCard } from "../components/MediaCard";
@@ -29,6 +29,10 @@ export function Library() {
             <Plus className="h-4 w-4" />
             Nouvelle playlist
           </button>
+          <button onClick={() => ui.set({ roulette: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Pas d'idée ? Une roue choisit parmi vos playlists et albums">
+            <Disc3 className="h-4 w-4" />
+            Roulette
+          </button>
         </div>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
           {(["playlists", "albums"] as Tab[]).map((value) => (
@@ -54,7 +58,7 @@ export function Library() {
             index={index}
             title={collection.name}
             subtitle={collection.subtitle}
-            image={collection.image}
+            image={collection.card ?? collection.image}
             onOpen={() => openCollection(collection)}
             onPlay={() => playCollection(collection)}
           />

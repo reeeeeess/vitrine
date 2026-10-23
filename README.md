@@ -16,6 +16,22 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Dans l'esprit Movix et Musix (v0.7.0)
+
+Logo **[Vitrine]** de la famille [ix], **Top 10 du mois** aux chiffres géants, titres de section numérotés, **paroles
+karaoké** plein écran qui se remplissent au fil du chant sur un fond aux couleurs de la pochette, **roulette** de vos
+playlists, écran de veille. L'étude complète de mysticsaba.com, movix.dog et MovixOpenSource (ce qu'ils feraient,
+comment, pour et contre, pièges) : **[docs/INSPIRATION-MOVIX-MYSTIC.md](docs/INSPIRATION-MOVIX-MYSTIC.md)**.
+
+<p align="center">
+  <img src="docs/screenshots/41-top10.png" width="49%" alt="Top 10 du mois">
+  <img src="docs/screenshots/42-karaoke.png" width="49%" alt="Paroles karaoké">
+</p>
+
+**Plus léger** : mode léger automatique sur un PC modeste (comme Movix), page libérée quand Vitrine est réduite dans
+la zone de notification (la musique continue), images à la bonne taille. Mesuré : −26 % en plein écran, −39 % quand
+Vitrine est cachée.
+
 ### Flow : la découverte façon TikTok
 
 Un titre par écran, qui démarre au refrain ; la molette, les flèches ou un glissé passent au suivant.
@@ -116,6 +132,7 @@ electron/            processus principal (Node)
   desktop.ts         zone de notification, barre des tâches, notifications, raccourcis globaux
   history.ts         historique d'écoute de tout le compte (JSONL) : synchro, import de l'export Spotify, CSV
   overlay.ts         paroles sur le bureau (fenêtre transparente au premier plan)
+  remote.ts          commandes et titre en cours quand la page est libérée (Vitrine cachée)
   zip.ts             lecture de l'archive de données envoyée par Spotify
   cli.ts             commandes en ligne (--next, --flow…) passées à l'instance ouverte
   preload.ts         le seul pont vers la page (contextBridge)
@@ -125,6 +142,7 @@ src/renderer/        interface (React 18, Tailwind CSS, framer-motion, lucide-re
   lib/flowTaste.ts   ce que Flow apprend de vos gestes
   lib/story.ts       la story 1080 × 1920 du titre en cours
   lib/trash.ts       la corbeille (titres et artistes sautés partout)
+  lib/lite.ts        le mode léger (effets coupés sur un PC modeste)
   player/engine.ts   lecture : SDK local (cet ordinateur) ou télécommande Spotify Connect
   player/history.ts  ce qui compte comme une écoute (30 s, ou la moitié d'un titre court)
   components/        en-tête, bandeau, cartes, rangées, lecteur, paroles, appareils

@@ -13,6 +13,8 @@ export interface Track {
   image?: string;
   /** the largest Spotify has (640 px): the full-screen and mini players */
   imageLarge?: string;
+  /** the smallest (64 px): list thumbnails and blurred backdrops, which need no more */
+  thumb?: string;
   durationMs: number;
   explicit: boolean;
 }
@@ -25,6 +27,10 @@ export interface Collection {
   subtitle: string;
   description?: string;
   image?: string;
+  /** 64 px, for blurred backdrops */
+  thumb?: string;
+  /** about 300 px, for cards in rows and grids */
+  card?: string;
   total?: number;
   /** albums only: "2026-06-21", or just the year or month when Spotify knows no more */
   releaseDate?: string;
@@ -38,6 +44,8 @@ export interface Artist {
   uri: string;
   name: string;
   image?: string;
+  /** about 300 px, for round cards */
+  card?: string;
   genres: string[];
   followers?: number;
 }
@@ -72,7 +80,7 @@ export function pickImage(images: unknown, size = 300): string | undefined {
   return (fitting[0] ?? list[0])?.url;
 }
 
-export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: string; imageLarge?: string }): Track | null {
+export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: string; imageLarge?: string; thumb?: string }): Track | null {
   if (!raw || !str(raw.uri) || raw.is_local === true) return null;
   const rawAlbum = obj(raw.album) ?? obj(raw.show);
   const artists = Array.isArray(raw.artists)
@@ -91,6 +99,7 @@ export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: 
     albumId: album?.id ?? (str(rawAlbum?.id) || undefined),
     image: album?.image ?? pickImage(rawAlbum?.images ?? raw.images, 300),
     imageLarge: album?.imageLarge ?? pickImage(rawAlbum?.images ?? raw.images, 640),
+    thumb: album?.thumb ?? pickImage(rawAlbum?.images ?? raw.images, 64),
     durationMs: typeof raw.duration_ms === "number" ? raw.duration_ms : 0,
     explicit: raw.explicit === true,
   };
@@ -108,6 +117,8 @@ export function mapPlaylist(raw: Raw): Collection | null {
     subtitle: owner ? `Par ${owner}` : "Playlist",
     description: stripHtml(str(raw.description)) || undefined,
     image: pickImage(raw.images, 640),
+    thumb: pickImage(raw.images, 64),
+    card: pickImage(raw.images, 300),
     total: typeof total === "number" ? total : undefined,
     ownerId: str(obj(raw.owner)?.id) || undefined,
     collaborative: raw.collaborative === true,
@@ -125,6 +136,8 @@ export function mapAlbum(raw: Raw): Collection | null {
     name: str(raw.name) || "Album",
     subtitle: [artists.join(", "), year].filter(Boolean).join(" · "),
     image: pickImage(raw.images, 640),
+    thumb: pickImage(raw.images, 64),
+    card: pickImage(raw.images, 300),
     total: typeof raw.total_tracks === "number" ? raw.total_tracks : undefined,
     releaseDate: str(raw.release_date) || undefined,
   };
@@ -137,6 +150,7 @@ export function mapArtist(raw: Raw): Artist | null {
     uri: str(raw.uri),
     name: str(raw.name),
     image: pickImage(raw.images, 640),
+    card: pickImage(raw.images, 300),
     genres: Array.isArray(raw.genres) ? (raw.genres as unknown[]).map(str).filter(Boolean) : [],
     followers: typeof obj(raw.followers)?.total === "number" ? (obj(raw.followers)!.total as number) : undefined,
   };

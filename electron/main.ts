@@ -24,6 +24,7 @@ import {
 } from "./history";
 import { fetchLyrics } from "./lyrics";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
+import { RemoteControl, type Playing } from "./remote";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
 
@@ -51,6 +52,7 @@ const startHidden = process.argv.includes(HIDDEN_ARG);
 
 function showWindow(): void {
   if (!mainWindow || mainWindow.isDestroyed()) {
+    stopWithoutPage();
     mainWindow = createWindow(true);
     desktop.attach(mainWindow);
     return;
@@ -62,6 +64,59 @@ function showWindow(): void {
 
 const overlay = new LyricsOverlay(DEV_SERVER_URL ?? APP_URL, path.join(__dirname, "preload.js"), (open) => mainWindow?.webContents.send("overlay:status", open));
 const desktop = new Desktop(() => mainWindow, showWindow, { lyrics: () => void overlay.toggle() });
+
+// ── freeing the page while Vitrine is hidden ──────────────────────────────
+// After a minute in the tray, the page (some 300 MB) closes, unless the music plays inside it
+// (Electron's own player) or the lyrics overlay needs it. The main process keeps the tray, the
+// taskbar buttons, the shortcuts and Discord going (remote.ts), and the page comes back on a click.
+const FREE_AFTER_MS = 60_000;
+const POLL_WITHOUT_PAGE_MS = 15_000;
+let freeTimer: ReturnType<typeof setTimeout> | undefined;
+let pollTimer: ReturnType<typeof setInterval> | undefined;
+/** told by the page with each update; unknown until then, so nothing is freed */
+let holdsAudio = true;
+const remote = new RemoteControl(() => auth.accessToken(), () => browserPlayer);
+
+function scheduleFree(): void {
+  clearTimeout(freeTimer);
+  if (!desktop.settings().freeWhenHidden) return;
+  freeTimer = setTimeout(() => {
+    const window = mainWindow;
+    if (!window || window.isDestroyed() || window.isVisible() || holdsAudio || overlay.open) return;
+    mainWindow = null;
+    // the main process takes over first, so closing the last window does not quit the app
+    startWithoutPage();
+    window.destroy();
+  }, FREE_AFTER_MS);
+}
+
+function tell(playing: Playing | null): void {
+  desktop.update(playing ? { title: playing.title, artist: playing.artist, imageUrl: playing.imageUrl, paused: playing.paused } : null);
+  discord.update(playing ? { ...playing } : null);
+}
+
+function startWithoutPage(): void {
+  const refresh = () => void remote.nowPlaying().then(tell, () => undefined);
+  refresh();
+  pollTimer = setInterval(refresh, POLL_WITHOUT_PAGE_MS);
+  if (browserPlayer) browserPlayer.onState = () => refresh();
+  desktop.withoutPage = (command) => {
+    if (command === "flow") {
+      showWindow();
+      mainWindow?.webContents.once("did-finish-load", () => setTimeout(() => desktop.command(command), 1500));
+      return;
+    }
+    void remote.run(command).then(() => setTimeout(refresh, 800), () => undefined);
+  };
+}
+
+function stopWithoutPage(): void {
+  clearInterval(pollTimer);
+  pollTimer = undefined;
+  if (browserPlayer) browserPlayer.onState = null;
+  desktop.withoutPage = null;
+  holdsAudio = true;
+}
 let mainWindow: BrowserWindow | null = null;
 let drm: DrmStatus = { widevine: false, detail: "Vérification de Widevine…" };
 
@@ -121,6 +176,8 @@ function createWindow(visible = !startHidden): BrowserWindow {
 
   // started with the session: the window loads (playback, Discord…) but stays in the tray
   window.once("ready-to-show", () => visible && window.show());
+  window.on("hide", scheduleFree);
+  window.on("show", () => clearTimeout(freeTimer));
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https://")) void shell.openExternal(url);
     return { action: "deny" };
@@ -189,9 +246,13 @@ function registerIpc(): void {
       notifications: input.notifications === true,
       openAtLogin: input.openAtLogin === true,
       globalShortcuts: input.globalShortcuts === true,
+      freeWhenHidden: input.freeWhenHidden === true,
     });
   });
-  handle("desktop:update", (raw) => desktop.update(desktopNowPlaying(raw)));
+  handle("desktop:update", (raw) => {
+    holdsAudio = (raw as { holdsAudio?: unknown } | null)?.holdsAudio === true;
+    desktop.update(desktopNowPlaying(raw));
+  });
   handle("history:add", (play) => addPlay(play));
   handle("history:extend", (at, playedMs) => extendPlay(at, playedMs));
   handle("history:summary", (query) => historySummary(query));
@@ -229,7 +290,7 @@ function desktopNowPlaying(raw: unknown): DesktopNowPlaying | null {
   const input = raw as Record<string, unknown>;
   const text = (value: unknown) => (typeof value === "string" ? value.slice(0, 200) : "");
   if (!text(input.title)) return null;
-  return { title: text(input.title), artist: text(input.artist), imageUrl: text(input.imageUrl) || undefined, paused: input.paused === true };
+  return { title: text(input.title), artist: text(input.artist), imageUrl: text(input.imageUrl) || undefined, paused: input.paused === true, holdsAudio: input.holdsAudio === true };
 }
 
 /** What the page says is playing, checked field by field before it reaches Discord. */
@@ -287,6 +348,8 @@ app.on("before-quit", () => {
 });
 
 app.on("window-all-closed", () => {
+  // a page freed in the tray is no reason to quit: the tray, the music and the shortcuts carry on
+  if (pollTimer !== undefined) return;
   if (process.platform !== "darwin") app.quit();
 });
 

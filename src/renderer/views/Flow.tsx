@@ -247,14 +247,14 @@ export function Flow({ seed }: { seed?: Track }) {
         {current && (
           <motion.img
             key={current.track.uri}
-            src={current.track.imageLarge ?? current.track.image}
+            src={current.track.thumb ?? current.track.image}
             alt=""
             aria-hidden="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.45 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className="pointer-events-none absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover blur-[80px]"
+            className="fx-blur pointer-events-none absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover blur-[80px]"
           />
         )}
       </AnimatePresence>
@@ -333,7 +333,7 @@ function Card({ item, active, playing, burst, onToggle, onLike }: { item: FlowIt
 
   return (
     <div className="relative aspect-[3/4] h-full max-w-[calc(100vw-260px)] overflow-hidden rounded-[2rem] bg-black shadow-[0_30px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/10">
-      {art && <img src={art} alt="" aria-hidden="true" className={cn("absolute inset-[-15%] h-[130%] w-[130%] object-cover opacity-60 blur-[40px]", active && "animate-slow-pan")} />}
+      {art && <img src={track.thumb ?? art} alt="" aria-hidden="true" className={cn("fx-blur absolute inset-[-15%] h-[130%] w-[130%] object-cover opacity-60 blur-[40px]", active && "animate-slow-pan")} />}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/90" />
 
       <button

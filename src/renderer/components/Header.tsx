@@ -14,11 +14,17 @@ const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
   { label: "Stats", route: { name: "stats" }, icon: BarChart3 },
 ];
 
+/** [Vitrine]: the brackets of the [ix] family (Movix, Loadix), in the theme's accent. */
 export function Logo() {
   return (
-    <span className="flex items-center gap-2 font-display text-xl tracking-tight">
-      <span className="h-2.5 w-2.5 rounded-full accent-bg shadow-[0_0_12px_rgb(var(--c-red-600)/0.9)]" />
-      VITRINE
+    <span className="flex items-center font-display text-xl tracking-tight" aria-label="Vitrine">
+      <span className="-mr-px text-red-600" aria-hidden="true">
+        [
+      </span>
+      Vitrine
+      <span className="-ml-px text-red-600" aria-hidden="true">
+        ]
+      </span>
     </span>
   );
 }

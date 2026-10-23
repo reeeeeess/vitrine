@@ -15,6 +15,8 @@ export interface DesktopSettings {
   openAtLogin: boolean;
   /** Ctrl+Alt+Space and the others, wherever the focus is */
   globalShortcuts: boolean;
+  /** the page closes after a minute in the tray, when the music does not play in it */
+  freeWhenHidden: boolean;
 }
 
 export interface Config {

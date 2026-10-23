@@ -18,12 +18,13 @@ export function connectDesktop(onError: (error: unknown) => void): () => void {
   if (!bridge) return () => undefined;
   let sent = "";
   const send = () => {
-    const { track, paused } = playback.get();
-    const key = track ? `${track.uri}|${paused}` : "";
+    const { track, paused, sdk } = playback.get();
+    const holds = engine.holdsAudio();
+    const key = track ? `${track.uri}|${paused}|${holds}` : `|${holds}|${sdk}`;
     if (key === sent) return;
     sent = key;
     void bridge
-      .update(track ? { title: track.name, artist: track.artists.join(", "), imageUrl: track.image, paused } : null)
+      .update(track ? { title: track.name, artist: track.artists.join(", "), imageUrl: track.image, paused, holdsAudio: holds } : { title: "", artist: "", paused: true, holdsAudio: holds })
       .catch(() => undefined);
   };
   send();

@@ -38,21 +38,21 @@ export function Search({ query }: { query?: string }) {
       {data.artists.length > 0 && (
         <Row title="Artistes">
           {data.artists.map((artist, index) => (
-            <MediaCard key={artist.id} index={index} round title={artist.name} subtitle="Artiste" image={artist.image} onOpen={() => navigate({ name: "artist", id: artist.id })} onPlay={() => run(() => engine.playContext(artist.uri))} />
+            <MediaCard key={artist.id} index={index} round title={artist.name} subtitle="Artiste" image={artist.card ?? artist.image} onOpen={() => navigate({ name: "artist", id: artist.id })} onPlay={() => run(() => engine.playContext(artist.uri))} />
           ))}
         </Row>
       )}
       {data.albums.length > 0 && (
         <Row title="Albums">
           {data.albums.map((album, index) => (
-            <MediaCard key={album.id} index={index} title={album.name} subtitle={album.subtitle} image={album.image} onOpen={() => openCollection(album)} onPlay={() => playCollection(album)} />
+            <MediaCard key={album.id} index={index} title={album.name} subtitle={album.subtitle} image={album.card ?? album.image} onOpen={() => openCollection(album)} onPlay={() => playCollection(album)} />
           ))}
         </Row>
       )}
       {data.playlists.length > 0 && (
         <Row title="Playlists">
           {data.playlists.map((playlist, index) => (
-            <MediaCard key={playlist.id} index={index} title={playlist.name} subtitle={playlist.subtitle} image={playlist.image} onOpen={() => openCollection(playlist)} onPlay={() => playCollection(playlist)} />
+            <MediaCard key={playlist.id} index={index} title={playlist.name} subtitle={playlist.subtitle} image={playlist.card ?? playlist.image} onOpen={() => openCollection(playlist)} onPlay={() => playCollection(playlist)} />
           ))}
         </Row>
       )}

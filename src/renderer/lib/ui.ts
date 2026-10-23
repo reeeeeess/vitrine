@@ -25,6 +25,10 @@ export const ui = createStore({
   history: [] as Route[],
   toasts: [] as Toast[],
   fullPlayer: false,
+  /** Musix's full-screen lyrics */
+  lyricsStage: false,
+  /** Movix's roulette over the page */
+  roulette: false,
   devicesOpen: false,
   queueOpen: false,
   mini: false,

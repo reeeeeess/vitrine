@@ -92,6 +92,7 @@ function mapSdkTrack(track: SpotifySdk.SdkTrack): Track {
     albumId: track.album.uri.split(":").pop(),
     image: pickImage(track.album.images, 300),
     imageLarge: pickImage(track.album.images, 640),
+    thumb: pickImage(track.album.images, 64),
     durationMs: track.duration_ms,
     explicit: false,
   };
@@ -253,6 +254,9 @@ function targetDevice(): string | undefined {
 }
 
 type LocalCommand = Parameters<Window["vitrine"]["browserPlayer"]["command"]>[0];
+
+/** Whether the music can play inside this page (Electron's own player): the page must then stay open. */
+export const holdsAudio = () => player !== null;
 
 /**
  * Runs a command on this computer's player while it is the one playing: the SDK inside Vitrine, or

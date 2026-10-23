@@ -10,10 +10,12 @@ import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { applyLite } from "./lib/lite";
 import { applyTheme } from "./lib/theme";
 import { LyricsOverlay } from "./views/LyricsOverlay";
 
 applyTheme();
+applyLite();
 
 // the same page serves the lyrics overlay window (electron/overlay.ts), opened on #overlay
 createRoot(document.getElementById("root")!).render(<StrictMode>{location.hash === "#overlay" ? <LyricsOverlay /> : <App />}</StrictMode>);

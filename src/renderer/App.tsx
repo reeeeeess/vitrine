@@ -1,7 +1,10 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Spinner } from "./components/Artwork";
 import { FullPlayer } from "./components/FullPlayer";
+import { LyricsStage } from "./components/LyricsStage";
+import { Roulette } from "./components/Roulette";
+import { ScreenSaver } from "./components/ScreenSaver";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Header } from "./components/Header";
 import { NowPlayingBar, run } from "./components/NowPlayingBar";
@@ -13,6 +16,8 @@ import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
 import { useStore } from "./lib/store";
 import { errorMessage } from "./lib/format";
+import { lite } from "./lib/lite";
+import { theme } from "./lib/theme";
 import { notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
 import { connectDesktop } from "./player/desktopBridge";
@@ -37,9 +42,14 @@ import { Stats } from "./views/Stats";
 function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const route = useStore(ui, (s) => s.route);
   const fullPlayer = useStore(ui, (s) => s.fullPlayer);
+  const lyricsStage = useStore(ui, (s) => s.lyricsStage);
+  const roulette = useStore(ui, (s) => s.roulette);
   const queueOpen = useStore(ui, (s) => s.queueOpen);
   const mini = useStore(ui, (s) => s.mini);
   const playlistDialog = useStore(ui, (s) => s.playlistDialog);
+  const mystic = useStore(theme, (s) => s.current === "mystic");
+  // a new page animates in; a new search in the same page does not
+  const routeKey = `${route.name}-${"id" in route ? route.id : ""}`;
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
 
@@ -116,19 +126,36 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
         onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}
         onClick={() => ui.get().devicesOpen && ui.set({ devicesOpen: false })}
       >
-        <div className="mx-auto max-w-[1800px]">{view}</div>
+        {/* pages come in as on mysticsaba.com: one curve for every movement, cubic-bezier(.22, 1, .36, 1) */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={routeKey}
+            className="mx-auto max-w-[1800px]"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } }}
+            exit={{ opacity: 0, y: -6, transition: { duration: 0.12, ease: "easeIn" } }}
+          >
+            {view}
+          </motion.div>
+        </AnimatePresence>
       </main>
       )}
       <NowPlayingBar />
       <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
+      <AnimatePresence>{lyricsStage && <LyricsStage />}</AnimatePresence>
+      <AnimatePresence>{roulette && <Roulette />}</AnimatePresence>
+      <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />
+      {/* mysticsaba.com's film grain, over everything, in the Mystic theme */}
+      {mystic && <div className="fx-grain pointer-events-none fixed inset-[-50%] z-[65] opacity-[0.045]" aria-hidden="true" />}
     </div>
   );
 }
 
 export function App() {
+  const transitions = useStore(lite, (s) => s.effects.transitions);
   const [auth, setAuth] = useState<AuthStatus>();
   const [drm, setDrm] = useState<DrmStatus>();
 
@@ -146,7 +173,8 @@ export function App() {
   };
 
   return (
-    <>
+    // light mode: panels and pages appear without sliding
+    <MotionConfig reducedMotion={transitions ? "never" : "always"}>
       {!auth || !drm ? (
         <Spinner className="h-full" />
       ) : auth.loggedIn ? (
@@ -155,6 +183,6 @@ export function App() {
         <Login status={auth} drm={drm} onLoggedIn={setAuth} />
       )}
       <Toasts />
-    </>
+    </MotionConfig>
   );
 }

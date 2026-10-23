@@ -10,6 +10,7 @@ import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
 import { restore, trash } from "../lib/trash";
+import { EFFECTS, lite, REASONS, setEffect, setLiteSetting, type LiteSetting } from "../lib/lite";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -197,6 +198,12 @@ function DesktopSettingsLines() {
         <Switch on={settings.openAtLogin} onChange={(on) => void change({ openAtLogin: on })} label="Lancer au démarrage" />
       </Line>
       <Line
+        label="Libérer la mémoire quand Vitrine est cachée"
+        hint="Après une minute dans la zone de notification, la page se ferme (environ 300 Mo rendus) ; la musique, les commandes et le titre en cours continuent, et tout revient au clic. Pas quand la musique joue dans Vitrine même."
+      >
+        <Switch on={settings.freeWhenHidden} onChange={(on) => void change({ freeWhenHidden: on })} label="Libérer la mémoire quand Vitrine est cachée" />
+      </Line>
+      <Line
         label="Raccourcis clavier globaux"
         hint={
           <>
@@ -207,6 +214,53 @@ function DesktopSettingsLines() {
       >
         <Switch on={settings.globalShortcuts} onChange={(on) => void change({ globalShortcuts: on })} label="Raccourcis clavier globaux" />
       </Line>
+    </>
+  );
+}
+
+const LITE_OPTIONS: { value: LiteSetting; label: string }[] = [
+  { value: "auto", label: "Auto" },
+  { value: "on", label: "Activé" },
+  { value: "off", label: "Désactivé" },
+];
+
+/** Movix's light mode: the effects that cost memory and GPU, left out on a modest PC or by choice. */
+function LiteSettings() {
+  const state = useStore(lite, (s) => s);
+  const active = !state.effects.backdrops && !state.effects.blur && !state.effects.transitions && !state.effects.autoplay && (state.setting === "on" || (state.setting === "auto" && state.reason !== null));
+  const hint =
+    state.setting === "auto"
+      ? state.reason
+        ? `Activé automatiquement : ${REASONS[state.reason]}.`
+        : "S'active seul sur un PC modeste (2 cœurs, 4 Go) ou si Windows demande moins d'animations."
+      : state.setting === "on"
+        ? "Activé : pas de fonds animés, de flous, de transitions ni de défilement automatique."
+        : "Désactivé : vous choisissez chaque effet ci-dessous.";
+  return (
+    <>
+      <Line label="Mode léger" hint={hint}>
+        <div className="flex shrink-0 gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+          {LITE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setLiteSetting(option.value)}
+              aria-pressed={state.setting === option.value}
+              className={cn("rounded-xl px-3 py-1.5 text-sm font-medium transition-colors", state.setting === option.value ? "accent-bg" : "text-gray-400 hover:text-white")}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </Line>
+      {EFFECTS.map((effect) => (
+        <Line key={effect.key} label={effect.label} hint={effect.hint}>
+          <Switch
+            on={active ? false : state.chosen[effect.key]}
+            onChange={(on) => !active && setEffect(effect.key, on)}
+            label={effect.label}
+          />
+        </Line>
+      ))}
     </>
   );
 }
@@ -319,6 +373,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         <Line label="Couleurs de la pochette" hint="L'accent du thème prend la couleur de la pochette du titre en cours.">
           <Switch on={dynamic} onChange={setDynamicAccent} label="Couleurs de la pochette" />
         </Line>
+      </Section>
+
+      <Section title="Performance">
+        <LiteSettings />
       </Section>
 
       <Section title="Bureau">

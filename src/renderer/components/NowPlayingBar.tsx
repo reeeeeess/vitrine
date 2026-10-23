@@ -244,10 +244,10 @@ export function NowPlayingBar() {
       <div className="flex items-center justify-end gap-1">
         <button
           className="rounded-full p-2 text-gray-400 transition-colors hover:text-white disabled:opacity-40"
-          onClick={() => ui.set({ fullPlayer: true, devicesOpen: false })}
+          onClick={() => ui.set({ lyricsStage: true, fullPlayer: false, devicesOpen: false })}
           disabled={!track}
           aria-label="Paroles"
-          title="Paroles"
+          title="Paroles plein écran (karaoké)"
         >
           <Mic2 className="h-4 w-4" />
         </button>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- the tray's [Vitrine]: brackets and bars only, thick enough to read at 16 px -->
+  <path fill="BRACKETS" fill-rule="evenodd" d="M3 4H11V7H6.5V25H11V28H3Z M29 4H21V7H25.5V25H21V28H29Z"/>
+  <rect x="9.6" y="11" width="3.4" height="10" rx="1.7" fill="BARS"/>
+  <rect x="14.3" y="7.5" width="3.4" height="17" rx="1.7" fill="BARS"/>
+  <rect x="19" y="12.5" width="3.4" height="7" rx="1.7" fill="BARS"/>
+</svg>

@@ -1,18 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100">
+  <!-- [Vitrine]: the brackets of the [ix] family (Movix, Loadix), around an equalizer instead of film -->
   <defs>
-    <radialGradient id="glow" cx="30%" cy="25%" r="85%">
-      <stop offset="0" stop-color="#ef4444"/>
-      <stop offset="0.55" stop-color="#7f1d1d"/>
+    <radialGradient id="glow" cx="50%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#2a0b0b"/>
       <stop offset="1" stop-color="#0a0a0a"/>
     </radialGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.38"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0.08"/>
-    </linearGradient>
   </defs>
-  <rect x="64" y="64" width="896" height="896" rx="200" fill="#000"/>
-  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#glow)"/>
-  <rect x="200" y="230" width="624" height="564" rx="96" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6"/>
-  <path d="M372 380 L512 680 L652 380" fill="none" stroke="#fff" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="512" cy="300" r="22" fill="#fff" opacity="0.9"/>
+  <rect x="6" y="6" width="88" height="88" rx="21" fill="url(#glow)"/>
+  <path fill="#DC2626" fill-rule="evenodd" d="M19 21H38V28H26V72H38V79H19Z M81 21H62V28H74V72H62V79H81Z"/>
+  <rect x="35" y="38" width="8" height="24" rx="4" fill="#ffffff"/>
+  <rect x="46" y="29" width="8" height="42" rx="4" fill="#ffffff"/>
+  <rect x="57" y="42" width="8" height="16" rx="4" fill="#ffffff"/>
 </svg>

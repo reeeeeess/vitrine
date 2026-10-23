@@ -1,8 +1,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, type ReactNode } from "react";
 
-/** A titled, horizontally scrolling row with arrows, as on Movix's home page. */
-export function Row({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+/**
+ * A titled, horizontally scrolling row with arrows, as on Movix's home page: its number in mono
+ * above the title as on mysticsaba.com ("01 / ÉCOUTE"), and Movix's short accent line below.
+ */
+export function Row({ title, number, kicker, action, children }: { title: string; number?: number; kicker?: string; action?: ReactNode; children: ReactNode }) {
   const track = useRef<HTMLDivElement>(null);
   const scroll = (direction: 1 | -1) => {
     const element = track.current;
@@ -12,8 +15,16 @@ export function Row({ title, action, children }: { title: string; action?: React
     "flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-white/80 transition-colors hover:bg-white/15 hover:text-white";
   return (
     <section className="mt-10">
-      <header className="mb-3 flex items-center justify-between gap-4 px-1">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+      <header className="mb-3 flex items-end justify-between gap-4 px-1">
+        <div>
+          {number !== undefined && (
+            <span className="kicker block font-mono font-medium text-red-500">
+              {String(number).padStart(2, "0")} / {kicker ?? title}
+            </span>
+          )}
+          <h2 className="mt-1 text-2xl font-bold tracking-tight">{title}</h2>
+          <span className="mt-2 block h-[3px] w-10 rounded-full accent-bg" aria-hidden="true" />
+        </div>
         <div className="flex items-center gap-2">
           {action}
           <button className={arrow} onClick={() => scroll(-1)} aria-label="Précédent">

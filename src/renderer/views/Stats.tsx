@@ -88,7 +88,7 @@ export function Stats() {
                 >
                   <span className={cn("w-8 text-right font-display text-xl tabular-nums", index < 3 ? "text-red-500" : "text-white/40")}>{index + 1}</span>
                   <button className="h-11 w-11 shrink-0" onClick={() => run(() => engine.playTracks(data.tracks.map((t) => t.uri), index))} aria-label={`Lire ${track.name}`}>
-                    <Artwork src={track.image} className="rounded-md" />
+                    <Artwork src={track.thumb ?? track.image} className="rounded-md" />
                   </button>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{track.name}</span>

@@ -41,7 +41,7 @@ export interface VitrineBridge {
   desktop: {
     get(): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     set(settings: DesktopSettings): Promise<DesktopSettings & { takenShortcuts: string[] }>;
-    update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean } | null): Promise<void>;
+    update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean; holdsAudio?: boolean } | null): Promise<void>;
     onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow" | "lyrics") => void): () => void;
   };
   history: {
@@ -98,6 +98,7 @@ export interface DesktopSettings {
   notifications: boolean;
   openAtLogin: boolean;
   globalShortcuts: boolean;
+  freeWhenHidden: boolean;
 }
 
 /** A play kept in this computer's listening history (electron/historyFile.ts). */
