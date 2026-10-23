@@ -15,7 +15,6 @@
     "dist:win": "npm run build && electron-builder --win",
     "dist:mac": "npm run build && electron-builder --mac"
   },
-  "dependencies": {},
   "devDependencies": {
     "@fontsource/archivo-black": "5.2.8",
     "@fontsource/inter": "5.2.8",
@@ -32,6 +31,7 @@
     "embla-carousel-autoplay": "8.6.0",
     "embla-carousel-react": "8.6.0",
     "esbuild": "0.25.10",
+    "fix-webm-duration": "1.0.6",
     "framer-motion": "11.11.10",
     "lucide-react": "0.344.0",
     "postcss": "8.5.6",

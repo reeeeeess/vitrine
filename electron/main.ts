@@ -29,6 +29,7 @@ import { formatListening } from "../src/renderer/lib/listening";
 import { clearLyricsCache, fetchLyrics } from "./lyrics";
 import { setTranslationSettings, translateLyrics, translationSettings } from "./translate";
 import { fetchCredits } from "./credits";
+import { connectLastfm, disconnectLastfm, lastfmStatus, nowPlaying as lastfmNowPlaying, scrobble, setLastfmKeys } from "./lastfm";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
 import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
@@ -255,6 +256,12 @@ function registerIpc(): void {
   handle("lyrics:clear", () => clearLyricsCache());
   handle("lyrics:translate", (query) => translateLyrics(query));
   handle("credits:get", (isrc) => fetchCredits(isrc));
+  handle("lastfm:status", () => lastfmStatus());
+  handle("lastfm:keys", (keys) => setLastfmKeys(keys));
+  handle("lastfm:connect", () => connectLastfm());
+  handle("lastfm:disconnect", () => disconnectLastfm());
+  handle("lastfm:now", (track) => lastfmNowPlaying(track));
+  handle("lastfm:scrobble", (listen) => scrobble(listen));
   handle("translation:get", () => translationSettings());
   handle("translation:set", (settings) => setTranslationSettings(settings));
   handle("shell:open", (url) => {

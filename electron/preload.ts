@@ -18,6 +18,14 @@ const api = {
     clear: () => ipcRenderer.invoke("lyrics:clear"),
     translate: (lines: unknown) => ipcRenderer.invoke("lyrics:translate", { lines }),
   },
+  lastfm: {
+    status: () => ipcRenderer.invoke("lastfm:status"),
+    keys: (keys: unknown) => ipcRenderer.invoke("lastfm:keys", keys),
+    connect: () => ipcRenderer.invoke("lastfm:connect"),
+    disconnect: () => ipcRenderer.invoke("lastfm:disconnect"),
+    now: (track: unknown) => ipcRenderer.invoke("lastfm:now", track),
+    scrobble: (listen: unknown) => ipcRenderer.invoke("lastfm:scrobble", listen),
+  },
   credits: {
     get: (isrc: string) => ipcRenderer.invoke("credits:get", isrc),
   },

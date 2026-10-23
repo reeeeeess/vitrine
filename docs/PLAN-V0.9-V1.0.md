@@ -36,8 +36,8 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 - [x] E1 File infinie : quand la playlist ou l'album finit, la musique continue dans le même esprit
 
 ### Les connexions et le partage
-- [ ] P7 Last.fm : vos écoutes envoyées (« scrobble ») avec votre clé
-- [ ] Rétro Vitrine en vidéo verticale (en plus des images)
+- [x] P7 Last.fm : vos écoutes envoyées (« scrobble ») avec votre clé
+- [x] Rétro Vitrine en vidéo verticale (en plus des images)
 
 ### La qualité
 - [ ] Intégration continue : vérification des types, tests, construction, et un essai de bout en bout de la page

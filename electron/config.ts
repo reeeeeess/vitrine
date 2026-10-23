@@ -43,6 +43,8 @@ export interface Config {
   /** the milestones already said (I3), and the last week whose recap was given (T8) */
   milestones?: string[];
   weekTold?: string;
+  /** Last.fm: the person's application keys, the session once authorised, listens waiting to be sent */
+  lastfm?: import("./lastfm").LastfmSettings;
   /** the translation of lyrics: the service, the person's DeepL key, the language wanted */
   translation?: import("./translate").TranslationSettings;
 }

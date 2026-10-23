@@ -39,6 +39,7 @@ import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
 import { connectKaraoke } from "./player/karaoke";
 import { connectInfinite } from "./player/infinite";
+import { connectScrobbler } from "./player/scrobbler";
 import { loadPins } from "./lib/pins";
 import { addMoment, loadMoments, moments, reachedMoment } from "./lib/moments";
 import { connectOverlay } from "./player/overlayBridge";
@@ -88,6 +89,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectLoop(), []);
   useEffect(() => connectKaraoke(), []);
   useEffect(() => connectInfinite(), []);
+  useEffect(() => connectScrobbler(), []);
   useEffect(() => void loadPins(), []);
   useEffect(() => {
     void loadMoments();

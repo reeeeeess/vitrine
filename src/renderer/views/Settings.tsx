@@ -11,7 +11,7 @@ import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../l
 import { nowPanel, setNowPanel } from "../components/NowPanel";
 import { lyricsPrefs, setNetease } from "../lib/lyricsPrefs";
 import { infinite, setInfinite } from "../player/infinite";
-import type { TranslationSettings } from "../global";
+import type { LastfmStatus, TranslationSettings } from "../global";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
@@ -426,6 +426,72 @@ function TranslationLines() {
   );
 }
 
+/**
+ * Last.fm (P7): the person's own application keys (last.fm/api/account/create, free), one authorisation in the
+ * browser, then what plays on this computer is sent there.
+ */
+function LastfmSettings() {
+  const [status, setStatus] = useState<LastfmStatus>();
+  const [apiKey, setApiKey] = useState("");
+  const [secret, setSecret] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string>();
+  useEffect(() => {
+    void window.vitrine.lastfm?.status().then((value) => {
+      setStatus(value);
+      setApiKey(value.apiKey);
+    }, () => undefined);
+  }, []);
+  if (!status) return null;
+  const act = async (task: () => Promise<LastfmStatus>) => {
+    setBusy(true);
+    setMessage(undefined);
+    try {
+      setStatus(await task());
+    } catch (error) {
+      setMessage(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (status.connected) {
+    return (
+      <Line label={`Connecté : ${status.user ?? "Last.fm"}`} hint={`Ce qui joue sur cet ordinateur est envoyé à Last.fm (la moitié du titre, ou 4 min).${status.waiting ? ` ${status.waiting} écoute(s) en attente de connexion.` : ""}`}>
+        <button onClick={() => void act(() => window.vitrine.lastfm.disconnect())} className="btn-ghost min-h-0 px-4 py-2 text-sm" disabled={busy}>
+          Déconnecter
+        </button>
+      </Line>
+    );
+  }
+  return (
+    <>
+      <p className="text-xs text-gray-400">
+        Créez une application (gratuite) sur last.fm/api/account/create, puis collez sa clé et son secret. Vitrine ouvrira ensuite Last.fm pour que vous l'autorisiez.
+      </p>
+      <Line label="Clé de l'application (API key)">
+        <input value={apiKey} onChange={(event) => setApiKey(event.target.value)} className="w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-xs" aria-label="Clé Last.fm" />
+      </Line>
+      <Line label="Secret partagé" hint="Gardé sur cet ordinateur, jamais affiché ni envoyé : il sert à signer les demandes.">
+        <input value={secret} onChange={(event) => setSecret(event.target.value)} type="password" placeholder={status.configured ? "déjà enregistré" : ""} className="w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-xs" aria-label="Secret Last.fm" />
+      </Line>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => void act(async () => {
+            const saved = await window.vitrine.lastfm.keys({ apiKey, secret });
+            setSecret("");
+            return saved.configured ? window.vitrine.lastfm.connect() : saved;
+          })}
+          className="btn-primary min-h-0 px-4 py-2 text-sm"
+          disabled={busy || !apiKey}
+        >
+          {busy ? "En attente de votre accord sur Last.fm…" : "Connecter Last.fm"}
+        </button>
+      </div>
+      {message && <p className="text-xs text-amber-200">{message}</p>}
+    </>
+  );
+}
+
 /** The infinite queue: when a list ends, the music goes on around its last track. */
 function InfiniteLine() {
   const on = useStore(infinite, (s) => s.on);
@@ -577,6 +643,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
 
       <Section title="Discord">
         <DiscordSettings />
+      </Section>
+
+      <Section title="Last.fm">
+        <LastfmSettings />
       </Section>
 
       <Section title="Mises à jour">

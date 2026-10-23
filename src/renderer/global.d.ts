@@ -10,6 +10,14 @@ export interface DrmStatus {
   detail: string;
 }
 
+export interface LastfmStatus {
+  configured: boolean;
+  connected: boolean;
+  user?: string;
+  apiKey: string;
+  waiting: number;
+}
+
 export interface TranslationSettings {
   service: "mymemory" | "deepl";
   deeplKey: string;
@@ -46,6 +54,14 @@ export interface VitrineBridge {
     clear(): Promise<void>;
     /** each line in the language chosen (null where it says the same), `same` when they already are */
     translate(lines: string[]): Promise<{ lines: (string | null)[]; from?: string; same: boolean; service: string }>;
+  };
+  lastfm: {
+    status(): Promise<LastfmStatus>;
+    keys(keys: { apiKey: string; secret?: string }): Promise<LastfmStatus>;
+    connect(): Promise<LastfmStatus>;
+    disconnect(): Promise<LastfmStatus>;
+    now(track: { artist: string; track: string; album?: string }): Promise<void>;
+    scrobble(listen: { artist: string; track: string; album?: string; timestamp: number; durationMs: number }): Promise<void>;
   };
   /** a track's credits from MusicBrainz, by ISRC: writers, producers, sound, musicians */
   credits: { get(isrc: string): Promise<import("../../electron/creditsParse").Credits | null> };

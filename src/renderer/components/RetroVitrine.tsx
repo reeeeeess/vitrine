@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Share2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Clapperboard, Loader2, Share2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { auraOf, renderRetroCard } from "../lib/cards";
+import { recordRetro, VIDEO_MS, type RetroInput } from "../lib/retroVideo";
+import { saveBlob } from "../lib/recap";
 import { errorMessage } from "../lib/format";
 import { formatListening, type ListeningSummary } from "../lib/listening";
 import { EASE } from "../lib/motion";
@@ -41,6 +43,36 @@ function Counter({ to }: { to: number }) {
 
 function Kicker({ children }: { children: string }) {
   return <p className="font-mono text-sm font-medium uppercase tracking-[0.3em] text-white/70">{children}</p>;
+}
+
+/** The period as a vertical video of 15 s, recorded as it plays, with a way to stop. */
+function RetroVideoButton({ input }: { input: RetroInput }) {
+  const [progress, setProgress] = useState<number | null>(null);
+  const abort = useRef<AbortController | null>(null);
+  const start = async () => {
+    abort.current = new AbortController();
+    setProgress(0);
+    try {
+      const { blob, ext } = await recordRetro(input, setProgress, abort.current.signal);
+      saveBlob(blob, `retro-vitrine-${input.label.replace(/\s+/g, "-")}.${ext}`);
+      notify("Vidéo prête : publiez-la sur TikTok ou en story, avec le son de votre choix.");
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) notify(errorMessage(error), "error");
+    } finally {
+      setProgress(null);
+    }
+  };
+  return progress === null ? (
+    <button onClick={() => void start()} className="btn-ghost h-14 px-8 text-base" title="Une vidéo verticale de 15 s, sans le son">
+      <Clapperboard className="h-5 w-5" />
+      Vidéo (15 s)
+    </button>
+  ) : (
+    <button onClick={() => abort.current?.abort()} className="btn-ghost h-14 px-8 text-base" title="Arrêter l'enregistrement">
+      <Loader2 className="h-5 w-5 animate-spin" />
+      {Math.ceil(((1 - progress) * VIDEO_MS) / 1000)} s · Arrêter
+    </button>
+  );
 }
 
 /** Rétro Vitrine: a month or a year of listening in full-screen slides, then a picture to share. */
@@ -310,6 +342,7 @@ function buildSlides(summary: ListeningSummary, range: { since: number; until: n
               <Share2 className="h-5 w-5" />
               Créer l'image à partager
             </button>
+            <RetroVideoButton input={{ label: range.label, name: name ?? "", minutes, topArtist: artist?.name, artistImage, topTracks: summary.topTracks, colors }} />
             <button onClick={close} className="btn-ghost h-14 px-8 text-base">
               Fermer
             </button>

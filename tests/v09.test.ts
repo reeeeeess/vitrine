@@ -187,3 +187,41 @@ describe("the infinite queue (E1)", async () => {
     expect(ranOut(playing, { ...playing, paused: true, position: 0, uri: "spotify:track:y" })).toBe(false);
   });
 });
+
+describe("Last.fm (P7)", async () => {
+  const { createHash } = await import("node:crypto");
+  const { scrobbleParams, signature } = await import("../electron/lastfmSign");
+  const { scrobbleDue } = await import("../src/renderer/player/scrobbler");
+
+  it("signs the way Last.fm checks: names sorted, format left out, the secret at the end", () => {
+    const md5 = (text: string) => createHash("md5").update(text, "utf8").digest("hex");
+    expect(signature({ method: "auth.getToken", api_key: "k", format: "json" }, "s")).toBe(md5("api_keykmethodauth.getTokens"));
+    expect(signature({ b: "2", a: "é" }, "x")).toBe(md5("aéb2x"));
+  });
+
+  it("sends listens in batches, numbered", () => {
+    const params = scrobbleParams([{ artist: "Vacra", track: "Fille à Papa", album: "Fille à Papa", timestamp: 1_760_000_000, durationMs: 169_586 }]);
+    expect(params).toEqual({ "artist[0]": "Vacra", "track[0]": "Fille à Papa", "album[0]": "Fille à Papa", "timestamp[0]": "1760000000", "duration[0]": "170" });
+    const many = scrobbleParams(Array.from({ length: 60 }, (_, i) => ({ artist: "A", track: `T${i}`, timestamp: i, durationMs: 60_000 })));
+    expect(Object.keys(many).filter((key) => key.startsWith("track["))).toHaveLength(50);
+  });
+
+  it("counts a listen after half the track, or 4 minutes, never under 30 s", () => {
+    expect(scrobbleDue(85_000, 169_586)).toBe(true);
+    expect(scrobbleDue(80_000, 169_586)).toBe(false);
+    expect(scrobbleDue(240_000, 900_000)).toBe(true);
+    expect(scrobbleDue(30_000, 25_000)).toBe(false);
+  });
+});
+
+describe("Rétro Vitrine as a video", async () => {
+  const { SCENES, VIDEO_MS, sceneAt } = await import("../src/renderer/lib/retroVideo");
+
+  it("lasts about 15 s, scene after scene", () => {
+    expect(VIDEO_MS).toBe(15_400);
+    expect(sceneAt(0)).toMatchObject({ index: 0, progress: 0 });
+    expect(sceneAt(SCENES[0].ms + 10).index).toBe(1);
+    expect(sceneAt(VIDEO_MS - 1).index).toBe(SCENES.length - 1);
+    expect(sceneAt(VIDEO_MS + 5000)).toMatchObject({ index: SCENES.length - 1, progress: 1 });
+  });
+});

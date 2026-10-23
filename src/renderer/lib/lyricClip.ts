@@ -1,6 +1,7 @@
 // A lyric clip, as TikTok's "lyric edits" are made (1080 × 1920, 15 s): the line of the moment, big, each
 // word lighting up as it is sung, over the artwork blurred and slowly zooming. Without sound: Spotify's
 // audio cannot be recorded or shared, and TikTok adds the song itself (its sounds library).
+import fixWebmDuration from "fix-webm-duration";
 import type { LyricLine } from "./lrc";
 import { fill, stageLyrics, type LyricEntry, type SungWord } from "./lyricsView";
 import { artworkColor, rgbVar } from "./palette";
@@ -241,5 +242,14 @@ export async function recordClip(
     for (const track of stream.getTracks()) track.stop();
   });
   await stopped;
-  return { blob: new Blob(chunks, { type: format.mime.split(";")[0] }), ext: format.ext };
+  return { blob: await videoFile(chunks, format, CLIP_MS), ext: format.ext };
+}
+
+/**
+ * The recorded pieces as one file. Chromium's WebM says nothing of its length, which some apps refuse or
+ * show as 0:00: the length is written into it.
+ */
+export async function videoFile(chunks: Blob[], format: { mime: string; ext: "mp4" | "webm" }, durationMs: number): Promise<Blob> {
+  const blob = new Blob(chunks, { type: format.mime.split(";")[0] });
+  return format.ext === "webm" ? fixWebmDuration(blob, durationMs, { logger: false }) : blob;
 }
