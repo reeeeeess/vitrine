@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown, Disc3, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
+import { ChevronDown, Disc3, Layers, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
@@ -12,6 +12,7 @@ import { Artwork } from "./Artwork";
 import { Aurora } from "./Aurora";
 import { Marquee } from "./Marquee";
 import { Vinyl } from "./Vinyl";
+import { openVersions, versionsOf } from "./VersionsPanel";
 import { Lyrics } from "./Lyrics";
 import { LikeButton } from "./LikeButton";
 import { StoryButton } from "./StoryButton";
@@ -80,7 +81,8 @@ export function FullPlayer() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || ui.get().playlistDialog) return;
+      // a panel opened over the player (versions, playlists) closes first
+      if (event.key !== "Escape" || ui.get().playlistDialog || versionsOf.get().track) return;
       // the devices menu closes first, then the player
       ui.set(ui.get().devicesOpen ? { devicesOpen: false } : { fullPlayer: false });
     };
@@ -159,6 +161,14 @@ export function FullPlayer() {
                       title="Mode vinyle"
                     >
                       <Disc3 className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={() => openVersions(track)}
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+                      aria-label="Autres versions"
+                      title="Autres versions : accélérée, ralentie, acoustique, instrumentale, live, remix"
+                    >
+                      <Layers className="h-6 w-6" />
                     </button>
                     <StoryButton track={track} />
                     <LikeButton track={track} size="h-6 w-6" />

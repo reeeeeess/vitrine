@@ -1,14 +1,18 @@
 import type { Track } from "../lib/types";
+import { useStore } from "../lib/store";
 import { usePosition } from "../player/hooks";
+import { karaoke, lyricsSource } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
 import { RomanizeToggle, StagedLyrics } from "./StagedLyrics";
 
 /** lines light up a little ahead, as the singer breathes in */
 const LEAD_MS = 250;
 
-export function Lyrics({ track }: { track: Track }) {
-  const { state, lines } = useLyrics(track);
-  const position = usePosition();
+export function Lyrics({ track: playing }: { track: Track }) {
+  // during karaoke, the original's lyrics, in time with the instrumental
+  const source = lyricsSource(playing, useStore(karaoke, (s) => s.current));
+  const { state, lines } = useLyrics(source.track);
+  const position = source.toLyrics(usePosition());
 
   if (state.status === "loading") {
     return <p className="text-2xl font-bold text-white/40">Recherche des paroles…</p>;

@@ -1,24 +1,53 @@
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Loader2, MicOff, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { cn } from "../lib/cn";
 import { useStore } from "../lib/store";
 import { ui } from "../lib/ui";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
+import { karaoke, lyricsSource, startKaraoke, stopKaraoke } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
 import { Artwork } from "./Artwork";
 import { Aurora } from "./Aurora";
-import { ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
+import { ProgressBar, run, TransportControls, VolumeControl } from "./NowPlayingBar";
 import { RomanizeToggle, StagedLyrics } from "./StagedLyrics";
 
 /** the voice comes a little before the note: lines light up that much ahead */
 const LEAD_MS = 250;
 
 /** Musix's lyrics screen: giant lines on an aurora of the artwork's colours, the current one filling as it is sung. */
+/** Karaoke without the voice: the official instrumental, at the same moment, the original's lyrics. */
+function KaraokeButton() {
+  const current = useStore(karaoke, (s) => s.current);
+  const searching = useStore(karaoke, (s) => s.searching);
+  return (
+    <div className="flex items-center gap-2">
+      {current?.approximate && <span className="rounded-full border border-amber-300/40 px-2.5 py-1 text-[11px] text-amber-200">synchro approximative</span>}
+      <button
+        onClick={() => run(current ? stopKaraoke : startKaraoke)}
+        disabled={searching}
+        className={cn(
+          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
+          current ? "border-red-400/60 bg-red-500/25 text-white" : "border-white/20 text-white/70 hover:text-white",
+        )}
+        title={current ? "Remettre la version avec la voix, au même moment" : "Jouer la version instrumentale officielle, au même moment, et chanter sur les paroles"}
+      >
+        {searching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MicOff className="h-3.5 w-3.5" />}
+        {current ? "Remettre la voix" : "Karaoké sans la voix"}
+      </button>
+    </div>
+  );
+}
+
 export function LyricsStage() {
-  const track = useStore(playback, (s) => s.track);
+  const playing = useStore(playback, (s) => s.track);
+  const current = useStore(karaoke, (s) => s.current);
+  // during karaoke, the instrumental plays and the original's lyrics show, in time
+  const source = lyricsSource(playing, current);
+  const track = source.track;
   const { state, lines } = useLyrics(track);
-  const position = usePosition();
+  const position = source.toLyrics(usePosition());
   const art = track?.imageLarge ?? track?.image;
 
   useEffect(() => {
@@ -50,6 +79,7 @@ export function LyricsStage() {
           </div>
         )}
         <div className="no-drag flex items-center gap-3">
+        <KaraokeButton />
         <RomanizeToggle lines={lines} />
         <button onClick={() => ui.set({ lyricsStage: false })} className="no-drag rounded-full border border-white/25 p-2.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white" aria-label="Fermer les paroles">
           <X className="h-5 w-5" />

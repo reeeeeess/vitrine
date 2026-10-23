@@ -60,8 +60,8 @@ ou des données déjà chargées en vient.
 
 ## Étape 5 — Versions et karaoké sans la voix
 
-- [ ] T5 Les versions d'un titre (accélérée, ralentie, acoustique, instrumentale, live, remix)
-- [ ] K2 Karaoké « sans la voix » : version instrumentale officielle, au même instant, paroles de l'original
+- [x] T5 Les versions d'un titre (accélérée, ralentie, acoustique, instrumentale, live, remix)
+- [x] K2 Karaoké « sans la voix » : version instrumentale officielle, au même instant, paroles de l'original
 
 ## Étape 6 — Égaliseur
 

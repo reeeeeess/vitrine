@@ -13,6 +13,7 @@ import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
 import { UpNext } from "./components/UpNext";
 import { ImagePreview } from "./components/ImagePreview";
+import { VersionsPanel } from "./components/VersionsPanel";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
@@ -27,6 +28,7 @@ import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
+import { connectKaraoke } from "./player/karaoke";
 import { loadPins } from "./lib/pins";
 import { connectOverlay } from "./player/overlayBridge";
 import { connectTrash } from "./player/trashBridge";
@@ -71,6 +73,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectUpdates(), []);
   useEffect(() => connectHistory(), []);
   useEffect(() => connectLoop(), []);
+  useEffect(() => connectKaraoke(), []);
   useEffect(() => void loadPins(), []);
   useEffect(() => connectOverlay(), []);
   useEffect(() => connectTrash(), []);
@@ -155,6 +158,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <AnimatePresence>{roulette && <Roulette />}</AnimatePresence>
       <AnimatePresence>{retroOpen && <RetroVitrine name={profile?.name} />}</AnimatePresence>
       <ImagePreview />
+      <VersionsPanel />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />

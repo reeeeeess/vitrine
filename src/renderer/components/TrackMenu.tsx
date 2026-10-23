@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Ban, Copy, Disc3, ExternalLink, Heart, HeartOff, Link2, ListEnd, ListPlus, Mic2, Play, Share2, SkipForward, Sparkles, Trash2, UserX, type LucideIcon } from "lucide-react";
+import { Ban, Copy, Disc3, ExternalLink, Heart, HeartOff, Layers, Link2, ListEnd, ListPlus, Mic2, Play, Share2, SkipForward, Sparkles, Trash2, UserX, type LucideIcon } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
@@ -12,6 +12,7 @@ import type { Track } from "../lib/types";
 import { navigate, notify, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { shareStory } from "./StoryButton";
+import { openVersions } from "./VersionsPanel";
 
 /** Where the track was right-clicked, for the actions that depend on it. */
 export interface MenuContext {
@@ -104,6 +105,7 @@ function useItems(state: MenuState): Item[][] {
       { label: "Lire", icon: Play, run: attempt(() => engine.playTracks([track.uri])) },
       { label: "Ajouter à la file d'attente", icon: ListEnd, run: attempt(() => engine.addToQueue(track.uri), `« ${track.name} » ajouté à la file`) },
       { label: "Lancer un Flow à partir de ce titre", icon: Sparkles, run: () => navigate({ name: "flow", seed: track }) },
+      { label: "Autres versions (accélérée, acoustique…)", icon: Layers, run: () => openVersions(track) },
     ],
     [
       { label: "Ajouter à une playlist…", icon: ListPlus, run: () => ui.set({ playlistDialog: { uris: [track.uri] } }) },
