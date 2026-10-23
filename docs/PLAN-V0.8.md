@@ -76,8 +76,8 @@ ou des données déjà chargées en vient.
 
 ## Étape 8 — Livraison
 
-- [ ] Tests automatiques, captures sur données fictives, ROADMAP et README à jour
-- [ ] Version 0.8.0, installateur Windows, paquet git
+- [x] Tests automatiques, captures sur données fictives, ROADMAP et README à jour
+- [x] Version 0.8.0, installateur Windows, paquet git
 
 ---
 

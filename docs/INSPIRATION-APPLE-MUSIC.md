@@ -3,6 +3,9 @@
 Ce qu'Apple Music fait de mieux en design et en fonctions, et ce que Vitrine peut en reprendre **avec l'API
 officielle de Spotify** : comment, avec quoi, ce que ça apporte et coûte, les pièges, le rendu visuel.
 
+**Suivi** : ce qui est intégré est coché dans [PLAN-V0.8.md](PLAN-V0.8.md) (v0.8.0 : la liste « v0.8 » et une
+bonne partie de la liste « v0.9 » ci-dessous) ; la suite est dans [INSPIRATION-TIKTOK-PROJETS.md](INSPIRATION-TIKTOK-PROJETS.md).
+
 **Légende** : ✅ faisable · 🟡 faisable en partie ou à une condition · ❌ impossible avec Spotify · ✔︎ déjà dans
 Vitrine. **Effort** (comme dans ROADMAP.md) : S ≤ 1 jour, M quelques jours, L une à deux semaines.
 

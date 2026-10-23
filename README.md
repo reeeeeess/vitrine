@@ -16,6 +16,38 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
 
+### Apple Music, TikTok, et bien plus (v0.8.0)
+
+Tout vient de trois études : **[Apple Music](docs/INSPIRATION-APPLE-MUSIC.md)**, **[TikTok et les projets
+voisins](docs/INSPIRATION-TIKTOK-PROJETS.md)**, et la liste cochée de ce qui est fait : **[PLAN-V0.8.md](docs/PLAN-V0.8.md)**.
+
+- **Paroles façon Apple Music** : mot par mot, points pendant les silences, chœurs plus petits, flou selon la distance,
+  défilement libre, et la **prononciation** en lettres latines sous le coréen, le japonais (kana), le russe, le grec.
+- **Karaoké sans la voix**, dans les règles de Spotify : la **version instrumentale officielle** joue au même instant,
+  avec les paroles de l'original. **Autres versions** d'un titre : accélérée, ralentie (la tendance TikTok),
+  acoustique, live, remix.
+- **Égaliseur** 10 bandes et préréglages, appliqué à la sortie son de Windows par Equalizer APO (gratuit).
+- **Lecteur** : pochette qui recule à la pause, fond vivant, **mode vinyle**, **boucle A–B** et refrain en boucle,
+  « Ensuite » 10 s avant la fin, titre qui défile, balayer la barre pour changer de titre, temps restant.
+- **Rétro Vitrine** (votre mois ou votre année en diapositives) et les images qu'on partage sur TikTok : **reçu**,
+  **affiche de festival**, **iceberg** de vos artistes, **aura musicale**.
+- **Bibliothèque** : épingles (aussi dans la barre des tâches Windows), accès rapide, « Ce moment », ajoutés récemment,
+  tri, colonnes **Lectures** et **Dernière écoute**, playlists intelligentes, pages d'album et d'artiste refaites,
+  recherche dans votre bibliothèque, **Moments** (instants marqués avec une note).
+- **Vitrine Classic** : le look des baladeurs des années 2000, avec une molette qui tourne.
+
+<p align="center">
+  <img src="docs/screenshots/50-paroles-coreen.png" width="49%" alt="Paroles mot par mot avec la prononciation">
+  <img src="docs/screenshots/51-vinyle-boucle.png" width="49%" alt="Mode vinyle et boucle A–B">
+  <img src="docs/screenshots/52-retro-vitrine.jpg" width="49%" alt="Rétro Vitrine">
+  <img src="docs/screenshots/54-egaliseur.png" width="49%" alt="Égaliseur">
+  <img src="docs/screenshots/55-versions.png" width="49%" alt="Autres versions d'un titre">
+  <img src="docs/screenshots/56-vitrine-classic.png" width="49%" alt="Vitrine Classic">
+</p>
+
+**Plus sobre avec Spotify** : la limite de requêtes est respectée partie par partie (v0.7.2), et rien de ce qui
+précède n'ajoute de demandes régulières : tout ce qui peut venir de l'historique local en vient.
+
 ### Dans l'esprit Movix et Musix (v0.7.0)
 
 Logo **[Vitrine]** de la famille [ix], **Top 10 du mois** aux chiffres géants, titres de section numérotés, **paroles
@@ -133,6 +165,10 @@ electron/            processus principal (Node)
   history.ts         historique d'écoute de tout le compte (JSONL) : synchro, import de l'export Spotify, CSV
   overlay.ts         paroles sur le bureau (fenêtre transparente au premier plan)
   remote.ts          commandes et titre en cours quand la page est libérée (Vitrine cachée)
+  spotifyPauses.ts   la pause de Spotify (trop de requêtes), respectée aussi côté processus principal
+  equalizer.ts       l'égaliseur, écrit pour Equalizer APO (sortie son de Windows)
+  pins.ts            les épingles, et la liste de raccourcis de la barre des tâches Windows
+  moments.ts         les Moments (instants marqués avec une note)
   zip.ts             lecture de l'archive de données envoyée par Spotify
   cli.ts             commandes en ligne (--next, --flow…) passées à l'instance ouverte
   preload.ts         le seul pont vers la page (contextBridge)
@@ -143,6 +179,14 @@ src/renderer/        interface (React 18, Tailwind CSS, framer-motion, lucide-re
   lib/story.ts       la story 1080 × 1920 du titre en cours
   lib/trash.ts       la corbeille (titres et artistes sautés partout)
   lib/lite.ts        le mode léger (effets coupés sur un PC modeste)
+  lib/apiGate.ts     4 demandes à la fois, lectures partagées, pause de Spotify tenue partie par partie
+  lib/lyricsView.ts  paroles mises en scène : mot par mot, silences, chœurs, flou par distance
+  lib/romanize.ts    prononciation : coréen, kana, cyrillique, grec
+  lib/insights.ts    ce que dit l'historique : lectures par titre, accès rapide, « Ce moment », iceberg, semaine, étapes
+  lib/cards.ts       reçu, affiche de festival, iceberg, aura, carte Rétro Vitrine (canvas)
+  lib/versions.ts    autres versions d'un titre et instrumentale pour le karaoké
+  player/loop.ts     boucle A–B
+  player/karaoke.ts  karaoké sans la voix (version instrumentale officielle)
   player/engine.ts   lecture : SDK local (cet ordinateur) ou télécommande Spotify Connect
   player/history.ts  ce qui compte comme une écoute (30 s, ou la moitié d'un titre court)
   components/        en-tête, bandeau, cartes, rangées, lecteur, paroles, appareils

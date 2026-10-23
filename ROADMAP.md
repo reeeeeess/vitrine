@@ -217,13 +217,17 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   relance redemandait et risquait de la prolonger) ; une page bloquée montre sa dernière version connue ; la
   Bibliothèque et les Stats chargent chaque partie séparément ; un compteur ⏳ dans l'en-tête donne le détail ;
   l'historique du compte et la télécommande du processus principal respectent aussi la pause
-- **Sprint 9 (prochain, v0.8.0)** : « Rétro Vitrine » (votre année en diapositives, façon Wrapped de Movix), dock
-  flottant façon Musix (option du thème Mystic), calendrier des sorties de vos artistes, intro au lancement, thème
-  « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; les petits gestes d'Apple Music
-  (lecteur, paroles, épingles, tri, recherche : liste « v0.8 » de docs/INSPIRATION-APPLE-MUSIC.md) ; tests de bout en
-  bout dans la CI
-- **Sprint 10 (v0.9.0)** : Apple Music, les gros morceaux : mini-lecteur qui grandit, paroles mot par mot et
-  prononciation, playlists intelligentes, pages d'album et d'artiste, mini-lecteur compact, bilan mensuel
+- **Sprint 9 (fait, v0.8.0)** : trois listes (Apple Music, TikTok et projets voisins, égaliseur et karaoké) puis
+  43 étapes intégrées et cochées dans docs/PLAN-V0.8.md : paroles mot par mot, silences, chœurs, prononciation ;
+  pochette qui respire, fond vivant, vinyle, boucle A–B, « Ensuite », balayer la barre, temps restant ; épingles (et
+  liste de raccourcis Windows), accès rapide, « Ce moment », tri, colonnes Lectures et Dernière écoute, pages d'album
+  et d'artiste, recherche dans la bibliothèque, grands titres repliés ; Rétro Vitrine, reçu, affiche de festival,
+  iceberg, aura, playlists intelligentes, bilan de la semaine et étapes ; autres versions d'un titre et karaoké sans la
+  voix (version instrumentale officielle) ; égaliseur par Equalizer APO ; Vitrine Classic, Moments, intro, raccourcis
+- **Sprint 10 (prochain, v0.9.0)** : mini-lecteur qui grandit en plein écran, barre qui rétrécit et thème « Verre »
+  (Liquid Glass), dock flottant façon Musix, traduction des paroles (clé DeepL), calendrier des sorties de vos
+  artistes et import de playlists (avec un budget de demandes à Spotify), crédits (MusicBrainz), Last.fm, file ∞ ;
+  tests de bout en bout dans la CI
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -316,15 +320,23 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | Shuffle+ (vrai aléatoire) | Mélange parfait sur toute la liste | S | ✅ v0.6.0 |
 | | Marketplace de thèmes | Thèmes partageables (fichier de couleurs et polices) | M | ⬜ |
 | **Deezer** | Flow, le mix sans fin | Le nom et l'esprit de Flow | — | ✅ v0.5.0 |
-| **Apple Music / Spotify Wrapped** | Replay, Wrapped | « Rétro Vitrine » : votre année en story animée, quand vous voulez, depuis votre historique complet ; bilan mensuel et étapes | M | ⬜ v0.8 |
-| **Apple Music** *(étude : docs/INSPIRATION-APPLE-MUSIC.md)* | Lecteur : pochette qui recule à la pause, fond vivant, barre élastique, temps restant | Les mêmes gestes dans le lecteur plein écran | S | ⬜ v0.8 |
-| | Paroles : points pendant les silences, chœurs plus petits, flou selon la distance, défilement libre | Prolonge le karaoké de v0.7.0 | S | ⬜ v0.8 |
-| | Épingles (iOS 26), ajoutés récemment, tri | Épingles + liste de raccourcis Windows (clic droit sur l'icône) | S | ⬜ v0.8 |
-| | Mini-lecteur qui grandit en plein écran, mot par mot, prononciation (coréen, japonais, chinois) | Élément partagé framer-motion, temps par mot estimé, romanisation locale | M | ⬜ v0.9 |
-| | Playlists intelligentes, nombre de lectures (Musique sur Mac) | Règles sur l'historique local, vraie playlist Spotify mise à jour une fois par jour | M | ⬜ v0.9 |
-| | Pages d'artiste d'iOS 27 (grand bouton aléatoire, dernière sortie, sections) | Même structure, nom en Clash Display géant | M | ⬜ v0.9 |
+| **Apple Music / Spotify Wrapped** | Replay, Wrapped | « Rétro Vitrine » : votre année en story animée, quand vous voulez, depuis votre historique complet ; bilan mensuel et étapes | M | ✅ v0.8.0 |
+| **Apple Music** *(étude : docs/INSPIRATION-APPLE-MUSIC.md)* | Lecteur : pochette qui recule à la pause, fond vivant, barre élastique, temps restant | Les mêmes gestes dans le lecteur plein écran | S | ✅ v0.8.0 |
+| | Paroles : points pendant les silences, chœurs plus petits, flou selon la distance, défilement libre | Prolonge le karaoké de v0.7.0 | S | ✅ v0.8.0 |
+| | Épingles (iOS 26), ajoutés récemment, tri | Épingles + liste de raccourcis Windows (clic droit sur l'icône) | S | ✅ v0.8.0 |
+| | Mot par mot, prononciation (coréen, japonais en kana, cyrillique, grec) | Temps par mot estimé (ou celui du fichier), romanisation locale sans dictionnaire | M | ✅ v0.8.0 |
+| | Mini-lecteur qui grandit en plein écran, chinois et kanji | Élément partagé framer-motion ; dictionnaire chargé à la demande | M | ⬜ v0.9 |
+| | Playlists intelligentes, nombre de lectures (Musique sur Mac) | Colonnes Lectures et Dernière écoute ; Pépites oubliées, En boucle, Jamais écoutés, Mon année, créées sur Spotify | M | ✅ v0.8.0 |
+| | Pages d'artiste d'iOS 27 (grand bouton aléatoire, dernière sortie, sections) | Même structure, nom en Clash Display géant | M | ✅ v0.8.0 |
 | | Traduction des paroles, import de playlists, crédits | Clé DeepL de l'utilisateur ; Deezer par ISRC et fichiers exportés ; MusicBrainz | M | ⬜ v1.0 |
-| | AutoMix, Sing, égaliseur, dossiers, pochettes animées, Lossless | Impossible avec Spotify (son protégé, API muette) ; fondu enchaîné simple à la place d'AutoMix | — | ❌ |
+| | AutoMix, Sing, égaliseur intégré, dossiers, pochettes animées, Lossless | Impossible avec Spotify (son protégé, API muette, règles sur le mixage) ; égaliseur par Equalizer APO et karaoké par versions instrumentales à la place | — | ❌ / ✅ v0.8.0 |
+| **TikTok** *(étude : docs/INSPIRATION-TIKTOK-PROJETS.md)* | Versions accélérées et ralenties | « Autres versions » officielles d'un titre | M | ✅ v0.8.0 |
+| | Receiptify, Instafest, Icebergify, palettes | Reçu, affiche de festival, iceberg de vos artistes, aura musicale | S | ✅ v0.8.0 |
+| | Le refrain en boucle | Boucle A–B et « refrain en boucle » | S | ✅ v0.8.0 |
+| | RetroPod (l'iPod sur téléphone) | Vitrine Classic, avec molette | M | ✅ v0.8.0 |
+| | Daylist, Airbuds (bilan de la semaine) | « Ce moment », notification du lundi, étapes | S | ✅ v0.8.0 |
+| **Spicetify** | Loopy Loop, Bookmark, Upcoming Song, Beautiful Lyrics | Boucle A–B, Moments, « Ensuite », paroles mot par mot et prononciation | S | ✅ v0.8.0 |
+| **Equalizer APO** | Égaliseur de Windows, libre | Égaliseur 10 bandes de Vitrine, écrit pour Equalizer APO | M | ✅ v0.8.0 |
 | **SoundCloud** | Commentaires horodatés | Notes perso à un moment d'un titre, affichées pendant l'écoute | S | ⬜ v0.7 |
 | **Last.fm** | Scrobbling | Envoyer vos écoutes à Last.fm (clé personnelle) | S | ⬜ v0.7 |
 | **Shazam** | Reconnaître un titre autour de soi | Écouter par le micro et ouvrir le titre dans Vitrine (service de reconnaissance payant) | M | ⬜ à étudier |
@@ -333,6 +345,22 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 ---
 
 ## 4. Journal des tests sur compte réel
+
+**23 octobre 2026 — v0.8.0, sur données fictives (le compte Spotify est en pause « Too many requests » jusqu'au
+lendemain : aucun test sur le compte réel pour ne pas prolonger la pause)**
+
+| Domaine | Résultat |
+|---|---|
+| Tests unitaires (paroles, prononciation, boucle, balayage, épingles, tri, historique, cartes, versions, karaoké, égaliseur, molette, moments) | ✅ 158 / 158 |
+| Page réelle dans Chromium avec une fausse API Spotify : paroles coréennes mot par mot, silences, défilement libre | ✅ |
+| Lecteur : vinyle, boucle A–B (une seule commande au lecteur local), « Ensuite » sans demande à Spotify, balayage souris et pavé | ✅ |
+| Épingles par clic droit, bibliothèque triée en liste, titres likés par écoutes, album (©, « Plus de »), artiste, recherche locale | ✅ |
+| Rétro Vitrine (7 diapositives + image), reçu, affiche, iceberg, aura, playlist intelligente créée (1 création + 1 ajout) | ✅ |
+| Versions d'un titre et karaoké : instrumentale officielle choisie, même instant, retour à la voix | ✅ |
+| Égaliseur (préréglages, courbe, fichier écrit une fois le curseur relâché), Vitrine Classic (molette : un quart de tour = 3 crans), Moments, Ctrl+L | ✅ |
+| Appli Electron réelle : ponts égaliseur, épingles, moments, historique | ✅ |
+| **À vérifier sous Windows** : Equalizer APO (écriture du fichier et de la ligne Include), liste de raccourcis de la barre des tâches, notifications du bilan | ⏳ |
+| **À vérifier sur le compte réel** quand la pause sera finie : versions et karaoké sur de vrais titres | ⏳ |
 
 **22 octobre 2026 — compte Premium, appli Electron réelle (castlabs, Widevine prêt), 27 tests automatiques**
 
@@ -458,6 +486,8 @@ champs genres / popularité / abonnés des artistes.
 | Historique de tout le compte : Spotify ne montre aux applis que les 50 dernières écoutes | Vitrine fermée longtemps : les écoutes au-delà de 50 manquent | Lancement avec la session dans la zone de notification (réglage existant) ; import de l'export Spotify complet pour combler |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`, titres d'artiste par la recherche), Flow bâti uniquement sur des points d'accès ouverts, vérification en réel à chaque version, suivi du changelog Spotify |
 | Limite de requêtes Spotify (« Too many requests », plus basse en mode développement, comptée sur 30 s pour toute l'appli) | Pages vides, commandes refusées ; la pause peut durer des heures si l'appli insiste | v0.7.1 : délai Retry-After respecté partout, sondage adaptatif, lectures partagées ; v0.7.2 : pause par partie de l'API, gardée après redémarrage, dernière version connue affichée. Spotify peut imposer 13 à 19 h : rien d'autre à faire qu'attendre (créer un autre Client ID n'est plus possible : un seul par développeur depuis février 2026). Les tests sur compte réel partagent ce quota : les espacer |
+| Égaliseur : la configuration d'Equalizer APO est sous Program Files (droits d'administrateur) | La ligne Include ne s'écrit pas toute seule | Vitrine l'affiche avec un bouton « Copier » et ouvre l'éditeur d'Equalizer APO ; une seule fois |
+| Karaoké : tous les titres n'ont pas de version instrumentale officielle | Pas de karaoké sans la voix pour ces titres | Repli sur la version d'un label de karaoké (synchro approximative, signalée) ; sinon un message clair |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |
