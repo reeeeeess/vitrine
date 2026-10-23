@@ -44,6 +44,7 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
   if (!data) return null;
   const { collection } = data;
   const tracks = removed.length ? data.tracks.filter((track) => !removed.includes(track.uri)) : data.tracks;
+  const closed = "closed" in data && data.closed === true;
   const total = tracks.reduce((sum, track) => sum + track.durationMs, 0);
 
   return (
@@ -67,7 +68,7 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
             </h1>
             {collection.description && <p className="mt-3 line-clamp-2 max-w-3xl text-sm text-white/70">{collection.description}</p>}
             <p className="mt-3 text-sm text-white/70">
-              {collection.subtitle} · {tracks.length} titres · {formatTotal(total)}
+              {closed ? (collection.total != null ? `${collection.subtitle} · ${collection.total} titres` : collection.subtitle) : `${collection.subtitle} · ${tracks.length} titres · ${formatTotal(total)}`}
             </p>
           </div>
         </div>
@@ -91,17 +92,24 @@ export function CollectionView({ kind, id }: { kind: "playlist" | "album"; id: s
             <Shuffle className="h-5 w-5" />
             Aléatoire
           </button>
-          <button
-            onClick={() => run(() => engine.playShuffled(tracks.map((track) => track.uri)))}
-            className="btn-ghost"
-            title="Un vrai tirage au sort sur toute la liste, à la place de l'aléatoire de Spotify qui revient souvent aux mêmes titres"
-          >
-            <Dices className="h-5 w-5" />
-            Mélange parfait
-          </button>
+          {!closed && (
+            <button
+              onClick={() => run(() => engine.playShuffled(tracks.map((track) => track.uri)))}
+              className="btn-ghost"
+              title="Un vrai tirage au sort sur toute la liste, à la place de l'aléatoire de Spotify qui revient souvent aux mêmes titres"
+            >
+              <Dices className="h-5 w-5" />
+              Mélange parfait
+            </button>
+          )}
           <PinButton pin={pinOf(collection)} />
         </div>
       </section>
+      {closed && (
+        <p className="mt-6 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-white/75" role="note">
+          Spotify ne montre plus le contenu des playlists des autres aux applications en mode développement (février 2026) : « Lecture » et « Aléatoire » la lancent en entier, ou ouvrez-la dans l'appli Spotify.
+        </p>
+      )}
       <TrackList
         tracks={tracks}
         showAlbum={kind === "playlist"}

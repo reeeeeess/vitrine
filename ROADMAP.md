@@ -241,13 +241,24 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
 
-### Phase 3 — Version 1.0 *(+8 semaines)*
-- Traduction anglaise
-- Demande de « quota étendu » auprès de Spotify pour ouvrir l'appli au-delà de 25 utilisateurs
-- Tests de charge mémoire/CPU, accessibilité clavier
+### Phase 3 — Version 1.0 *(faite, v1.0.0 — docs/PLAN-V0.9-V1.0.md)*
+- **Version anglaise** : choix de la langue (automatique selon le système), 630 textes et une centaine de phrases
+  composées, titres et paroles jamais traduits, dates et nombres à l'anglaise, menus du système aussi
+- **Accessibilité** : clavier partout (contour visible, « Aller au contenu »), titre annoncé aux lecteurs d'écran,
+  contrastes WCAG AA vérifiés par un audit automatique (axe) à chaque envoi
+- **Raccourcis personnalisables** (« ? ») et **rapport d'erreur sur consentement**, **accueil du premier lancement**
+- **Version Linux** (AppImage, mise à jour automatique, lancement au démarrage)
+- **Compatibilité avec les règles Spotify de 2026** (applis en mode développement : bibliothèque générique,
+  playlists des autres, quota épuisé)
+- **Mesures** mémoire et processeur : docs/MESURES-V1.0.md
+- **Dossier « quota étendu »** prêt (docs/SPOTIFY-QUOTA-ETENDU.md) : depuis mai 2025, Spotify le réserve aux
+  organisations établies ; Vitrine reste en mode développement (5 personnes par application Spotify, chacun peut
+  créer la sienne). Liste de diffusion (signatures, notarisation) : docs/LIVRAISON.md
 
 ### Phase 4 — Au-delà
-- Récapitulatif mensuel, paroles traduites, thèmes, version Linux
+- Signature de code Windows et notarisation Apple dès que les comptes existent ; signature VMP castlabs
+- Mesures sur un vrai PC Windows avec carte graphique ; viser moins de 300 Mo fenêtre ouverte
+- Marketplace de thèmes, autres langues (le dictionnaire `en.json` se recopie)
 
 ### Vision élargie — ce que Vitrine peut devenir
 
@@ -334,10 +345,10 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | Paroles : points pendant les silences, chœurs plus petits, flou selon la distance, défilement libre | Prolonge le karaoké de v0.7.0 | S | ✅ v0.8.0 |
 | | Épingles (iOS 26), ajoutés récemment, tri | Épingles + liste de raccourcis Windows (clic droit sur l'icône) | S | ✅ v0.8.0 |
 | | Mot par mot, prononciation (coréen, japonais en kana, cyrillique, grec) | Temps par mot estimé (ou celui du fichier), romanisation locale sans dictionnaire | M | ✅ v0.8.0 |
-| | Mini-lecteur qui grandit en plein écran, chinois et kanji | Élément partagé framer-motion ; dictionnaire chargé à la demande | M | ⬜ v0.9 |
+| | Mini-lecteur qui grandit en plein écran, chinois et kanji | Élément partagé framer-motion ; dictionnaire chargé à la demande | M | ✅ v0.9.0 (pochette) / ⬜ (kanji) |
 | | Playlists intelligentes, nombre de lectures (Musique sur Mac) | Colonnes Lectures et Dernière écoute ; Pépites oubliées, En boucle, Jamais écoutés, Mon année, créées sur Spotify | M | ✅ v0.8.0 |
 | | Pages d'artiste d'iOS 27 (grand bouton aléatoire, dernière sortie, sections) | Même structure, nom en Clash Display géant | M | ✅ v0.8.0 |
-| | Traduction des paroles, import de playlists, crédits | Clé DeepL de l'utilisateur ; Deezer par ISRC et fichiers exportés ; MusicBrainz | M | ⬜ v1.0 |
+| | Traduction des paroles, import de playlists, crédits | Clé DeepL de l'utilisateur ; Deezer par ISRC et fichiers exportés ; MusicBrainz | M | ✅ v0.9.0 |
 | | AutoMix, Sing, égaliseur intégré, dossiers, pochettes animées, Lossless | Impossible avec Spotify (son protégé, API muette, règles sur le mixage) ; égaliseur par Equalizer APO et karaoké par versions instrumentales à la place | — | ❌ / ✅ v0.8.0 |
 | **TikTok** *(étude : docs/INSPIRATION-TIKTOK-PROJETS.md)* | Versions accélérées et ralenties | « Autres versions » officielles d'un titre | M | ✅ v0.8.0 |
 | | Receiptify, Instafest, Icebergify, palettes | Reçu, affiche de festival, iceberg de vos artistes, aura musicale | S | ✅ v0.8.0 |
@@ -348,7 +359,7 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | Thèmes Hazy, Glowify (pochette floutée en fond), vue « À l'écoute » de Spotify | Ambiance de la pochette, panneau « À l'écoute » avec vos écoutes et vos moments | M | ✅ v0.8.1 |
 | | Spicy Lyrics, Beautiful Lyrics (plein écran, fond dynamique) | Écran des paroles en deux colonnes, empilé en vertical, pochette qui tourne en fond | M | ✅ v0.8.1 |
 | | lyrics-plus (plusieurs sources, décalage) | AMLL, LRCLIB, NetEase, lyrics.ovh ; source et synchro choisies par titre | M | ✅ v0.8.1 |
-| | Full Screen (mode TV avec la photo de l'artiste) | Mode salon plein écran | M | ⬜ v0.9 |
+| | Full Screen (mode TV avec la photo de l'artiste) | Mode salon plein écran | M | ✅ v0.9.0 |
 | **AMLL** (Apple Music-like Lyrics) | Base TTML mot à mot (CC0), vague des lignes, mots tenus qui brillent, duos | Source « mot à mot » par identifiant Spotify ou NetEase, et le même rendu | M | ✅ v0.8.1 |
 | **Apple Music Sing** | Curseur de voix, duo, iPhone comme micro | Curseur Voix (version instrumentale officielle), micro du PC avec effets, Duo chacun son tour | M | ✅ v0.8.1 |
 | **TikTok** | « Lyric edits » (clips de paroles) | Clip TikTok : 15 s de paroles en vidéo verticale, le son ajouté dans TikTok | S | ✅ v0.8.1 |
@@ -512,7 +523,7 @@ champs genres / popularité / abonnés des artistes.
 
 | Risque | Impact | Parade |
 |---|---|---|
-| Spotify limite les applis en mode développement (nombre d'utilisateurs autorisés) | Diffusion bloquée au-delà d'une bêta | Demander le quota étendu ; en attendant chaque utilisateur peut saisir son propre Client ID |
+| Spotify limite les applis en mode développement : 5 utilisateurs par appli, propriétaire Premium, points d'accès réduits pour les applis créées depuis le 11 février 2026, quota par compte développeur (juillet 2026) | Diffusion bloquée au-delà d'un cercle proche ; le quota étendu est réservé aux organisations établies depuis mai 2025 | Chacun peut créer sa propre application (guidé dans l'écran de connexion) ; Vitrine 1.0 suit les nouvelles règles avec repli sur les anciens points d'accès ; dossier prêt (docs/SPOTIFY-QUOTA-ETENDU.md) |
 | La lecture locale exige Premium + Widevine | Utilisateurs gratuits sans son sur PC | Mode télécommande automatique ; message clair |
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
 | Historique de tout le compte : Spotify ne montre aux applis que les 50 dernières écoutes | Vitrine fermée longtemps : les écoutes au-delà de 50 manquent | Lancement avec la session dans la zone de notification (réglage existant) ; import de l'export Spotify complet pour combler |

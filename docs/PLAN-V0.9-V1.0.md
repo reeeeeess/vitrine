@@ -56,7 +56,12 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 - [x] Rapport d'erreur sur consentement : les erreurs gardées sur l'ordinateur (sans jeton, clé ni nom
       d'utilisateur), copiées ou envoyées en ticket GitHub par vous ; une page cassée affiche un écran de secours
 - [x] Accueil du premier lancement (ce que fait Vitrine, en trois écrans ; thème et langue choisis tout de suite)
-- [ ] Version Linux (AppImage)
-- [ ] Mesures mémoire et processeur de la v1.0
-- [ ] Dossier « quota étendu » Spotify prêt à envoyer, et la liste de diffusion (signature, notarisation)
-- [ ] Version 1.0.0 : tests, captures, README, ROADMAP, installateurs, paquet
+- [x] Version Linux (AppImage) : construite et lancée (Widevine prêt), mise à jour automatique, lancement au
+      démarrage par ~/.config/autostart, construite par l'intégration continue avec les autres
+- [x] Mesures mémoire et processeur de la v1.0 : [MESURES-V1.0.md](MESURES-V1.0.md) (pas de fuite ; 248 Mo fenêtre
+      cachée ; le flou est l'effet le plus coûteux sans carte graphique)
+- [x] Dossier « quota étendu » Spotify prêt à envoyer ([SPOTIFY-QUOTA-ETENDU.md](SPOTIFY-QUOTA-ETENDU.md)), et la
+      liste de diffusion ([LIVRAISON.md](LIVRAISON.md) : signatures, notarisation, publication, retour arrière)
+- [x] Compatibilité avec les règles Spotify de 2026 (découvertes en préparant le dossier) : likes par la
+      bibliothèque générique, playlists des autres jouées en entier, quota épuisé jamais redemandé en boucle
+- [x] Version 1.0.0 : tests, captures, README, ROADMAP, installateurs (Windows et AppImage), paquet

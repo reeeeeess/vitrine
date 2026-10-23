@@ -22,7 +22,13 @@ function StatusNote({ status }: { status: EqualizerStatus }) {
     return <p className="text-xs text-emerald-300/90">Equalizer APO est relié : les réglages s'appliquent à la sortie son de Windows, tout de suite.</p>;
   }
   if (status.state === "unsupported") {
-    return <p className="text-sm text-gray-400">L'égaliseur passe par Windows (Equalizer APO). Sur cet ordinateur, utilisez l'égaliseur du système ou d'une appli comme eqMac.</p>;
+    return (
+      <p className="text-sm text-gray-400">
+        {window.vitrine.platform === "linux"
+          ? "L'égaliseur passe par Windows (Equalizer APO). Sous Linux, EasyEffects (PipeWire) fait la même chose pour tout le son."
+          : "L'égaliseur passe par Windows (Equalizer APO). Sur cet ordinateur, utilisez l'égaliseur du système ou d'une appli comme eqMac."}
+      </p>
+    );
   }
   if (status.state === "absent") {
     return (

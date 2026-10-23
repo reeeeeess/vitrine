@@ -1,6 +1,6 @@
 # Vitrine PC
 
-**Lecteur Spotify de bureau pour Windows et macOS**, au design immersif : fond noir, accent
+**Lecteur Spotify de bureau pour Windows, macOS et Linux**, en français et en anglais, au design immersif : fond noir, accent
 rouge, grand bandeau défilant et rangées de cartes (le style de Movix / mysticsaba), lecteur
 plein écran en verre avec paroles synchronisées (l'esprit de Vitrine sur iOS).
 
@@ -15,6 +15,33 @@ Elle ne modifie pas l'application Spotify et ne contourne ni la publicité ni l'
 </p>
 
 Objectifs, liste des fonctionnalités et feuille de route : **[ROADMAP.md](ROADMAP.md)**.
+
+### Vitrine 1.0 — prête pour tout le monde (v1.0.0)
+
+La liste cochée : **[PLAN-V0.9-V1.0.md](docs/PLAN-V0.9-V1.0.md)**.
+
+- **English version** : Réglages › Langue · Language (Auto suit le système). Toute l'interface, les menus de la zone
+  de notification, les boîtes de dialogue et les images à partager ; les titres, les artistes et les paroles ne sont
+  jamais traduits.
+- **Accessibilité** : tout au clavier, avec un contour visible ; « Aller au contenu » au premier Tab ; le titre qui
+  commence est annoncé aux lecteurs d'écran ; contrastes WCAG AA vérifiés automatiquement (axe) à chaque envoi.
+- **Raccourcis personnalisables** : « ? » liste toutes les actions et les raccourcis globaux, chacun se change
+  (nouveaux : titre suivant/précédent, paroles plein écran, liker).
+- **Rapport d'erreur sur consentement** : les erreurs restent sur l'ordinateur, sans jeton ni nom d'utilisateur ;
+  Réglages › Rapport d'erreur pour les copier ou ouvrir un ticket GitHub. Une page cassée affiche un écran de secours.
+- **Accueil du premier lancement** en trois écrans, thème et langue choisis tout de suite.
+- **Linux** : AppImage, avec mise à jour automatique et lancement au démarrage.
+- **Règles Spotify de 2026** : Vitrine fonctionne avec les applications Spotify créées depuis février 2026 (likes,
+  playlists des autres jouées en entier, quota épuisé respecté). Ce que cela change pour vous : *Ce qu'il faut*, plus bas.
+- Mesures : **[MESURES-V1.0.md](docs/MESURES-V1.0.md)** · dossier Spotify : **[SPOTIFY-QUOTA-ETENDU.md](docs/SPOTIFY-QUOTA-ETENDU.md)**
+  · publier une version : **[LIVRAISON.md](docs/LIVRAISON.md)**
+
+<p align="center">
+  <img src="docs/screenshots/80-english.jpg" width="49%" alt="Vitrine in English">
+  <img src="docs/screenshots/81-premier-lancement.jpg" width="49%" alt="Accueil du premier lancement">
+  <img src="docs/screenshots/82-raccourcis.jpg" width="49%" alt="Raccourcis personnalisables">
+  <img src="docs/screenshots/83-rapport-erreur.jpg" width="49%" alt="Rapport d'erreur">
+</p>
 
 ### Le lecteur, la découverte, les connexions (v0.9.0)
 
@@ -183,18 +210,23 @@ hors ligne, Archivo Black et Inter les remplacent.
   4. Collez le Client ID dans Vitrine au premier lancement (ou intégrez-le à la compilation, voir plus bas).
 
 En mode développement, Spotify limite l'application aux comptes que vous ajoutez dans
-*User Management* du tableau de bord.
+*User Management* du tableau de bord : **cinq personnes au plus**, et depuis février 2026 **le propriétaire de
+l'application doit avoir Premium**. Le plus simple : que chacun crée sa propre application (cinq minutes, l'écran
+de connexion de Vitrine guide). Le « quota étendu » qui lèverait ces limites est réservé par Spotify aux
+organisations établies : voir [docs/SPOTIFY-QUOTA-ETENDU.md](docs/SPOTIFY-QUOTA-ETENDU.md).
 
 ## Installer
 
 Les installateurs sont produits par GitHub Actions à chaque envoi sur `main`
-(onglet **Actions** → dernière exécution **Build** → artefacts `vitrine-win` et `vitrine-mac`).
+(onglet **Actions** → dernière exécution **Build** → artefacts `vitrine-win`, `vitrine-mac` et `vitrine-linux`).
 Mise en place pas à pas, secrets et coûts : **[docs/GITHUB.md](docs/GITHUB.md)**.
 
 - **Windows** : `Vitrine-Setup-x.y.z.exe`. Sans certificat de signature, Windows SmartScreen affiche
   un avertissement : *Informations complémentaires → Exécuter quand même*.
 - **macOS** : `Vitrine-x.y.z-arm64.dmg` (Apple Silicon) ou `-x64.dmg` (Intel). L'application n'est
   pas notarisée : au premier lancement, *Réglages Système → Confidentialité et sécurité → Ouvrir quand même*.
+- **Linux** : `Vitrine-x.y.z-x86_64.AppImage`, puis `chmod +x` et double-clic (Ubuntu 22.04 et plus : paquet
+  `libfuse2`). Se met à jour seule.
 
 ## Développer
 

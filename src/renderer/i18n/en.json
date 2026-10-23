@@ -666,7 +666,6 @@
  "Connexion à Discord…": "Connecting to Discord…",
  "Connecté : votre écoute s'affiche sur Discord": "Connected: your listening shows on Discord",
  "En attente de Discord": "Waiting for Discord",
- "Les mises à jour automatiques fonctionnent sur la version Windows installée.": "Automatic updates work on the installed Windows version.",
  "Recherche d'une nouvelle version…": "Checking for a new version…",
  "Vous avez la dernière version.": "You have the latest version.",
  "Vitrine cherche les nouvelles versions au démarrage puis quelques fois par jour.": "Vitrine checks for new versions at startup, then a few times a day.",
@@ -854,5 +853,10 @@
  "« ? » liste les raccourcis clavier, et chacun se change.": "“?” lists the keyboard shortcuts, and each one can be changed.",
  "Passer": "Skip",
  "Écrans": "Screens",
- "C'est parti": "Let's go"
+ "C'est parti": "Let's go",
+ "Les mises à jour automatiques fonctionnent sur la version Windows installée et sur l'AppImage Linux.": "Automatic updates work on the installed Windows version and on the Linux AppImage.",
+ "L'égaliseur passe par Windows (Equalizer APO). Sous Linux, EasyEffects (PipeWire) fait la même chose pour tout le son.": "The equalizer goes through Windows (Equalizer APO). On Linux, EasyEffects (PipeWire) does the same for all sound.",
+ "Spotify ne montre plus le contenu des playlists des autres aux applications en mode développement (février 2026) : « Lecture » et « Aléatoire » la lancent en entier, ou ouvrez-la dans l'appli Spotify.": "Spotify no longer shows the contents of other people's playlists to apps in development mode (February 2026): “Play” and “Shuffle” start it whole, or open it in the Spotify app.",
+ "Le quota Spotify de cette application est atteint (mode développement, partagé par les applis de son propriétaire) : Vitrine laisse Spotify tranquille quelques minutes.": "This app's Spotify quota is used up (development mode, shared by its owner's apps): Vitrine leaves Spotify alone for a few minutes.",
+ "Règles de Spotify depuis 2026 : le propriétaire de l'application a besoin de Premium, et jusqu'à cinq personnes peuvent s'y connecter (à ajouter dans « User Management »).": "Spotify's rules since 2026: the app's owner needs Premium, and up to five people can sign in with it (add them under “User Management”)."
 }

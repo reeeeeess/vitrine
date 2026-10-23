@@ -6,6 +6,7 @@ import { app, BrowserWindow, globalShortcut, Menu, nativeImage, net, Notificatio
 import path from "node:path";
 import { cleanAccelerator, GLOBAL_SHORTCUTS, globalShortcuts, type DesktopCommand } from "./cli";
 import { readConfig, updateConfig, type DesktopSettings, type Pin } from "./config";
+import { applyAutostart } from "./linuxDesktop";
 import { tr } from "./locale";
 
 export type { DesktopSettings };
@@ -155,8 +156,9 @@ export class Desktop {
 
   private applyLoginItem(openAtLogin: boolean): void {
     // only an installed app registers itself, not a development run
-    if (!app.isPackaged || (process.platform !== "win32" && process.platform !== "darwin")) return;
-    app.setLoginItemSettings({ openAtLogin, args: [HIDDEN_ARG] });
+    if (!app.isPackaged) return;
+    if (process.platform === "linux") return applyAutostart(openAtLogin, process.env.APPIMAGE, HIDDEN_ARG);
+    if (process.platform === "win32" || process.platform === "darwin") app.setLoginItemSettings({ openAtLogin, args: [HIDDEN_ARG] });
   }
 
   private createTray(): void {

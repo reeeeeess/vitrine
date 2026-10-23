@@ -21,8 +21,9 @@ function set(next: UpdateState): void {
   window()?.webContents.send("update:status", state);
 }
 
+/** The installed Windows version and the Linux AppImage update themselves; elsewhere, a new download. */
 export function updatesSupported(): boolean {
-  return app.isPackaged && process.platform === "win32";
+  return app.isPackaged && (process.platform === "win32" || (process.platform === "linux" && Boolean(process.env.APPIMAGE)));
 }
 
 export function updateState(): UpdateState {

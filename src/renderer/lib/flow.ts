@@ -168,7 +168,8 @@ async function forgottenLiked(): Promise<FlowItem[]> {
 
 /** Which of these tracks are in Liked Songs. */
 async function savedIds(ids: string[]): Promise<Set<string>> {
-  const batches = Array.from({ length: Math.ceil(ids.length / 50) }, (_, i) => ids.slice(i * 50, i * 50 + 50));
+  // 40 at a time, the most Spotify's library answers for at once
+  const batches = Array.from({ length: Math.ceil(ids.length / 40) }, (_, i) => ids.slice(i * 40, i * 40 + 40));
   const answers = await Promise.all(batches.map((batch) => api.areSaved(batch).catch(() => batch.map(() => false))));
   return new Set(batches.flatMap((batch, i) => batch.filter((_, j) => answers[i][j])));
 }

@@ -1,7 +1,7 @@
 {
   "name": "vitrine-pc",
   "productName": "Vitrine",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Lecteur Spotify de bureau au design verre, sur l'API officielle de Spotify.",
   "main": "dist-electron/main.js",
@@ -14,7 +14,8 @@
     "test": "vitest run",
     "dist:win": "npm run build && electron-builder --win",
     "dist:mac": "npm run build && electron-builder --mac",
-    "test:e2e": "node tests/e2e/smoke.mjs"
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "dist:linux": "npm run build && electron-builder --linux"
   },
   "devDependencies": {
     "@fontsource/archivo-black": "5.2.8",
@@ -92,6 +93,23 @@
       },
       "icon": "build/icon.png",
       "identity": null,
+      "artifactName": "Vitrine-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Audio",
+      "executableName": "vitrine",
+      "synopsis": "Lecteur Spotify de bureau, paroles mot à mot",
+      "description": "Lecteur Spotify de bureau sur l'API officielle de Spotify : paroles en karaoké, Flow, stats et partage.",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "Vitrine",
+          "Keywords": "spotify;music;lyrics;karaoke;"
+        }
+      },
       "artifactName": "Vitrine-${version}-${arch}.${ext}"
     },
     "publish": [

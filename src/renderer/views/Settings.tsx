@@ -159,7 +159,7 @@ function UpdateSettings({ version }: { version?: string }) {
   const describe = () => {
     switch (state.status) {
       case "unsupported":
-        return "Les mises à jour automatiques fonctionnent sur la version Windows installée.";
+        return "Les mises à jour automatiques fonctionnent sur la version Windows installée et sur l'AppImage Linux.";
       case "checking":
         return "Recherche d'une nouvelle version…";
       case "downloading":

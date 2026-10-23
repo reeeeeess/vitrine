@@ -9,6 +9,8 @@ exports.default = async function evsSign(context) {
     console.log("  • EVS: no EVS_ACCOUNT_NAME, skipping Widevine VMP signing");
     return;
   }
+  // VMP exists on Windows and macOS only: Widevine on Linux plays without it
+  if (context.electronPlatformName === "linux") return;
   const python = process.platform === "win32" ? "python" : "python3";
   execFileSync(python, ["-m", "castlabs_evs.vmp", "sign-pkg", context.appOutDir], { stdio: "inherit" });
 };

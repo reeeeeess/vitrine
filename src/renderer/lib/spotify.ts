@@ -21,6 +21,12 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** a pause Spotify asks for up to this long is waited out quietly; a longer one fails at once, and says why */
 const QUIET_WAIT_MS = 20_000;
+/**
+ * A quota spent (since July 2026, a 429 saying "QUOTA_EXCEEDED": the app's budget in development mode,
+ * shared by all of its owner's apps) is not a rate limit: asking again only spends more. Without a
+ * Retry-After, that part of Spotify rests this long.
+ */
+const QUOTA_PAUSE_MS = 10 * 60_000;
 const TRIES_AFTER_429 = 3;
 const gate = new Gate(4);
 /** readings of the library, artists, albums…: not what plays, which must stay live */
@@ -66,6 +72,11 @@ async function send<T>(url: string, init: RequestInit): Promise<T> {
       });
     });
     if (response.status === 429) {
+      if (await quotaExceeded(response)) {
+        const retryAfter = Number(response.headers.get("retry-after"));
+        pauseUntil(url, Date.now() + (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : QUOTA_PAUSE_MS));
+        throw new SpotifyApiError(429, QUOTA_MESSAGE);
+      }
       const until = Date.now() + pauseLength(response.headers.get("retry-after"), strikes++);
       pauseUntil(url, until);
       if (tries < TRIES_AFTER_429) continue;
@@ -78,6 +89,19 @@ async function send<T>(url: string, init: RequestInit): Promise<T> {
       continue;
     }
     return read<T>(response);
+  }
+}
+
+export const QUOTA_MESSAGE =
+  "Le quota Spotify de cette application est atteint (mode développement, partagé par les applis de son propriétaire) : Vitrine laisse Spotify tranquille quelques minutes.";
+
+/** Whether a 429 is Spotify's quota (its body's reason), not its rate limit. */
+export async function quotaExceeded(response: Pick<Response, "clone">): Promise<boolean> {
+  try {
+    const body = (await response.clone().json()) as { error?: { reason?: unknown } } | null;
+    return body?.error?.reason === "QUOTA_EXCEEDED";
+  } catch {
+    return false;
   }
 }
 
@@ -217,7 +241,11 @@ export async function likedTracks(max = 1000): Promise<{ tracks: Track[]; total:
 
 // ── collections ───────────────────────────────────────────────────────────
 
-export async function playlist(id: string): Promise<{ collection: Collection; tracks: Track[] }> {
+/**
+ * A playlist and its tracks. `closed`: Spotify keeps the contents of a playlist the person neither owns nor
+ * collaborates on from apps in development mode (February 2026); it still plays as a whole.
+ */
+export async function playlist(id: string): Promise<{ collection: Collection; tracks: Track[]; closed?: boolean }> {
   const raw = await request(`/playlists/${encodeURIComponent(id)}`);
   const collection = mapPlaylist(raw);
   if (!collection) throw new SpotifyApiError(404, "Playlist introuvable");
@@ -227,7 +255,12 @@ export async function playlist(id: string): Promise<{ collection: Collection; tr
     items = await collect(`/playlists/${encodeURIComponent(id)}/items?limit=100`, 1000);
   } catch (error) {
     if (!(error instanceof SpotifyApiError) || (error.status !== 404 && error.status !== 403)) throw error;
-    items = await collect(`/playlists/${encodeURIComponent(id)}/tracks?limit=100`, 1000);
+    try {
+      items = await collect(`/playlists/${encodeURIComponent(id)}/tracks?limit=100`, 1000);
+    } catch (older) {
+      if (older instanceof SpotifyApiError && (older.status === 404 || older.status === 403)) return { collection, tracks: [], closed: true };
+      throw older;
+    }
   }
   const tracks = items
     .map((item) => mapTrack(((item as Json).item ?? (item as Json).track) as Json | null))
@@ -426,24 +459,41 @@ export async function artistTracksBySearch(artist: Pick<Artist, "id" | "name">):
 
 // ── liked songs ───────────────────────────────────────────────────────────
 
+// Spotify's generic library (February 2026): Spotify URIs, 40 at a time. Apps created since then only have
+// these; older ones still have /me/tracks, asked when the library is refused.
+const LIBRARY_MAX = 40;
+const libraryQuery = (ids: string[]) => `uris=${ids.slice(0, LIBRARY_MAX).map((id) => encodeURIComponent(`spotify:track:${id}`)).join(",")}`;
+const libraryFallback = <T>(current: () => Promise<T>, older: () => Promise<T>) => withFallback(current, older, [403, 404, 405]);
+
 /** Whether each track is in the person's Liked Songs, in the order given. */
 export async function areSaved(ids: string[]): Promise<boolean[]> {
   if (ids.length === 0) return [];
-  const result = await request<unknown>(`/me/tracks/contains?ids=${ids.slice(0, 50).map(encodeURIComponent).join(",")}`);
+  const result = await libraryFallback(
+    () => request<unknown>(`/me/library/contains?${libraryQuery(ids)}`),
+    () => request<unknown>(`/me/tracks/contains?ids=${ids.slice(0, LIBRARY_MAX).map(encodeURIComponent).join(",")}`),
+  );
   return Array.isArray(result) ? result.map((value) => value === true) : ids.map(() => false);
 }
 
-export const saveTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "PUT" });
-export const removeTrack = (id: string) => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "DELETE" });
+export const saveTrack = (id: string) =>
+  libraryFallback(
+    () => request(`/me/library?${libraryQuery([id])}`, { method: "PUT" }),
+    () => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "PUT" }),
+  );
+export const removeTrack = (id: string) =>
+  libraryFallback(
+    () => request(`/me/library?${libraryQuery([id])}`, { method: "DELETE" }),
+    () => request(`/me/tracks?ids=${encodeURIComponent(id)}`, { method: "DELETE" }),
+  );
 
 // ── editing playlists ─────────────────────────────────────────────────────
 
 /** Tries the current endpoint, then the older one Spotify may still serve. */
-async function withFallback<T>(current: () => Promise<T>, older: () => Promise<T>): Promise<T> {
+async function withFallback<T>(current: () => Promise<T>, older: () => Promise<T>, statuses = [404, 405]): Promise<T> {
   try {
     return await current();
   } catch (error) {
-    if (error instanceof SpotifyApiError && (error.status === 404 || error.status === 405)) return older();
+    if (error instanceof SpotifyApiError && statuses.includes(error.status)) return older();
     throw error;
   }
 }

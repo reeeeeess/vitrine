@@ -63,6 +63,9 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
               </li>
               <li>3. Cochez « Web API » et « Web Playback SDK », puis copiez le Client ID ici.</li>
             </ol>
+            <p className="text-xs text-gray-400">
+              Règles de Spotify depuis 2026 : le propriétaire de l'application a besoin de Premium, et jusqu'à cinq personnes peuvent s'y connecter (à ajouter dans « User Management »).
+            </p>
             <input
               value={clientId}
               onChange={(event) => setClientId(event.target.value)}
