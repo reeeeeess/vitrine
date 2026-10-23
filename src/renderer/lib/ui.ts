@@ -12,6 +12,7 @@ export type Route =
   | { name: "album"; id: string }
   | { name: "artist"; id: string }
   | { name: "settings" }
+  | { name: "moments" }
   | { name: "liked" };
 
 export interface Toast {
@@ -32,6 +33,8 @@ export const ui = createStore({
   devicesOpen: false,
   queueOpen: false,
   mini: false,
+  /** a track to scroll to once its list shows (Ctrl+L: the track playing) */
+  reveal: null as string | null,
   /** the playlist dialog: add these tracks to a playlist, or (empty) just create one */
   playlistDialog: null as { uris: string[] } | null,
 });

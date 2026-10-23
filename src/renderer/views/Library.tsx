@@ -1,4 +1,4 @@
-import { Disc3, LayoutGrid, List, Plus } from "lucide-react";
+import { Bookmark, Disc3, LayoutGrid, List, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
 import { LikedCover } from "../components/LikedCover";
@@ -86,6 +86,10 @@ export function Library() {
           <button onClick={() => ui.set({ roulette: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Pas d'idée ? Une roue choisit parmi vos playlists et albums">
             <Disc3 className="h-4 w-4" />
             Roulette
+          </button>
+          <button onClick={() => navigate({ name: "moments" })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Vos instants de titres, avec une note">
+            <Bookmark className="h-4 w-4" />
+            Moments
           </button>
         </div>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">

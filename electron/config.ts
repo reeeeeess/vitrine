@@ -36,6 +36,8 @@ export interface Config {
   /** `after` and `lastSync`: where the reading of Spotify's "recently played" got to, epoch ms */
   history?: { enabled: boolean; after?: number; lastSync?: number };
   pins?: Pin[];
+  /** instants of tracks with a note (Moments) */
+  moments?: import("./moments").Moment[];
   /** the equalizer's bands, applied at Windows' sound output by Equalizer APO */
   equalizer?: { enabled: boolean; preset: string; gains: number[] };
   /** the milestones already said (I3), and the last week whose recap was given (T8) */

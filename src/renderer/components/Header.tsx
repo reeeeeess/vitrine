@@ -156,7 +156,8 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      // Ctrl+K, and Ctrl+F as in the Music app
+      if ((event.metaKey || event.ctrlKey) && ["k", "f"].includes(event.key.toLowerCase())) {
         event.preventDefault();
         input.current?.focus();
       }

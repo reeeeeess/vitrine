@@ -11,19 +11,22 @@ import { NowPlayingBar, run } from "./components/NowPlayingBar";
 import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
+import { MomentsView } from "./views/Moments";
 import { UpNext } from "./components/UpNext";
 import { ImagePreview } from "./components/ImagePreview";
 import { VersionsPanel } from "./components/VersionsPanel";
 import { EqualizerPanel } from "./components/EqualizerPanel";
+import { ClassicMode } from "./components/ClassicMode";
+import { Intro } from "./components/Intro";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
 import { useStore } from "./lib/store";
-import { errorMessage } from "./lib/format";
+import { errorMessage, formatTime } from "./lib/format";
 import { lite } from "./lib/lite";
 import { theme } from "./lib/theme";
-import { notify, ui } from "./lib/ui";
+import { navigate, notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
 import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
@@ -31,6 +34,7 @@ import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
 import { connectKaraoke } from "./player/karaoke";
 import { loadPins } from "./lib/pins";
+import { addMoment, loadMoments, moments, reachedMoment } from "./lib/moments";
 import { connectOverlay } from "./player/overlayBridge";
 import { connectTrash } from "./player/trashBridge";
 import { connectDynamicAccent } from "./player/dynamicAccent";
@@ -76,16 +80,46 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectLoop(), []);
   useEffect(() => connectKaraoke(), []);
   useEffect(() => void loadPins(), []);
+  useEffect(() => {
+    void loadMoments();
+    // the note of a moment shows when the song reaches it again
+    let last = { uri: "", position: 0 };
+    const timer = setInterval(() => {
+      const state = engine.playback.get();
+      const position = engine.currentPosition(state);
+      const uri = state.track?.uri ?? "";
+      const mark = !state.paused && uri === last.uri ? reachedMoment(moments.get().list, uri, last.position, position) : null;
+      if (mark) notify(`📍 ${mark.note || `Votre moment à ${formatTime(mark.atMs)}`}`);
+      last = { uri, position };
+    }, 500);
+    return () => clearInterval(timer);
+  }, []);
   useEffect(() => connectOverlay(), []);
   useEffect(() => connectTrash(), []);
 
-  // space plays and pauses, except while typing
+  // space plays and pauses, except while typing; and the Music app's shortcuts (Mac): Ctrl+L goes to
+  // the track playing, Ctrl+↑/↓ sets the volume, Ctrl+M marks a moment
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
       if (event.code === "Space" && !typing) {
         event.preventDefault();
         run(engine.togglePlay);
+        return;
+      }
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || typing) return;
+      const state = engine.playback.get();
+      const key = event.key.toLowerCase();
+      if (key === "l" && state.track?.albumId) {
+        event.preventDefault();
+        ui.set({ reveal: state.track.uri });
+        navigate({ name: "album", id: state.track.albumId });
+      } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        engine.setVolume(state.volume + (event.key === "ArrowUp" ? 0.05 : -0.05));
+      } else if (key === "m" && state.track) {
+        event.preventDefault();
+        void addMoment(state.track, engine.currentPosition(state));
       }
     };
     window.addEventListener("keydown", onKey);
@@ -111,6 +145,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       break;
     case "liked":
       view = <LikedView />;
+      break;
+    case "moments":
+      view = <MomentsView />;
       break;
     case "settings":
       view = <Settings profile={profile} onLogout={onLogout} />;
@@ -161,6 +198,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <ImagePreview />
       <VersionsPanel />
       <EqualizerPanel />
+      <ClassicMode />
+      <Intro />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />

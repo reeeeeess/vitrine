@@ -69,10 +69,10 @@ ou des données déjà chargées en vient.
 
 ## Étape 7 — Idées maison
 
-- [ ] T9 Mode « Vitrine Classic » (façon iPod, molette)
-- [ ] P3 Les Moments (marque-pages horodatés avec note)
-- [ ] I1 Intro au lancement
-- [ ] E4 Raccourcis : Ctrl+L (titre en cours), Ctrl+F (recherche), Ctrl+↑/↓ (volume), Ctrl+M (moment)
+- [x] T9 Mode « Vitrine Classic » (façon iPod, molette)
+- [x] P3 Les Moments (marque-pages horodatés avec note)
+- [x] I1 Intro au lancement
+- [x] E4 Raccourcis : Ctrl+L (titre en cours), Ctrl+F (recherche), Ctrl+↑/↓ (volume), Ctrl+M (moment)
 
 ## Étape 8 — Livraison
 

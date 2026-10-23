@@ -1,4 +1,5 @@
 import { Clock3, ListPlus, Play, Plus } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
 import { lastPlayedLabel, type TrackStat } from "../lib/insights";
@@ -39,6 +40,18 @@ function Equalizer() {
 export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, menuContext, stats }: TrackListProps) {
   const currentUri = useStore(playback, (s) => s.track?.uri);
   const paused = useStore(playback, (s) => s.paused);
+  const reveal = useStore(ui, (s) => s.reveal);
+  const list = useRef<HTMLDivElement>(null);
+
+  // Ctrl+L: the track playing, brought into view once its list shows
+  useEffect(() => {
+    if (!reveal) return;
+    const row = list.current?.querySelector<HTMLElement>(`[data-uri="${CSS.escape(reveal)}"]`);
+    if (!row) return;
+    row.scrollIntoView({ block: "center", behavior: "smooth" });
+    row.focus({ preventScroll: true });
+    ui.set({ reveal: null });
+  }, [reveal, tracks]);
   const columns = stats
     ? showAlbum
       ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_5rem_7rem_7rem]"
@@ -48,7 +61,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
       : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
 
   return (
-    <div className="mt-6" role="table" aria-label="Titres">
+    <div ref={list} className="mt-6" role="table" aria-label="Titres">
       <div className={cn("kicker grid items-center gap-4 border-b border-white/10 px-4 pb-2 text-gray-500", columns)} role="row">
         <span className="text-right">#</span>
         <span>Titre</span>
@@ -63,6 +76,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
           return (
             <div
               key={`${track.id}-${index}`}
+              data-uri={track.uri}
               role="row"
               tabIndex={0}
               onDoubleClick={() => onPlay(track, index)}

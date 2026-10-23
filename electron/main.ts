@@ -30,6 +30,7 @@ import { fetchLyrics } from "./lyrics";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
 import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
+import { cleanMoments } from "./moments";
 import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
 import { launchSpotify } from "./spotifyApp";
@@ -225,6 +226,12 @@ function registerIpc(): void {
     const { editor } = equalizerPaths();
     if (process.platform === "win32" && fs.existsSync(editor)) return void (await shell.openPath(editor));
     await shell.openExternal("https://sourceforge.net/projects/equalizerapo/");
+  });
+  handle("moments:get", () => readConfig().moments ?? []);
+  handle("moments:set", (value) => {
+    const moments = cleanMoments(value);
+    updateConfig({ moments });
+    return moments;
   });
   handle("pins:get", () => readConfig().pins ?? []);
   handle("pins:set", (value) => {

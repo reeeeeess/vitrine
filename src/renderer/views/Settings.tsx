@@ -222,6 +222,10 @@ function DesktopSettingsLines() {
       >
         <Switch on={settings.globalShortcuts} onChange={(on) => void change({ globalShortcuts: on })} label="Raccourcis clavier globaux" />
       </Line>
+      <Line
+        label="Raccourcis dans Vitrine"
+        hint="Espace lecture / pause · Ctrl+K ou Ctrl+F recherche · Ctrl+L aller au titre en cours · Ctrl+↑ / ↓ volume · Ctrl+M marquer un moment (⌘ sur Mac)."
+      />
     </>
   );
 }

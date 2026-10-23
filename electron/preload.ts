@@ -46,6 +46,10 @@ const api = {
     set: (settings: unknown) => ipcRenderer.invoke("eq:set", settings),
     openEditor: () => ipcRenderer.invoke("eq:open"),
   },
+  moments: {
+    get: () => ipcRenderer.invoke("moments:get"),
+    set: (moments: unknown) => ipcRenderer.invoke("moments:set", moments),
+  },
   pins: {
     get: () => ipcRenderer.invoke("pins:get"),
     set: (pins: unknown) => ipcRenderer.invoke("pins:set", pins),

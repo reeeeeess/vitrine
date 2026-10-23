@@ -1,4 +1,5 @@
-import { Disc3 } from "lucide-react";
+import { CircleDot, Disc3 } from "lucide-react";
+import { openClassic } from "../components/ClassicMode";
 import { Hero, type HeroSlide } from "../components/Hero";
 import { MediaCard } from "../components/MediaCard";
 import { run } from "../components/NowPlayingBar";
@@ -93,10 +94,16 @@ export function Home({ name }: { name?: string }) {
           {greeting()}
           {name ? `, ${name.split(" ")[0]}` : ""}
         </h1>
-        <button onClick={() => ui.set({ roulette: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Pas d'idée ? Une roue choisit parmi vos playlists et albums">
-          <Disc3 className="h-4 w-4" />
-          Roulette
-        </button>
+        <div className="flex gap-2">
+          <button onClick={openClassic} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Le look des baladeurs des années 2000, avec une molette">
+            <CircleDot className="h-4 w-4" />
+            Vitrine Classic
+          </button>
+          <button onClick={() => ui.set({ roulette: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Pas d'idée ? Une roue choisit parmi vos playlists et albums">
+            <Disc3 className="h-4 w-4" />
+            Roulette
+          </button>
+        </div>
       </div>
       <QuickAccess />
       <MomentCard />

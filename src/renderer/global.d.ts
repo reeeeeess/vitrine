@@ -43,6 +43,10 @@ export interface VitrineBridge {
     set(settings: EqualizerSettings): Promise<EqualizerStatus>;
     openEditor(): Promise<void>;
   };
+  moments: {
+    get(): Promise<MomentMark[]>;
+    set(moments: MomentMark[]): Promise<MomentMark[]>;
+  };
   pins: {
     get(): Promise<Pin[]>;
     set(pins: Pin[]): Promise<Pin[]>;
@@ -146,6 +150,18 @@ export interface EqualizerStatus {
   settings: EqualizerSettings;
   includeLine?: string;
   configPath?: string;
+}
+
+/** an instant of a track, with a note (Moments) */
+export interface MomentMark {
+  id: string;
+  uri: string;
+  name: string;
+  artists: string[];
+  image?: string;
+  atMs: number;
+  note: string;
+  createdAt: string;
 }
 
 /** a playlist, album or artist pinned at the top of the library */

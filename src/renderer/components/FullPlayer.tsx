@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
-import { ChevronDown, Disc3, Layers, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
+import { Bookmark, ChevronDown, Disc3, Layers, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
 import { EASE, SPRING } from "../lib/motion";
 import { createStore, useStore } from "../lib/store";
 import { navigate, ui } from "../lib/ui";
-import { playback } from "../player/engine";
+import { currentPosition, playback } from "../player/engine";
+import { addMoment } from "../lib/moments";
 import { clearLoop, loop, loopChorus, markLoop } from "../player/loop";
 import { Artwork } from "./Artwork";
 import { Aurora } from "./Aurora";
@@ -169,6 +170,14 @@ export function FullPlayer() {
                       title="Autres versions : accélérée, ralentie, acoustique, instrumentale, live, remix"
                     >
                       <Layers className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={() => void addMoment(track, currentPosition(playback.get()))}
+                      className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+                      aria-label="Marquer ce moment"
+                      title="Marquer ce moment, avec une note (Ctrl+M)"
+                    >
+                      <Bookmark className="h-6 w-6" />
                     </button>
                     <StoryButton track={track} />
                     <LikeButton track={track} size="h-6 w-6" />
