@@ -98,6 +98,17 @@ export function ProgressBar({ className }: { className?: string }) {
   );
 }
 
+/** The folded bar's progress: a thin line along its foot. */
+function ProgressLine() {
+  const position = usePosition();
+  const duration = useStore(playback, (s) => s.durationMs);
+  return (
+    <span className="absolute inset-x-6 bottom-1.5 h-[3px] overflow-hidden rounded-full bg-white/15" aria-hidden="true">
+      <span className="accent-bg block h-full rounded-full" style={{ width: `${duration ? Math.min(100, (position / duration) * 100) : 0}%` }} />
+    </span>
+  );
+}
+
 export function TransportControls({ large = false }: { large?: boolean }) {
   const paused = useStore(playback, (s) => s.paused);
   const shuffle = useStore(playback, (s) => s.shuffle);
@@ -275,8 +286,19 @@ export function NowPlayingBar() {
     lastSwipe = direction;
     run(direction === "next" ? engine.next : engine.previous);
   });
+  // folded while the page scrolls down, unfolded under the mouse or when scrolling back up (Apple Music)
+  const [hover, setHover] = useState(false);
+  const compact = useStore(ui, (s) => s.barCompact) && !hover;
+  const size = compact ? "h-10 w-10" : "h-14 w-14";
   return (
-    <footer className="glass fixed inset-x-4 bottom-4 z-30 grid h-[84px] grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-6 rounded-3xl px-4">
+    <footer
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={cn(
+        "glass fixed bottom-4 z-30 grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-6 rounded-3xl px-4 transition-[left,right,height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        compact ? "inset-x-[max(1rem,16vw)] h-[60px]" : "inset-x-4 h-[84px]",
+      )}
+    >
       <div className="flex min-w-0 items-center gap-3 overflow-hidden" {...swipe} title="Balayez pour changer de titre">
         {track ? (
           <motion.div
@@ -286,8 +308,11 @@ export function NowPlayingBar() {
             animate={{ x: 0, opacity: 1 }}
             transition={SPRING}
           >
-            <button className="group relative h-14 w-14 shrink-0" onClick={() => ui.set({ fullPlayer: true, devicesOpen: false })} aria-label="Ouvrir le lecteur">
-              <Artwork src={track.image} className="h-14 w-14 rounded-xl shadow-lg" />
+            <button className={cn("group relative shrink-0", size)} onClick={() => ui.set({ fullPlayer: true, devicesOpen: false })} aria-label="Ouvrir le lecteur">
+              {/* shared with the full player's artwork (layoutId): it grows into it (Apple Music) */}
+              <motion.div layoutId="now-cover" style={{ borderRadius: compact ? 10 : 12 }} className={cn("overflow-hidden shadow-lg", size)}>
+                <Artwork src={track.image} className="h-full w-full rounded-none" />
+              </motion.div>
               <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-4 w-4" />
               </span>
@@ -297,7 +322,7 @@ export function NowPlayingBar() {
                 <Marquee text={track.name} />
               </button>
               <ArtistLinks track={track} className="text-xs text-gray-400" />
-              {device && !device.local && <p className="truncate text-[11px] font-medium text-red-400">Lecture sur {device.name}</p>}
+              {device && !device.local && !compact && <p className="truncate text-[11px] font-medium text-red-400">Lecture sur {device.name}</p>}
             </div>
             <LikeButton track={track} />
           </motion.div>
@@ -308,7 +333,7 @@ export function NowPlayingBar() {
 
       <div className="flex flex-col gap-1">
         <TransportControls />
-        <ProgressBar />
+        {compact ? <ProgressLine /> : <ProgressBar />}
       </div>
 
       <div className="flex items-center justify-end gap-1">
@@ -321,23 +346,27 @@ export function NowPlayingBar() {
         >
           <Mic2 className="h-4 w-4" />
         </button>
-        <OverlayButton />
-        <NowPanelButton />
-        <QueueButton />
-        <SleepTimerButton />
-        <button className="rounded-full p-2 text-gray-400 transition-colors hover:text-white" onClick={openEqualizer} aria-label="Égaliseur" title="Égaliseur (sortie son de Windows)">
-          <SlidersHorizontal className="h-4 w-4" />
-        </button>
-        <button
-          className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
-          onClick={() => void setMini(true)}
-          aria-label="Mini-lecteur"
-          title="Mini-lecteur (toujours au premier plan)"
-        >
-          <PictureInPicture2 className="h-4 w-4" />
-        </button>
-        <DevicesButton />
-        <VolumeControl />
+        {!compact && (
+          <>
+            <OverlayButton />
+            <NowPanelButton />
+            <QueueButton />
+            <SleepTimerButton />
+            <button className="rounded-full p-2 text-gray-400 transition-colors hover:text-white" onClick={openEqualizer} aria-label="Égaliseur" title="Égaliseur (sortie son de Windows)">
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+            <button
+              className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
+              onClick={() => void setMini(true)}
+              aria-label="Mini-lecteur"
+              title="Mini-lecteur (toujours au premier plan)"
+            >
+              <PictureInPicture2 className="h-4 w-4" />
+            </button>
+            <DevicesButton />
+            <VolumeControl />
+          </>
+        )}
       </div>
     </footer>
   );

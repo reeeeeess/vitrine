@@ -105,6 +105,14 @@ function Dots({ entry }: { entry: Extract<LyricEntry, { kind: "gap" }> }) {
   );
 }
 
+/** A staged line's translation: its text's, found by the line as written or as split from its backing vocals. */
+function translationOf(translations: Map<string, string>, entry: Extract<LyricEntry, { kind: "line" }>): string | undefined {
+  const exact = translations.get(entry.main);
+  if (exact || !entry.main) return exact;
+  for (const [text, translated] of translations) if (text.includes(entry.main)) return translated;
+  return undefined;
+}
+
 /** the lines this close to the one sung glide on their own layer (the others are out of sight) */
 const NEAR_BEFORE = 4;
 const NEAR_AFTER = 10;
@@ -122,6 +130,7 @@ export function StagedLyrics({
   lineClassName,
   className,
   alternate = false,
+  translations,
 }: {
   lines: LyricLine[];
   /** where the song is, in the lyrics' time (ms), read at every frame */
@@ -132,6 +141,8 @@ export function StagedLyrics({
   className?: string;
   /** karaoke for two: the lines go left and right in turn, when the file does not say who sings */
   alternate?: boolean;
+  /** each line's translation, by its text (Apple Music's translation, under the line) */
+  translations?: Map<string, string>;
 }) {
   const staged = useMemo(() => stageLyrics(lines), [lines]);
   const entries = useMemo(() => {
@@ -243,6 +254,7 @@ export function StagedLyrics({
             );
           }
           const pronunciation = roman ? romanize(entry.main || entry.backing) : null;
+          const translated = translations ? translationOf(translations, entry) : undefined;
           return (
             <button
               key={`${entry.timeMs}-${index}`}
@@ -268,6 +280,7 @@ export function StagedLyrics({
                 </span>
               )}
               {pronunciation && <span className="mt-1 block font-sans text-[0.42em] font-medium tracking-normal text-white/60">{pronunciation}</span>}
+              {translated && <span className="mt-1 block font-sans text-[0.46em] font-semibold tracking-normal text-white/60">{translated}</span>}
             </button>
           );
         })}

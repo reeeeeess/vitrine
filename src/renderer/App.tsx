@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Spinner } from "./components/Artwork";
 import { FullPlayer } from "./components/FullPlayer";
 import { LyricsStage } from "./components/LyricsStage";
@@ -19,6 +19,7 @@ import { ImagePreview } from "./components/ImagePreview";
 import { VersionsPanel } from "./components/VersionsPanel";
 import { EqualizerPanel } from "./components/EqualizerPanel";
 import { ClassicMode } from "./components/ClassicMode";
+import { Salon, openSalon } from "./components/Salon";
 import { Intro } from "./components/Intro";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
@@ -67,6 +68,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const routeKey = `${route.name}-${"id" in route ? route.id : ""}`;
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
+  const lastScroll = useRef(0);
   const panel = useNowPanel();
 
   useEffect(() => {
@@ -123,6 +125,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       } else if (key === "m" && state.track) {
         event.preventDefault();
         void addMoment(state.track, engine.currentPosition(state));
+      } else if (key === "s" && event.shiftKey && state.track) {
+        event.preventDefault();
+        openSalon();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -179,7 +184,16 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
         className="main scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24 transition-[margin] duration-300"
         // the "À l'écoute" panel takes the right of the window; the page and its scrollbar stop before it
         style={{ marginRight: panel ? PANEL_ROOM : 0 }}
-        onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}
+        onScroll={(event) => {
+          const top = event.currentTarget.scrollTop;
+          setScrolled(top > 8);
+          // scrolling down folds the player bar, scrolling up unfolds it (Apple Music)
+          const delta = top - lastScroll.current;
+          lastScroll.current = top;
+          if (Math.abs(delta) < 6) return;
+          const compact = delta > 0 && top > 240;
+          if (compact !== ui.get().barCompact) ui.set({ barCompact: compact });
+        }}
         onClick={() => ui.get().devicesOpen && ui.set({ devicesOpen: false })}
       >
         {/* pages come in as on mysticsaba.com: one curve for every movement, cubic-bezier(.22, 1, .36, 1) */}
@@ -207,6 +221,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <VersionsPanel />
       <EqualizerPanel />
       <ClassicMode />
+      <Salon />
       <Intro />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>

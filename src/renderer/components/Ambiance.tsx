@@ -9,7 +9,8 @@ import { playback } from "../player/engine";
  * panels sit on it like frosted glass. Light mode leaves it out (fx-blur).
  */
 export function Ambiance() {
-  const on = useStore(theme, (s) => s.ambiance);
+  // the Verre theme is glass over the artwork: it always has it behind
+  const on = useStore(theme, (s) => s.ambiance || s.current === "glass");
   const source = useStore(playback, (s) => s.track?.thumb ?? s.track?.image);
   // blurred once, small (lib/blurred.ts): a full-screen CSS blur would be worked out again at every frame
   const image = useBlurred(on ? source : undefined, { blur: 6, saturate: 1.6 });

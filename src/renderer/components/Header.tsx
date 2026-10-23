@@ -7,7 +7,7 @@ import { pageTitle } from "../lib/pageTitle";
 import type { Profile } from "../lib/spotify";
 import { formatWait, pauseMessage } from "../lib/spotifyLimit";
 import { useStore } from "../lib/store";
-import { setTheme, theme } from "../lib/theme";
+import { setTheme, theme, type Theme } from "../lib/theme";
 import { updates } from "../lib/updates";
 import { navigate, notify, ui, type Route } from "../lib/ui";
 
@@ -33,18 +33,21 @@ export function Logo() {
   );
 }
 
-/** Switches between the Movix look and the mysticsaba.com one. */
+const THEME_NAMES: Record<Theme, string> = { movix: "Movix", mystic: "Mystic", glass: "Verre" };
+const NEXT_THEME: Record<Theme, Theme> = { movix: "mystic", mystic: "glass", glass: "movix" };
+
+/** Goes round the looks: Movix, mysticsaba.com, and Verre (Liquid Glass). */
 export function ThemeToggle() {
   const current = useStore(theme, (s) => s.current);
-  const next = current === "movix" ? "mystic" : "movix";
+  const next = NEXT_THEME[current];
   return (
     <button
       onClick={() => setTheme(next)}
       className="kicker flex shrink-0 items-center gap-2 rounded-btn border border-white/10 px-3 py-2 text-gray-400 transition-colors hover:border-red-500/60 hover:text-white"
-      title={`Passer au thème ${next === "mystic" ? "Mystic" : "Movix"}`}
+      title={`Passer au thème ${THEME_NAMES[next]}`}
     >
       <Palette className="h-4 w-4" />
-      <span className="hidden xl:inline">{current === "mystic" ? "Mystic" : "Movix"}</span>
+      <span className="hidden xl:inline">{THEME_NAMES[current]}</span>
     </button>
   );
 }

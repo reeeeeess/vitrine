@@ -33,6 +33,8 @@ export const ui = createStore({
   devicesOpen: false,
   queueOpen: false,
   mini: false,
+  /** the player bar folded small while the page scrolls down (Apple Music's tab bar) */
+  barCompact: false,
   /** a track to scroll to once its list shows (Ctrl+L: the track playing) */
   reveal: null as string | null,
   /** the playlist dialog: add these tracks to a playlist, or (empty) just create one */
@@ -46,7 +48,7 @@ export async function setMini(on: boolean): Promise<void> {
 }
 
 export function navigate(route: Route): void {
-  ui.set((state) => ({ route, history: [...state.history.slice(-30), state.route], fullPlayer: false, devicesOpen: false }));
+  ui.set((state) => ({ route, history: [...state.history.slice(-30), state.route], fullPlayer: false, devicesOpen: false, barCompact: false }));
   document.querySelector(".main")?.scrollTo({ top: 0 });
 }
 

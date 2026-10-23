@@ -27,6 +27,7 @@ import {
 } from "./history";
 import { formatListening } from "../src/renderer/lib/listening";
 import { clearLyricsCache, fetchLyrics } from "./lyrics";
+import { setTranslationSettings, translateLyrics, translationSettings } from "./translate";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
 import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
@@ -251,6 +252,9 @@ function registerIpc(): void {
   handle("drm:status", () => drm);
   handle("lyrics:get", (query) => fetchLyrics(query));
   handle("lyrics:clear", () => clearLyricsCache());
+  handle("lyrics:translate", (query) => translateLyrics(query));
+  handle("translation:get", () => translationSettings());
+  handle("translation:set", (settings) => setTranslationSettings(settings));
   handle("shell:open", (url) => {
     // web pages, and the Spotify app on a track, album, artist or playlist
     if (typeof url === "string" && (url.startsWith("https://") || /^spotify:(track|album|artist|playlist):[A-Za-z0-9]{1,40}$/.test(url))) return shell.openExternal(url);

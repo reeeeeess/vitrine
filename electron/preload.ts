@@ -16,6 +16,11 @@ const api = {
   lyrics: {
     get: (query: unknown) => ipcRenderer.invoke("lyrics:get", query),
     clear: () => ipcRenderer.invoke("lyrics:clear"),
+    translate: (lines: unknown) => ipcRenderer.invoke("lyrics:translate", { lines }),
+  },
+  translation: {
+    get: () => ipcRenderer.invoke("translation:get"),
+    set: (settings: unknown) => ipcRenderer.invoke("translation:set", settings),
   },
   openExternal: (url: string) => ipcRenderer.invoke("shell:open", url),
   copy: (text: string) => ipcRenderer.invoke("clipboard:write", text),

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, X } from "lucide-react";
+import { Languages, Loader2, Users, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { cn } from "../lib/cn";
 import { createStore, useStore } from "../lib/store";
@@ -18,6 +18,7 @@ import { LyricsMenu } from "./LyricsMenu";
 import { ClipButton } from "./ClipButton";
 import { MicButton, VoiceSlider } from "./SingControls";
 import { stopMic } from "../player/microphone";
+import { setTranslating, translating, useTranslation, type TranslationState } from "../lib/translation";
 
 /** karaoke for two: the lines go left and right in turn (Apple Music Sing's duet view) */
 export const duet = createStore({ on: false });
@@ -33,6 +34,23 @@ function DuetToggle() {
     >
       <Users className="h-3.5 w-3.5" />
       Duo
+    </button>
+  );
+}
+
+/** Apple Music's translation, under each line: on for every song once switched on. */
+function TranslateToggle({ state }: { state: TranslationState }) {
+  const on = useStore(translating, (s) => s.on);
+  const label = state.status === "loading" ? "Traduction…" : state.status === "done" && state.same ? "Déjà dans votre langue" : "Traduire";
+  return (
+    <button
+      onClick={() => setTranslating(!on)}
+      className={cn("flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors", on ? "border-white/40 bg-white/15 text-white" : "border-white/20 text-white/70 hover:text-white")}
+      aria-pressed={on}
+      title={state.status === "error" ? state.message : "La traduction sous chaque ligne (MyMemory, ou DeepL avec votre clé : Réglages)"}
+    >
+      {state.status === "loading" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Languages className="h-3.5 w-3.5" />}
+      {state.status === "error" ? "Traduction indisponible" : label}
     </button>
   );
 }
@@ -69,6 +87,9 @@ export function LyricsStage() {
 
   const portrait = useStore(nowPanel, (s) => s.height > s.width * 1.05 || s.width < 1000);
   const alternate = useStore(duet, (s) => s.on);
+  const translateOn = useStore(translating, (s) => s.on);
+  const translation = useTranslation(lines, translateOn);
+  const translations = translation.status === "done" && !translation.same ? translation.byLine : undefined;
   const durationMs = useStore(playback, (s) => s.durationMs);
   const paused = useStore(playback, (s) => s.paused);
 
@@ -76,7 +97,7 @@ export function LyricsStage() {
     <>
       {state.status === "loading" && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Recherche des paroles…</p>}
       {state.status === "done" && state.result?.instrumental && <p className="pt-[18vh] text-5xl font-extrabold text-white/60">♪ Instrumental ♪</p>}
-      {lines.length > 0 && <StagedLyrics lines={lines} clock={() => source.toLyrics(currentPosition(playback.get())) + LEAD_MS} anchor={anchor} lineClassName={lineClassName} alternate={alternate} />}
+      {lines.length > 0 && <StagedLyrics lines={lines} clock={() => source.toLyrics(currentPosition(playback.get())) + LEAD_MS} anchor={anchor} lineClassName={lineClassName} alternate={alternate} translations={translations} />}
       {plain && <PlainLyrics text={plain} position={position} durationMs={durationMs} className="py-[18vh] text-3xl font-bold leading-snug text-white/80" />}
       {state.status === "done" && lines.length === 0 && !plain && !state.result?.instrumental && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Pas de paroles pour ce titre.</p>}
     </>
@@ -107,6 +128,7 @@ export function LyricsStage() {
           <VoiceSlider />
           <MicButton />
           {lines.length > 0 && <DuetToggle />}
+          {lines.length > 0 && <TranslateToggle state={translation} />}
           <RomanizeToggle lines={lines} />
           <button onClick={() => ui.set({ lyricsStage: false })} className="no-drag rounded-full border border-white/25 p-2.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white" aria-label="Fermer les paroles">
             <X className="h-5 w-5" />

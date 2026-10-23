@@ -10,6 +10,12 @@ export interface DrmStatus {
   detail: string;
 }
 
+export interface TranslationSettings {
+  service: "mymemory" | "deepl";
+  deeplKey: string;
+  target: "fr" | "en" | "es" | "de" | "it" | "pt" | "ar";
+}
+
 export type LyricsSource = "amll" | "lrclib" | "netease" | "lyricsovh";
 export type LyricsKind = "word" | "synced" | "instrumental" | "plain";
 
@@ -38,6 +44,12 @@ export interface VitrineBridge {
   lyrics: {
     get(query: { track: string; artist: string; artists?: string[]; album?: string; durationMs?: number; spotifyId?: string; source?: LyricsSource; netease?: boolean }): Promise<LyricsResult | null>;
     clear(): Promise<void>;
+    /** each line in the language chosen (null where it says the same), `same` when they already are */
+    translate(lines: string[]): Promise<{ lines: (string | null)[]; from?: string; same: boolean; service: string }>;
+  };
+  translation: {
+    get(): Promise<TranslationSettings>;
+    set(settings: Partial<TranslationSettings>): Promise<TranslationSettings>;
   };
   openExternal(url: string): Promise<void>;
   copy(text: string): Promise<void>;

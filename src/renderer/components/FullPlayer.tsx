@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Bookmark, ChevronDown, Disc3, Layers, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { Bookmark, ChevronDown, Tv, Disc3, Layers, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
 import { EASE, SPRING } from "../lib/motion";
@@ -13,6 +13,7 @@ import { Artwork } from "./Artwork";
 import { Aurora } from "./Aurora";
 import { Marquee } from "./Marquee";
 import { Vinyl } from "./Vinyl";
+import { openSalon } from "./Salon";
 import { openVersions, versionsOf } from "./VersionsPanel";
 import { Lyrics } from "./Lyrics";
 import { LikeButton } from "./LikeButton";
@@ -79,6 +80,11 @@ export function FullPlayer() {
   const device = useStore(playback, (s) => s.device);
   const paused = useStore(playback, (s) => s.paused);
   const vinyl = useStore(vinylMode, (s) => s.on);
+  // false for the first render: the artwork then arrives from the bar instead of fading in
+  const opened = useRef(false);
+  useEffect(() => {
+    opened.current = true;
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -110,20 +116,41 @@ export function FullPlayer() {
           <ChevronDown className="h-4 w-4" />
           Réduire
         </button>
+        <button
+          onClick={() => {
+            ui.set({ fullPlayer: false });
+            openSalon();
+          }}
+          className="ml-2 flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/80 backdrop-blur transition-colors hover:bg-white/20 hover:text-white"
+          title="Mode salon : plein écran lisible de loin, pour une télé ou un deuxième écran (Ctrl+Maj+S)"
+        >
+          <Tv className="h-4 w-4" />
+          Mode salon
+        </button>
       </div>
 
       <div className="relative z-0 grid h-full grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-14 px-16 pb-10 pt-20">
         <div className="flex min-h-0 flex-col items-center justify-center">
           {track ? (
             <>
-              <motion.div key={track.uri} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="w-[min(52vh,100%)]">
+              <motion.div
+                key={track.uri}
+                // on opening, the artwork comes from the bar (layoutId): no fade then, only for a new track
+                initial={opened.current ? { opacity: 0, y: 12 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="w-[min(52vh,100%)]"
+              >
                 {vinyl ? (
                   <Vinyl src={art} paused={paused} />
                 ) : (
                   // the artwork steps back on pause and comes forward again with a little bounce (Apple Music)
+                  // the same artwork as the bar's (layoutId): it grows from there to here, and back on closing
                   <motion.div
+                    layoutId="now-cover"
                     animate={{ scale: paused ? 0.84 : 1 }}
                     transition={SPRING}
+                    style={{ borderRadius: 24 }}
                     className={cn("overflow-hidden rounded-3xl ring-1 ring-white/10 transition-shadow duration-500", paused ? "shadow-[0_12px_30px_rgba(0,0,0,0.45)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.6)]")}
                   >
                     <div className="kenburns">

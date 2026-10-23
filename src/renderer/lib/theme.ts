@@ -1,15 +1,16 @@
-// The two looks, kept per viewer in localStorage. Mystic's display fonts come from Fontshare's own
+// The three looks, kept per viewer in localStorage. Mystic's display fonts come from Fontshare's own
 // servers, so the app does not redistribute them; until they load, Archivo Black and Inter stand in.
 import { createStore } from "./store";
 
-export type Theme = "movix" | "mystic";
+export type Theme = "movix" | "mystic" | "glass";
 
 const KEY = "vitrine.theme";
 const FONTSHARE = "https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap";
 
 function saved(): Theme {
   try {
-    return localStorage.getItem(KEY) === "mystic" ? "mystic" : "movix";
+    const value = localStorage.getItem(KEY);
+    return value === "mystic" || value === "glass" ? value : "movix";
   } catch {
     return "movix";
   }

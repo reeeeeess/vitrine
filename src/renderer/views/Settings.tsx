@@ -10,6 +10,7 @@ import { useStore } from "../lib/store";
 import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
 import { nowPanel, setNowPanel } from "../components/NowPanel";
 import { lyricsPrefs, setNetease } from "../lib/lyricsPrefs";
+import type { TranslationSettings } from "../global";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
@@ -57,6 +58,7 @@ function Switch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) 
 const THEMES: { id: Theme; name: string; hint: string; swatches: string[] }[] = [
   { id: "movix", name: "Movix", hint: "Noir et rouge, Inter et Archivo Black", swatches: ["#000000", "#dc2626", "#ffffff"] },
   { id: "mystic", name: "Mystic", hint: "mysticsaba.com : noir chaud, ambre → rouge, Clash Display", swatches: ["#0a0908", "#f2a33c", "#ff3d2e", "#ede8dd"] },
+  { id: "glass", name: "Verre", hint: "Liquid Glass d'iOS 26 : tout en verre dépoli sur la pochette floutée, bleu iOS", swatches: ["#1e1e24", "#0a84ff", "#5e5ce6", "#ffffff"] },
 ];
 
 const DISCORD_STATE: Record<DiscordInfo["state"], string> = {
@@ -347,6 +349,82 @@ function HistorySettings() {
   );
 }
 
+const LANGUAGES: { id: TranslationSettings["target"]; name: string }[] = [
+  { id: "fr", name: "Français" },
+  { id: "en", name: "Anglais" },
+  { id: "es", name: "Espagnol" },
+  { id: "de", name: "Allemand" },
+  { id: "it", name: "Italien" },
+  { id: "pt", name: "Portugais" },
+  { id: "ar", name: "Arabe" },
+];
+
+/** The translation of lyrics: into which language, by MyMemory (no key) or DeepL (the person's key). */
+function TranslationLines() {
+  const [settings, setSettings] = useState<TranslationSettings>();
+  const [key, setKey] = useState("");
+  useEffect(() => {
+    void window.vitrine.translation?.get().then((value) => {
+      setSettings(value);
+      setKey(value.deeplKey);
+    }, () => undefined);
+  }, []);
+  if (!settings) return null;
+  const save = (change: Partial<TranslationSettings>) => void window.vitrine.translation.set({ ...settings, ...change }).then(setSettings, () => undefined);
+  return (
+    <>
+      <Line label="Traduction des paroles" hint="Le bouton « Traduire » de l'écran des paroles met la traduction sous chaque ligne. Gardée sur l'ordinateur.">
+        <select
+          value={settings.target}
+          onChange={(event) => save({ target: event.target.value as TranslationSettings["target"] })}
+          className="rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-sm"
+          aria-label="Langue de la traduction"
+        >
+          {LANGUAGES.map((language) => (
+            <option key={language.id} value={language.id}>
+              {language.name}
+            </option>
+          ))}
+        </select>
+      </Line>
+      <Line
+        label="Service de traduction"
+        hint={
+          settings.service === "deepl"
+            ? "DeepL, avec votre clé (gratuite sur deepl.com : 500 000 caractères par mois)."
+            : "MyMemory : gratuit et sans clé, dans la limite de son quota du jour."
+        }
+      >
+        <div className="flex gap-1 rounded-full border border-white/10 p-1">
+          {(["mymemory", "deepl"] as const).map((service) => (
+            <button
+              key={service}
+              onClick={() => save({ service })}
+              aria-pressed={settings.service === service}
+              className={cn("rounded-full px-3 py-1 text-xs font-medium transition-colors", settings.service === service ? "bg-white/15 text-white" : "text-gray-400 hover:text-white")}
+            >
+              {service === "deepl" ? "DeepL" : "MyMemory"}
+            </button>
+          ))}
+        </div>
+      </Line>
+      {settings.service === "deepl" && (
+        <Line label="Clé DeepL" hint="Gardée sur cet ordinateur, envoyée seulement à DeepL.">
+          <input
+            value={key}
+            onChange={(event) => setKey(event.target.value)}
+            onBlur={() => key !== settings.deeplKey && save({ deeplKey: key })}
+            placeholder="xxxxxxxx-xxxx-…:fx"
+            type="password"
+            className="w-64 rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-xs"
+            aria-label="Clé DeepL"
+          />
+        </Line>
+      )}
+    </>
+  );
+}
+
 /**
  * Where the lyrics come from: AMLL TTML DB (word by word), LRCLIB, NetEase (not an official API, so the
  * person may leave it out) and lyrics.ovh; and the copy kept on this computer.
@@ -363,6 +441,7 @@ function LyricsSettingsLines() {
       <Line label="NetEase" hint="Beaucoup de paroles synchronisées, rap français compris, mais ce n'est pas une API officielle : son moteur de recherche public est interrogé avec le titre et l'artiste.">
         <Switch on={netease} onChange={setNetease} label="NetEase" />
       </Line>
+      <TranslationLines />
       <Line label="Paroles gardées sur cet ordinateur" hint="Chaque titre n'est cherché qu'une fois, et ses paroles restent disponibles hors ligne.">
         <button
           className="btn-ghost min-h-0 px-3 py-1.5 text-xs"
@@ -401,7 +480,7 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
       </h1>
 
       <Section title="Apparence">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {THEMES.map((option) => (
             <button
               key={option.id}
