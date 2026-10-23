@@ -1,4 +1,5 @@
 // Picks the LRCLIB record that best fits the track playing. Kept free of Electron for the tests.
+import { parseSections } from "./lyricsProviders";
 
 export interface LrclibRecord {
   trackName?: string;
@@ -17,6 +18,8 @@ export interface LyricsResult {
   lines?: import("./lyricsProviders").TimedLine[];
   /** where these lyrics come from */
   source?: import("./lyricsProviders").LyricsSource;
+  /** the song's parts with who sings them (Genius's headings), to put each artist of a feat on their side */
+  sections?: import("./lyricsProviders").SungSection[];
   /** every source that has the song, best first, to pick another */
   sources?: { source: import("./lyricsProviders").LyricsSource; kind: import("./lyricsProviders").LyricsKind }[];
 }
@@ -25,10 +28,12 @@ export interface LyricsResult {
 const DURATION_TOLERANCE_S = 4;
 
 export function toResult(record: LrclibRecord): LyricsResult {
+  const sections = record.plainLyrics ? parseSections(record.plainLyrics) : [];
   return {
     synced: record.syncedLyrics?.trim() || null,
     plain: record.plainLyrics?.trim() || null,
     instrumental: record.instrumental === true,
+    ...(sections.length ? { sections } : {}),
   };
 }
 

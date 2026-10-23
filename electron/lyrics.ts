@@ -6,7 +6,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { app, net } from "electron";
 import { pickBest, toResult, type LrclibRecord, type LyricsResult } from "./lyricsMatch";
-import { cleanNetease, cleanPlain, parseTtml, pickNetease, rankSources, SOURCES, ttmlText, type LyricsSource, type NeteaseSong } from "./lyricsProviders";
+import { cleanNetease, cleanPlain, parseSections, parseTtml, pickNetease, rankSources, SOURCES, ttmlText, type LyricsSource, type NeteaseSong } from "./lyricsProviders";
 
 export interface LyricsQuery {
   track: string;
@@ -19,6 +19,8 @@ export interface LyricsQuery {
   source?: LyricsSource;
   /** NetEase's public web search is not an official API: the person can leave it out */
   netease: boolean;
+  /** several artists (a feat): Genius's headings, through lyrics.ovh, say who sings which part */
+  feat: boolean;
 }
 
 const LRCLIB = "https://lrclib.net/api";
@@ -54,7 +56,8 @@ export function parseQuery(raw: unknown): LyricsQuery | null {
   const durationMs = typeof input.durationMs === "number" && input.durationMs > 0 ? input.durationMs : undefined;
   const spotifyId = typeof input.spotifyId === "string" && /^[0-9A-Za-z]{22}$/.test(input.spotifyId) ? input.spotifyId : undefined;
   const source = SOURCES.includes(input.source as LyricsSource) ? (input.source as LyricsSource) : undefined;
-  return { track, artist, album: text(input.album) || undefined, durationMs, spotifyId, source, netease: input.netease !== false };
+  const artists = Array.isArray(input.artists) ? input.artists.filter((name) => typeof name === "string" && name.trim()) : [];
+  return { track, artist, album: text(input.album) || undefined, durationMs, spotifyId, source, netease: input.netease !== false, feat: artists.length >= 2 };
 }
 
 const userAgent = () => `Vitrine/${app.getVersion()} (lecteur de bureau)`;
@@ -105,10 +108,14 @@ async function fromNetease(query: LyricsQuery): Promise<{ result: LyricsResult |
 async function fromLyricsOvh(query: LyricsQuery): Promise<LyricsResult | null> {
   const found = (await getJson(`${LYRICS_OVH}/${encodeURIComponent(query.artist)}/${encodeURIComponent(query.track)}`).catch(() => null)) as { lyrics?: string } | null;
   const plain = found?.lyrics ? cleanPlain(found.lyrics) : null;
-  return plain ? { synced: null, plain, instrumental: false } : null;
+  // kept even when empty: it tells the song was asked for its headings
+  return plain ? { synced: null, plain, instrumental: false, sections: parseSections(found!.lyrics!) } : null;
 }
 
-/** Asks the sources not asked yet, all at once; lyrics.ovh only when nobody else has the words. */
+/**
+ * Asks the sources not asked yet, all at once. lyrics.ovh comes in at once for a feat (Genius's headings say
+ * who sings what), otherwise only when nobody else has the words.
+ */
 async function search(query: LyricsQuery, entry: Entry): Promise<boolean> {
   const wanted = (source: LyricsSource) => !entry.searched.includes(source) && (source !== "netease" || query.netease);
   const done = (source: LyricsSource, result: LyricsResult | null) => {
@@ -133,13 +140,12 @@ async function search(query: LyricsQuery, entry: Entry): Promise<boolean> {
       ),
     );
   }
+  const ovh = () => fromLyricsOvh(query).then((result) => done("lyricsovh", result), () => undefined);
+  if (query.feat && wanted("lyricsovh")) tasks.push(ovh());
   if (tasks.length === 0) return false;
   await Promise.all(tasks);
   const words = (["amll", "lrclib", "netease"] as const).some((source) => entry.found[source]?.synced || entry.found[source]?.plain || entry.found[source]?.lines);
-  if (!words && wanted("lyricsovh")) {
-    const ovh = await fromLyricsOvh(query).catch(() => undefined);
-    if (ovh !== undefined) done("lyricsovh", ovh);
-  }
+  if (!words && wanted("lyricsovh")) await ovh();
   entry.at = Date.now();
   return true;
 }
@@ -158,6 +164,8 @@ async function load(key: string): Promise<Entry> {
     .then((raw) => JSON.parse(raw) as Entry)
     .catch(() => null);
   const entry = saved && Array.isArray(saved.searched) && saved.found && typeof saved.at === "number" ? saved : { at: 0, searched: [], found: {} };
+  // kept before v0.8.2, without the headings: lyrics.ovh is asked again when a feat needs them
+  if (entry.found.lyricsovh && !("sections" in entry.found.lyricsovh)) entry.searched = entry.searched.filter((source) => source !== "lyricsovh");
   // nobody had it: ask again after a while
   if (rankSources(entry.found).length === 0 && Date.now() - entry.at > RETRY_EMPTY_MS) entry.searched = [];
   remember(key, entry);
@@ -208,7 +216,9 @@ export async function fetchLyrics(raw: unknown): Promise<LyricsResult | null> {
   const sources = rankSources(entry.found, allowed);
   if (sources.length === 0) return null;
   const chosen = sources.find((entry) => entry.source === query.source) ?? sources[0];
-  return { ...(entry.found[chosen.source] as LyricsResult), source: chosen.source, sources };
+  // who sings what, from whichever source has the headings
+  const sections = SOURCES.map((source) => entry.found[source]?.sections).find((list) => list && list.length >= 2);
+  return { ...(entry.found[chosen.source] as LyricsResult), source: chosen.source, sources, ...(sections ? { sections } : {}) };
 }
 
 /** Forgets the lyrics kept for every song (Settings). */

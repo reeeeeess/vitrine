@@ -74,7 +74,7 @@ export function offsetLabel(offsetMs: number | undefined): string {
 /** What the main process is asked for a song: who it is, and what the person chose for it. */
 export function lyricsQuery(track: Track) {
   const prefs = prefsOf(track.uri);
-  return { track: track.name, artist: track.artists[0] ?? "", album: track.albumName, durationMs: track.durationMs, spotifyId: track.id, source: prefs.source, netease: lyricsPrefs.get().netease };
+  return { track: track.name, artist: track.artists[0] ?? "", artists: track.artists, album: track.albumName, durationMs: track.durationMs, spotifyId: track.id, source: prefs.source, netease: lyricsPrefs.get().netease };
 }
 
 /** The timed lines of a result (word by word when the source gives them), moved by the song's offset. */

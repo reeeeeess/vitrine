@@ -3,6 +3,7 @@ import type { LyricsResult } from "../global";
 import { errorMessage } from "../lib/format";
 import type { LyricLine } from "../lib/lrc";
 import { lyricsPrefs, lyricsQuery, timedLines } from "../lib/lyricsPrefs";
+import { assignSingers } from "../lib/singers";
 import { useStore } from "../lib/store";
 import type { Track } from "../lib/types";
 
@@ -34,6 +35,10 @@ export function useLyrics(track: Track | undefined): { state: LyricsState; lines
     // the poll hands over a new Track object every few seconds: only a new song (or source) fetches again
   }, [track?.uri, source, netease]);
 
-  const lines = useMemo(() => (state.status === "done" ? timedLines(state.result, offsetMs) : []), [state, offsetMs]);
+  // a feat: each artist's lines on their side (Genius's headings, matched with the synced lines)
+  const lines = useMemo(
+    () => (state.status === "done" ? assignSingers(timedLines(state.result, offsetMs), state.result?.sections, track?.artists ?? []) : []),
+    [state, offsetMs, track?.artists.join("|")],
+  );
   return { state, lines };
 }

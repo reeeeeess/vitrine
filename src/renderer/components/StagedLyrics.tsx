@@ -50,50 +50,28 @@ export function RomanizeToggle({ lines, className }: { lines: LyricLine[]; class
   );
 }
 
-/** the word's light, from a dim colour to white across a soft edge (as Apple Music's) */
-const WORD_FILL = "linear-gradient(90deg, #fff 45%, rgb(255 255 255 / 0.38) 55%)";
-
 /** where the soft edge sits for a word sung this far: wholly dim at 0, wholly lit at 1 (image 2.5× the word) */
 export const fillPosition = (amount: number) => `${(91.67 - 83.34 * amount).toFixed(2)}% 0`;
-
-/**
- * One word, filling from left to right while it is sung, and rising a little once reached. Before and after,
- * it is a plain colour: a gradient at rest left a thin white line on the word's edge (seen on Windows).
- */
-function Word({ text, amount, held = false }: { text: string; amount: number; held?: boolean }) {
-  const singing = amount > 0 && amount < 1;
-  // a word held long grows a little and glows while it is sung (Apple Music, AMLL)
-  const glowing = held && singing;
-  return (
-    <span
-      className={cn(
-        "inline-block transition-[background-position,transform,color,filter] duration-300 ease-linear will-change-transform",
-        singing ? "bg-clip-text text-transparent" : amount >= 1 ? "text-white" : "text-white/[0.38]",
-      )}
-      style={{
-        backgroundImage: singing ? WORD_FILL : undefined,
-        backgroundSize: "250% 100%",
-        backgroundPosition: fillPosition(amount),
-        transform: glowing ? "translateY(-0.07em) scale(1.07)" : amount > 0 ? "translateY(-0.04em)" : undefined,
-        filter: glowing ? "drop-shadow(0 0 0.22em rgb(255 255 255 / 0.55))" : undefined,
-      }}
-    >
-      {text}
-    </span>
-  );
-}
 
 /** a word sung this long, or longer, is held: it glows (AMLL's emphasis) */
 export const HELD_MS = 1000;
 export const isHeld = (word: { text: string; startMs: number; endMs: number }) => word.endMs - word.startMs >= HELD_MS && [...word.text].length <= 9;
 
-/** The words of a line, each filling as it is sung, a space between them unless they are syllables of one word. */
-function SungLine({ words, position }: { words: SungWord[]; position: number }) {
+/** How a word looks at this moment: dim before, filling while sung, lit after (styles.css, .lyric-word). */
+export const wordState = (amount: number) => (amount <= 0 ? "" : amount >= 1 ? "sung" : "singing");
+
+/**
+ * The words of the line being sung, each with its times: the lyrics' clock paints them 60 times a second
+ * (paintLine), without React, so the light glides along the words instead of stepping.
+ */
+function SungLine({ words }: { words: SungWord[] }) {
   return (
     <>
       {words.map((word, index) => (
         <span key={index}>
-          <Word text={word.text} amount={fill(word.startMs, word.endMs, position)} held={isHeld(word)} />
+          <span className="lyric-word" data-start={word.startMs} data-end={word.endMs} data-held={isHeld(word) ? "" : undefined}>
+            {word.text}
+          </span>
           {word.glue ? "" : " "}
         </span>
       ))}
@@ -101,33 +79,53 @@ function SungLine({ words, position }: { words: SungWord[]; position: number }) 
   );
 }
 
+/** Lights the words and the dots of the line being sung for this moment of the song. */
+function paintLine(line: HTMLElement, positionMs: number): void {
+  for (const word of line.querySelectorAll<HTMLElement>("[data-start]")) {
+    const amount = fill(Number(word.dataset.start), Number(word.dataset.end), positionMs);
+    const state = wordState(amount);
+    if ((word.dataset.state ?? "") !== state) word.dataset.state = state;
+    if (state === "singing") word.style.backgroundPosition = fillPosition(amount);
+  }
+  for (const dot of line.querySelectorAll<HTMLElement>("[data-dot]")) {
+    const [from, to] = (dot.dataset.dot ?? "0,1").split(",").map(Number);
+    dot.style.opacity = String(0.25 + 0.75 * fill(from, to, positionMs));
+  }
+}
+
 /** Three dots that fill one after the other during a silence, and breathe. */
-function Dots({ entry, position }: { entry: Extract<LyricEntry, { kind: "gap" }>; position: number }) {
-  const amount = fill(entry.timeMs, entry.endMs, position);
+function Dots({ entry }: { entry: Extract<LyricEntry, { kind: "gap" }> }) {
+  const third = (entry.endMs - entry.timeMs) / 3;
   return (
     <span className="flex origin-left animate-[breathe_2.4s_ease-in-out_infinite] items-center gap-[0.35em] py-[0.2em] pl-[0.1em]" aria-label="Instrumental">
       {[0, 1, 2].map((dot) => (
-        <span key={dot} className="h-[0.32em] w-[0.32em] rounded-full bg-white transition-opacity duration-300" style={{ opacity: 0.25 + 0.75 * fill(dot / 3, (dot + 1) / 3, amount) }} />
+        <span key={dot} data-dot={`${entry.timeMs + dot * third},${entry.timeMs + (dot + 1) * third}`} className="h-[0.32em] w-[0.32em] rounded-full bg-white opacity-25" />
       ))}
     </span>
   );
 }
 
+/** the lines this close to the one sung glide on their own layer (the others are out of sight) */
+const NEAR_BEFORE = 4;
+const NEAR_AFTER = 10;
+
 /**
- * Synced lyrics staged like Apple Music's: the sung line sharp, word by word; the others blurrier and
- * smaller with distance; backing vocals smaller under their line; dots during silences; the
+ * Synced lyrics staged like Apple Music's: the sung line sharp, its words lit as they are sung; the others
+ * blurrier and smaller with distance; lines gliding in a wave; backing vocals smaller under their line;
+ * each artist of a feat on their side, named when the voice changes; dots during silences; the
  * pronunciation under lines in another script; and free scrolling, back to the song after 3 s.
  */
 export function StagedLyrics({
   lines,
-  position,
+  clock,
   anchor,
   lineClassName,
   className,
   alternate = false,
 }: {
   lines: LyricLine[];
-  position: number;
+  /** where the song is, in the lyrics' time (ms), read at every frame */
+  clock: () => number;
   /** where the sung line sits, from the top of the box (0.33: a third of the way down) */
   anchor: number;
   lineClassName: string;
@@ -141,11 +139,38 @@ export function StagedLyrics({
     let turn = 0;
     return staged.map((entry) => (entry.kind === "line" ? { ...entry, side: turn++ % 2 ? ("right" as const) : undefined } : entry));
   }, [staged, alternate]);
+  const times = useMemo(() => entries.map((entry) => ({ timeMs: entry.timeMs, text: "" })), [entries]);
   const roman = useStore(romanizing, (s) => s.on) && needsRomanization(lines.map((line) => line.text));
-  const active = activeLineIndex(entries.map((entry) => ({ timeMs: entry.timeMs, text: "" })), position);
+  const clockRef = useRef(clock);
+  clockRef.current = clock;
+  const [active, setActive] = useState(() => activeLineIndex(times, clock()));
+  const activeRef = useRef(active);
+  activeRef.current = active;
   const box = useRef<HTMLDivElement>(null);
   const [freeUntil, setFreeUntil] = useState(0);
   const free = freeUntil > Date.now();
+
+  // the lyrics' clock: every frame, the line sung (a render when it changes) and its words' light (no render)
+  useEffect(() => {
+    let frame = 0;
+    let painted = -1;
+    const tick = () => {
+      const position = clockRef.current();
+      const index = activeLineIndex(times, position);
+      if (index !== activeRef.current) {
+        activeRef.current = index;
+        setActive(index);
+      }
+      if (position !== painted) {
+        painted = position;
+        const line = box.current?.querySelector<HTMLElement>(`[data-entry="${index}"]`);
+        if (line) paintLine(line, position);
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [times]);
 
   const target = () => {
     const element = box.current?.querySelector<HTMLElement>(`[data-entry="${Math.max(active, 0)}"]`);
@@ -156,8 +181,8 @@ export function StagedLyrics({
     if (top !== null) box.current!.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
   };
 
-  // Apple Music's wave: the view jumps to the new line at once, and each line glides back from where it
-  // was, the ones further down a little later, like a spring (FLIP, on the lines' own translate)
+  // Apple Music's wave: the view jumps to the new line at once, and the lines in sight glide back from where
+  // they were, each a little after the one above it, with a spring (FLIP, on the lines' own translate)
   useLayoutEffect(() => {
     if (free || !box.current) return;
     const top = target();
@@ -170,17 +195,20 @@ export function StagedLyrics({
       container.scrollTo({ top, behavior: "auto" });
       return;
     }
-    const children = [...container.querySelectorAll<HTMLElement>("[data-entry]")];
+    const near = [...container.querySelectorAll<HTMLElement>("[data-entry]")].filter((child) => {
+      const distance = Number(child.dataset.entry) - active;
+      return distance >= -NEAR_BEFORE - 1 && distance <= NEAR_AFTER;
+    });
     container.scrollTop = top;
-    for (const child of children) {
+    for (const child of near) {
       child.style.transitionProperty = "none";
       child.style.translate = `0 ${delta}px`;
     }
     const frame = requestAnimationFrame(() => {
-      for (const child of children) {
+      for (const child of near) {
         const order = Math.max(0, Math.min(10, Number(child.dataset.entry) - active + 1));
         child.style.transitionProperty = "";
-        child.style.transitionDelay = `0ms, 0ms, 0ms, ${order * 55}ms`;
+        child.style.transitionDelay = `0ms, 0ms, 0ms, ${order * 45}ms`;
         child.style.translate = "0 0";
       }
     });
@@ -205,11 +233,12 @@ export function StagedLyrics({
           const distance = index - active;
           const look = lineLook(free ? 0 : distance);
           const current = distance === 0;
+          const near = distance >= -NEAR_BEFORE && distance <= NEAR_AFTER;
           if (entry.kind === "gap") {
             // the dots show only while the silence lasts
             return (
               <div key={`gap-${entry.timeMs}`} data-entry={index} className={cn("overflow-hidden transition-all duration-500", current ? "max-h-40 opacity-100" : "max-h-0 opacity-0")}>
-                <div className={lineClassName}>{current && <Dots entry={entry} position={position} />}</div>
+                <div className={lineClassName}>{current && <Dots entry={entry} />}</div>
               </div>
             );
           }
@@ -223,17 +252,19 @@ export function StagedLyrics({
                 run(() => engine.seek(entry.timeMs));
               }}
               className={cn(
-                "lyric-line block w-full py-2 transition-[opacity,transform,filter,translate] duration-500 ease-[cubic-bezier(0.22,1.18,0.36,1)]",
-                // the second voice of a duet sings from the right (Apple Music)
-                entry.side === "right" ? "origin-right pl-[12%] text-right" : "origin-left pr-[6%] text-left",
+                "lyric-line block w-full py-2",
+                near && "will-change-transform",
+                // each artist of a feat (or the second voice of a duet) on their side, voices together in the middle
+                entry.side === "right" ? "origin-right pl-[12%] text-right" : entry.side === "both" ? "origin-center px-[6%] text-center" : "origin-left pr-[6%] text-left",
                 lineClassName,
               )}
               style={{ opacity: look.opacity, transform: `scale(${look.scale})`, filter: look.blur ? `blur(${look.blur}px)` : undefined }}
             >
-              {entry.main && <span className="block">{current ? <SungLine words={entry.words} position={position} /> : entry.main}</span>}
+              {entry.voice && <span className="lyric-voice">{entry.voice}</span>}
+              {entry.main && <span className="block">{current ? <SungLine words={entry.words} /> : entry.main}</span>}
               {entry.backing && (
                 <span className={cn("block text-[0.58em] font-medium", entry.main ? "mt-1 text-white/55" : "")}>
-                  {current && entry.backingWords ? <SungLine words={entry.backingWords} position={position} /> : entry.backing}
+                  {current && entry.backingWords ? <SungLine words={entry.backingWords} /> : entry.backing}
                 </span>
               )}
               {pronunciation && <span className="mt-1 block font-sans text-[0.42em] font-medium tracking-normal text-white/60">{pronunciation}</span>}

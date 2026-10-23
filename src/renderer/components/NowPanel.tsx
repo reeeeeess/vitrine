@@ -125,7 +125,7 @@ function LyricsCard({ track, tint }: { track: Track; tint: string }) {
     >
       {lines.length > 0 ? (
         <div className="h-[230px] [mask-image:linear-gradient(to_bottom,transparent,black_14%,black_80%,transparent)]">
-          <StagedLyrics lines={lines} position={position + 250} anchor={0.3} lineClassName="text-[22px] font-extrabold leading-[1.15] tracking-tight" />
+          <StagedLyrics lines={lines} clock={() => engine.currentPosition(playback.get()) + 250} anchor={0.3} lineClassName="text-[22px] font-extrabold leading-[1.15] tracking-tight" />
         </div>
       ) : plain ? (
         <div className="h-[230px]">

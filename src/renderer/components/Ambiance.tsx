@@ -1,15 +1,18 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "../lib/store";
 import { theme } from "../lib/theme";
+import { useBlurred } from "../lib/blurred";
 import { playback } from "../player/engine";
 
 /**
  * The artwork playing, blurred, behind the whole app, as Spicetify's Hazy and Glowify themes do: the
- * panels sit on it like frosted glass. A small image blurred costs little; light mode leaves it out (fx-blur).
+ * panels sit on it like frosted glass. Light mode leaves it out (fx-blur).
  */
 export function Ambiance() {
   const on = useStore(theme, (s) => s.ambiance);
-  const image = useStore(playback, (s) => s.track?.thumb ?? s.track?.image);
+  const source = useStore(playback, (s) => s.track?.thumb ?? s.track?.image);
+  // blurred once, small (lib/blurred.ts): a full-screen CSS blur would be worked out again at every frame
+  const image = useBlurred(on ? source : undefined, { blur: 6, saturate: 1.6 });
   if (!on || !image) return null;
   return (
     <div className="fx-blur pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
@@ -18,7 +21,7 @@ export function Ambiance() {
           key={image}
           src={image}
           alt=""
-          className="absolute inset-[-15%] h-[130%] w-[130%] object-cover blur-[90px] saturate-[1.6]"
+          className="absolute inset-[-15%] h-[130%] w-[130%] max-w-none object-cover"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
           exit={{ opacity: 0 }}

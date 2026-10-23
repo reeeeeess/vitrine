@@ -274,3 +274,27 @@ export function cleanPlain(text: string): string | null {
     .trim();
   return cleaned || null;
 }
+
+// ── who sings what (feats) ───────────────────────────────────────────────
+
+/** A part of the song as Genius writes it out: "[Couplet 1 : SCH]", "[Refrain : JuL & Solda]", "[La Rvfleuze]". */
+export interface SungSection {
+  /** what is between the brackets */
+  label: string;
+  lines: string[];
+}
+
+/**
+ * The parts of lyrics written with their headings (lyrics.ovh keeps Genius's; LRCLIB's text sometimes has
+ * them). Empty when the text has fewer than two headings: then it says nothing about who sings.
+ */
+export function parseSections(text: string): SungSection[] {
+  const sections: SungSection[] = [];
+  for (const raw of text.replace(/\r/g, "").replace(/^Paroles de la chanson .* par .*\n/i, "").split("\n")) {
+    const line = raw.trim();
+    const heading = line.match(/^\[([^\]]+)\]$/);
+    if (heading) sections.push({ label: heading[1].trim(), lines: [] });
+    else if (line && sections.length) sections[sections.length - 1].lines.push(line);
+  }
+  return sections.length >= 2 ? sections.filter((section) => section.lines.length) : [];
+}

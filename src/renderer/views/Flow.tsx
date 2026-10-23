@@ -6,6 +6,7 @@ import { ArtistLinks, run } from "../components/NowPlayingBar";
 import { shareStory } from "../components/StoryButton";
 import { trackMenu } from "../components/TrackMenu";
 import { cn } from "../lib/cn";
+import { useBlurred } from "../lib/blurred";
 import { collect, collecting, hide, hookPosition, loadFlow, markSeen, setCollecting, songKey, type FlowItem, type FlowSource } from "../lib/flow";
 import { teach } from "../lib/flowTaste";
 import { errorMessage } from "../lib/format";
@@ -243,21 +244,7 @@ export function Flow({ seed }: { seed?: Track }) {
       }}
     >
       {/* the active card's artwork, blurred, as the backdrop of the whole page */}
-      <AnimatePresence>
-        {current && (
-          <motion.img
-            key={current.track.uri}
-            src={current.track.thumb ?? current.track.image}
-            alt=""
-            aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.45 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="fx-blur pointer-events-none absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover blur-[80px]"
-          />
-        )}
-      </AnimatePresence>
+      <AnimatePresence>{current && <FlowBackdrop key={current.track.uri} src={current.track.thumb ?? current.track.image} />}</AnimatePresence>
       <div className="pointer-events-none absolute inset-0 bg-black/40" />
 
       <div className="absolute left-8 top-4 z-10 flex items-center gap-3">
@@ -316,9 +303,29 @@ export function Flow({ seed }: { seed?: Track }) {
   );
 }
 
+/** The page's backdrop: the active card's artwork, blurred once (lib/blurred.ts), slowly panning. */
+function FlowBackdrop({ src }: { src?: string }) {
+  const blurred = useBlurred(src, { blur: 8 });
+  if (!blurred) return null;
+  return (
+    <motion.img
+      src={blurred}
+      alt=""
+      aria-hidden="true"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.45 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8 }}
+      className="fx-blur pointer-events-none absolute inset-[-10%] h-[120%] w-[120%] max-w-none animate-slow-pan object-cover will-change-transform"
+    />
+  );
+}
+
 function Card({ item, active, playing, burst, onToggle, onLike }: { item: FlowItem; active: boolean; playing: boolean; burst: number; onToggle: () => void; onLike: () => void }) {
   const { track } = item;
   const art = track.imageLarge ?? track.image;
+  // blurred once, small: an animated CSS blur is worked out again at every frame
+  const blurred = useBlurred(art ? (track.thumb ?? art) : undefined, { blur: 4 });
   const SourceIcon = SOURCE_ICON[item.source];
   const clickTimer = useRef<ReturnType<typeof setTimeout>>();
   const [heart, setHeart] = useState(0);
@@ -333,7 +340,7 @@ function Card({ item, active, playing, burst, onToggle, onLike }: { item: FlowIt
 
   return (
     <div className="relative aspect-[3/4] h-full max-w-[calc(100vw-260px)] overflow-hidden rounded-[2rem] bg-black shadow-[0_30px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/10">
-      {art && <img src={track.thumb ?? art} alt="" aria-hidden="true" className={cn("fx-blur absolute inset-[-15%] h-[130%] w-[130%] object-cover opacity-60 blur-[40px]", active && "animate-slow-pan")} />}
+      {blurred && <img src={blurred} alt="" aria-hidden="true" className={cn("fx-blur absolute inset-[-15%] h-[130%] w-[130%] max-w-none object-cover opacity-60", active && "animate-slow-pan")} />}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/90" />
 
       <button

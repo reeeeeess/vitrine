@@ -6,6 +6,7 @@ import { useStore } from "../lib/store";
 import { setMini, ui } from "../lib/ui";
 import { playback } from "../player/engine";
 import { Artwork } from "./Artwork";
+import { useBlurred } from "../lib/blurred";
 import { LikeButton } from "./LikeButton";
 import { LyricCard } from "./LyricCard";
 import { ProgressBar, TransportControls } from "./NowPlayingBar";
@@ -15,6 +16,8 @@ export function MiniPlayer() {
   const mac = window.vitrine.platform === "darwin";
   const track = useStore(playback, (s) => s.track);
   const art = track?.imageLarge ?? track?.image;
+  // blurred once, small (lib/blurred.ts), rather than a CSS blur
+  const blurred = useBlurred(track?.thumb ?? art);
   const [color, setColor] = useState("220 38 38");
   useEffect(() => {
     void artworkColor(art).then((rgb) => setColor(rgbVar(rgb)));
@@ -22,7 +25,7 @@ export function MiniPlayer() {
 
   return (
     <div className="drag relative flex h-full flex-col overflow-hidden bg-black">
-      {art && <img src={track?.thumb ?? art} alt="" aria-hidden="true" className="fx-blur absolute inset-[-20%] h-[140%] w-[140%] object-cover opacity-40 blur-3xl" />}
+      {blurred && <img src={blurred} alt="" aria-hidden="true" className="fx-blur absolute inset-[-20%] h-[140%] w-[140%] max-w-none object-cover opacity-40" />}
       <div className="absolute inset-0" style={{ background: `radial-gradient(90% 70% at 50% 25%, rgb(${color} / 0.45), transparent 70%)` }} />
       <div className="absolute inset-0 bg-black/40" />
 

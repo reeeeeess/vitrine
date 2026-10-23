@@ -4,7 +4,7 @@ import { usePosition } from "../player/hooks";
 import { karaoke, lyricsSource } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
 import { PlainLyrics, RomanizeToggle, StagedLyrics } from "./StagedLyrics";
-import { playback } from "../player/engine";
+import { currentPosition, playback } from "../player/engine";
 
 /** lines light up a little ahead, as the singer breathes in */
 const LEAD_MS = 250;
@@ -37,7 +37,7 @@ export function Lyrics({ track: playing }: { track: Track }) {
       <RomanizeToggle lines={lines} className="absolute right-0 top-2 z-10" />
       <StagedLyrics
         lines={lines}
-        position={position + LEAD_MS}
+        clock={() => source.toLyrics(currentPosition(playback.get())) + LEAD_MS}
         anchor={0.5}
         className="[mask-image:linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)]"
         lineClassName="text-[2.1rem] font-extrabold leading-tight tracking-tight"

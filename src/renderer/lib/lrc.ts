@@ -17,8 +17,12 @@ export interface LyricLine {
   words?: LyricWord[];
   /** when the line ends (TTML) */
   endMs?: number;
-  /** a second voice of a duet, on the right (TTML) */
-  side?: "right";
+  /** a second voice of a duet or a feat on the right, several voices at once in the middle */
+  side?: "right" | "both";
+  /** who sings it, when the song is a feat (lib/singers.ts) */
+  singers?: string[];
+  /** the singer's name, on the first line of their part */
+  voice?: string;
   /** backing vocals timed apart (TTML) */
   backing?: { text: string; words: LyricWord[] };
 }

@@ -76,7 +76,7 @@ export function LyricsStage() {
     <>
       {state.status === "loading" && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Recherche des paroles…</p>}
       {state.status === "done" && state.result?.instrumental && <p className="pt-[18vh] text-5xl font-extrabold text-white/60">♪ Instrumental ♪</p>}
-      {lines.length > 0 && <StagedLyrics lines={lines} position={position + LEAD_MS} anchor={anchor} lineClassName={lineClassName} alternate={alternate} />}
+      {lines.length > 0 && <StagedLyrics lines={lines} clock={() => source.toLyrics(currentPosition(playback.get())) + LEAD_MS} anchor={anchor} lineClassName={lineClassName} alternate={alternate} />}
       {plain && <PlainLyrics text={plain} position={position} durationMs={durationMs} className="py-[18vh] text-3xl font-bold leading-snug text-white/80" />}
       {state.status === "done" && lines.length === 0 && !plain && !state.result?.instrumental && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Pas de paroles pour ce titre.</p>}
     </>
