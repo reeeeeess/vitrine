@@ -5,7 +5,7 @@ vi.mock("electron", () => ({ net: { fetch: vi.fn() }, BrowserWindow: class {}, s
 const { LEAN_FLAGS } = await import("../electron/browserPlayer");
 const { fromPlayer, fromSdkState } = await import("../electron/remote");
 const { autoReason, effective } = await import("../src/renderer/lib/lite");
-const { aurora } = await import("../src/renderer/components/LyricsStage");
+const { aurora } = await import("../src/renderer/components/Aurora");
 const { fill, sungLength } = await import("../src/renderer/lib/lyricsView");
 const { stopOffset } = await import("../src/renderer/components/Roulette");
 

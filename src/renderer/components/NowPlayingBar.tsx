@@ -1,17 +1,21 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Captions, ListMusic, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
+import { SPRING } from "../lib/motion";
 import { errorMessage, formatTime } from "../lib/format";
-import { useStore } from "../lib/store";
+import { createStore, useStore } from "../lib/store";
 import type { Track } from "../lib/types";
 import { navigate, notify, setMini, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
+import { loop } from "../player/loop";
+import { useSwipe, type SwipeDirection } from "../player/useSwipe";
 import { Artwork } from "./Artwork";
 import { DevicesMenu } from "./DevicesMenu";
 import { LikeButton } from "./LikeButton";
+import { Marquee } from "./Marquee";
 import { SleepTimerButton } from "./SleepTimerButton";
 import { trackMenu } from "./TrackMenu";
 import { overlay, toggleOverlay } from "../player/overlayBridge";
@@ -21,36 +25,73 @@ export function run(command: () => Promise<unknown>): void {
   command().catch((error: unknown) => notify(errorMessage(error), "error"));
 }
 
+const REMAINING_KEY = "vitrine.remainingTime";
+
+function readRemaining(): boolean {
+  try {
+    return localStorage.getItem(REMAINING_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+/** the time on the right: the duration, or what is left ("-1:23"), as the person chose (Apple Music) */
+const timeDisplay = createStore({ remaining: readRemaining() });
+
+function toggleRemaining(): void {
+  const remaining = !timeDisplay.get().remaining;
+  timeDisplay.set({ remaining });
+  try {
+    localStorage.setItem(REMAINING_KEY, remaining ? "on" : "off");
+  } catch {
+    // for this run only
+  }
+}
+
 export function ProgressBar({ className }: { className?: string }) {
   const position = usePosition();
   const duration = useStore(playback, (s) => s.durationMs);
+  const uri = useStore(playback, (s) => s.track?.uri);
+  const remaining = useStore(timeDisplay, (s) => s.remaining);
+  const looped = useStore(loop, (s) => (s.current?.uri === uri ? s.current : null));
   const [dragging, setDragging] = useState<number | null>(null);
   const shown = dragging ?? position;
   const percent = duration ? (shown / duration) * 100 : 0;
+  const at = (ms: number) => `${duration ? (ms / duration) * 100 : 0}%`;
+  // one seek, when the bar is let go: not one per pixel (Spotify counts requests)
+  const release = () => {
+    if (dragging !== null) run(() => engine.seek(dragging));
+    setDragging(null);
+  };
   return (
     <div className={cn("flex items-center gap-3 text-xs tabular-nums text-gray-400", className)}>
       <span className="w-10 text-right">{formatTime(shown)}</span>
-      <input
-        type="range"
-        className="range flex-1"
-        min={0}
-        max={duration || 1}
-        step={1000}
-        value={shown}
-        style={{ "--value": `${percent}%` } as CSSProperties}
-        onChange={(event) => setDragging(Number(event.target.value))}
-        onPointerUp={() => {
-          if (dragging !== null) run(() => engine.seek(dragging));
-          setDragging(null);
-        }}
-        onKeyUp={() => {
-          if (dragging !== null) run(() => engine.seek(dragging));
-          setDragging(null);
-        }}
-        aria-label="Position"
-        disabled={!duration}
-      />
-      <span className="w-10">{formatTime(duration)}</span>
+      <div className="relative flex flex-1 items-center">
+        {looped && (
+          <span
+            className="pointer-events-none absolute -inset-y-1 rounded-full bg-red-500/30 ring-1 ring-red-500/60"
+            style={{ left: at(looped.aMs), width: looped.bMs !== undefined ? `calc(${at(looped.bMs - looped.aMs)})` : "3px" }}
+            aria-hidden="true"
+          />
+        )}
+        <input
+          type="range"
+          className={cn("range w-full", dragging !== null && "range-held")}
+          min={0}
+          max={duration || 1}
+          step={1000}
+          value={shown}
+          style={{ "--value": `${percent}%` } as CSSProperties}
+          onChange={(event) => setDragging(Number(event.target.value))}
+          onPointerUp={release}
+          onKeyUp={release}
+          aria-label="Position"
+          disabled={!duration}
+        />
+      </div>
+      <button className="w-10 text-left hover:text-white" onClick={toggleRemaining} title={remaining ? "Afficher la durée" : "Afficher le temps restant"}>
+        {remaining && duration ? `-${formatTime(Math.max(0, duration - shown))}` : formatTime(duration)}
+      </button>
     </div>
   );
 }
@@ -205,14 +246,26 @@ function QueueButton() {
   );
 }
 
+let lastSwipe: SwipeDirection = "next";
+
 export function NowPlayingBar() {
   const track = useStore(playback, (s) => s.track);
   const device = useStore(playback, (s) => s.device);
+  const swipe = useSwipe((direction) => {
+    lastSwipe = direction;
+    run(direction === "next" ? engine.next : engine.previous);
+  });
   return (
     <footer className="glass fixed inset-x-4 bottom-4 z-30 grid h-[84px] grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-6 rounded-3xl px-4">
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3 overflow-hidden" {...swipe} title="Balayez pour changer de titre">
         {track ? (
-          <>
+          <motion.div
+            key={track.uri}
+            className="flex min-w-0 flex-1 items-center gap-3"
+            initial={{ x: lastSwipe === "next" ? 40 : -40, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={SPRING}
+          >
             <button className="group relative h-14 w-14 shrink-0" onClick={() => ui.set({ fullPlayer: true, devicesOpen: false })} aria-label="Ouvrir le lecteur">
               <Artwork src={track.image} className="h-14 w-14 rounded-xl shadow-lg" />
               <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
@@ -220,17 +273,14 @@ export function NowPlayingBar() {
               </span>
             </button>
             <div className="min-w-0" onContextMenu={(event) => trackMenu(event, track)}>
-              <button
-                className="block max-w-full truncate text-left text-sm font-semibold hover:underline"
-                onClick={() => track.albumId && navigate({ name: "album", id: track.albumId })}
-              >
-                {track.name}
+              <button className="block max-w-full text-left text-sm font-semibold hover:underline" onClick={() => track.albumId && navigate({ name: "album", id: track.albumId })}>
+                <Marquee text={track.name} />
               </button>
               <ArtistLinks track={track} className="text-xs text-gray-400" />
               {device && !device.local && <p className="truncate text-[11px] font-medium text-red-400">Lecture sur {device.name}</p>}
             </div>
             <LikeButton track={track} />
-          </>
+          </motion.div>
         ) : (
           <p className="text-sm text-gray-400">Choisissez un titre pour commencer.</p>
         )}

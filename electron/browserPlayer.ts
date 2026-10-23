@@ -95,14 +95,18 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     player.activateElement().catch(() => {});
     post("/ready", { deviceId: device_id });
   });
+  const slim = ({ id, uri, name, duration_ms, artists, album }) => ({
+    id, uri, name, duration_ms, artists: artists.map((a) => ({ name: a.name, uri: a.uri })),
+    album: { name: album.name, uri: album.uri, images: album.images.map((i) => ({ url: i.url, width: i.width ?? null })) },
+  });
   // the player's own state: the Web API reports a frozen position for this kind of device
   player.addListener("player_state_changed", (state) => post("/state", state ? {
     paused: state.paused, position: state.position, duration: state.duration, shuffle: state.shuffle, repeat_mode: state.repeat_mode,
     context: { uri: state.context?.uri ?? null },
-    track_window: { current_track: state.track_window?.current_track ? (({ id, uri, name, duration_ms, artists, album }) => ({
-      id, uri, name, duration_ms, artists: artists.map((a) => ({ name: a.name, uri: a.uri })),
-      album: { name: album.name, uri: album.uri, images: album.images.map((i) => ({ url: i.url, width: i.width ?? null })) },
-    }))(state.track_window.current_track) : null },
+    track_window: {
+      current_track: state.track_window?.current_track ? slim(state.track_window.current_track) : null,
+      next_tracks: (state.track_window?.next_tracks ?? []).slice(0, 1).map(slim),
+    },
   } : null));
   // Vitrine's commands, waited for one at a time; the SDK's own calls keep the position on pause
   const run = (command) => {

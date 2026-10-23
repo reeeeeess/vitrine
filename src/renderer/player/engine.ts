@@ -44,6 +44,8 @@ export interface PlaybackState {
   shuffle: boolean;
   repeat: Repeat;
   volume: number;
+  /** what comes next, when this computer's player says it (Spotify's queue otherwise) */
+  nextTrack?: Track;
 }
 
 export const playback = createStore<PlaybackState>({
@@ -121,6 +123,7 @@ function applySdkState(state: SpotifySdk.State | null): void {
     updatedAt: Date.now(),
     shuffle: state.shuffle,
     repeat: (["off", "context", "track"] as const)[state.repeat_mode] ?? "off",
+    nextTrack: state.track_window.next_tracks?.[0] ? mapSdkTrack(state.track_window.next_tracks[0] as SpotifySdk.SdkTrack) : undefined,
   }));
 }
 
@@ -356,6 +359,29 @@ export function setVolume(volume: number): void {
   clearTimeout(volumeTimer);
   volumeTimer = setTimeout(() => void api.setVolume(value * 100, targetDevice()).catch(() => undefined), 200);
 }
+
+/**
+ * Fades the volume of this computer's player to `to` over `ms`, without asking Spotify anything: only
+ * the player here hears it. False (and nothing done) when the music plays on another device.
+ */
+export async function fadeLocalVolume(to: number, ms: number): Promise<boolean> {
+  if (!localActive) return false;
+  const from = playback.get().volume;
+  const steps = Math.max(1, Math.round(ms / 250));
+  for (let step = 1; step <= steps; step++) {
+    await new Promise((resolve) => setTimeout(resolve, ms / steps));
+    await runLocally({ type: "volume", value: from + ((to - from) * step) / steps })?.catch(() => undefined);
+  }
+  return true;
+}
+
+/** Puts this computer's player back to the volume the app shows (after a fade), quietly. */
+export function restoreLocalVolume(): void {
+  void runLocally({ type: "volume", value: playback.get().volume })?.catch(() => undefined);
+}
+
+/** Whether the music plays in this computer's player (Vitrine's own, or the one in Edge or Chrome). */
+export const playsHere = () => localActive;
 
 export async function toggleShuffle(): Promise<void> {
   const shuffle = !playback.get().shuffle;

@@ -169,7 +169,7 @@ export namespace SpotifySdk {
     shuffle: boolean;
     repeat_mode: 0 | 1 | 2;
     context: { uri: string | null };
-    track_window: { current_track: SdkTrack | null };
+    track_window: { current_track: SdkTrack | null; next_tracks?: SdkTrack[] };
   }
   interface Player {
     connect(): Promise<boolean>;

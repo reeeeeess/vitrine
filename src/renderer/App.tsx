@@ -11,6 +11,7 @@ import { NowPlayingBar, run } from "./components/NowPlayingBar";
 import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
+import { UpNext } from "./components/UpNext";
 import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
@@ -23,6 +24,7 @@ import * as engine from "./player/engine";
 import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
+import { connectLoop } from "./player/loop";
 import { connectOverlay } from "./player/overlayBridge";
 import { connectTrash } from "./player/trashBridge";
 import { connectDynamicAccent } from "./player/dynamicAccent";
@@ -64,6 +66,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectDynamicAccent(), []);
   useEffect(() => connectUpdates(), []);
   useEffect(() => connectHistory(), []);
+  useEffect(() => connectLoop(), []);
   useEffect(() => connectOverlay(), []);
   useEffect(() => connectTrash(), []);
 
@@ -183,6 +186,7 @@ export function App() {
         <Login status={auth} drm={drm} onLoggedIn={setAuth} />
       )}
       <Toasts />
+      <UpNext />
     </MotionConfig>
   );
 }

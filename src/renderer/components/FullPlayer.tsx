@@ -1,16 +1,72 @@
 import { motion } from "framer-motion";
-import { ChevronDown, ListPlus, Mic2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { artworkColor, rgbVar } from "../lib/palette";
-import { useStore } from "../lib/store";
+import { ChevronDown, Disc3, ListPlus, Mic2, Repeat, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+import { cn } from "../lib/cn";
+import { formatTime } from "../lib/format";
+import { EASE, SPRING } from "../lib/motion";
+import { createStore, useStore } from "../lib/store";
 import { navigate, ui } from "../lib/ui";
 import { playback } from "../player/engine";
+import { clearLoop, loop, loopChorus, markLoop } from "../player/loop";
 import { Artwork } from "./Artwork";
+import { Aurora } from "./Aurora";
+import { Marquee } from "./Marquee";
+import { Vinyl } from "./Vinyl";
 import { Lyrics } from "./Lyrics";
 import { LikeButton } from "./LikeButton";
 import { StoryButton } from "./StoryButton";
 import { trackMenu } from "./TrackMenu";
 import { ArtistLinks, DevicesButton, ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
+
+const VINYL_KEY = "vitrine.vinyl";
+const vinylMode = createStore({ on: readFlag(VINYL_KEY) });
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === "on";
+  } catch {
+    return false;
+  }
+}
+
+function setVinyl(on: boolean): void {
+  vinylMode.set({ on });
+  try {
+    localStorage.setItem(VINYL_KEY, on ? "on" : "off");
+  } catch {
+    // for this run only
+  }
+}
+
+/** A–B loop and the chorus on repeat (Loopy Loop, TikTok). */
+function LoopButtons() {
+  const uri = useStore(playback, (s) => s.track?.uri);
+  const current = useStore(loop, (s) => (s.current?.uri === uri ? s.current : null));
+  const chip = "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors";
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        onClick={markLoop}
+        className={cn(chip, current ? "border-red-500/60 bg-red-500/15 text-red-200" : "border-white/15 text-white/60 hover:text-white")}
+        title="Boucle A–B : un clic pose le début, un deuxième la fin, un troisième l'enlève"
+      >
+        <Repeat className="h-3.5 w-3.5" />
+        {!current ? "Boucle A–B" : current.bMs === undefined ? "A posé… cliquez à la fin" : `Boucle ${formatTime(current.aMs)}–${formatTime(current.bMs)}`}
+      </button>
+      {!current && (
+        <button onClick={loopChorus} className={cn(chip, "border-white/15 text-white/60 hover:text-white")} title="20 secondes du refrain, en boucle">
+          <Sparkles className="h-3.5 w-3.5" />
+          Refrain en boucle
+        </button>
+      )}
+      {current && (
+        <button onClick={clearLoop} className={cn(chip, "border-white/15 text-white/60 hover:text-white")}>
+          Arrêter la boucle
+        </button>
+      )}
+    </div>
+  );
+}
 
 /** The immersive player: giant artwork, a backdrop of its colours, and synced lyrics. */
 export function FullPlayer() {
@@ -19,11 +75,8 @@ export function FullPlayer() {
   // under a 90 px blur, 64 px of image are as good as 640 and weigh a hundredth
   const backdrop = track?.thumb ?? track?.image;
   const device = useStore(playback, (s) => s.device);
-  const [color, setColor] = useState("220 38 38");
-
-  useEffect(() => {
-    void artworkColor(art).then((rgb) => setColor(rgbVar(rgb)));
-  }, [art]);
+  const paused = useStore(playback, (s) => s.paused);
+  const vinyl = useStore(vinylMode, (s) => s.on);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -41,13 +94,10 @@ export function FullPlayer() {
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
-      transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+      transition={SPRING}
     >
-      {backdrop && (
-        <img src={backdrop} alt="" aria-hidden="true" className="fx-blur absolute inset-[-10%] h-[120%] w-[120%] animate-slow-pan object-cover opacity-50 blur-[90px]" />
-      )}
-      <div className="absolute inset-0" style={{ background: `radial-gradient(70% 90% at 25% 40%, rgb(${color} / 0.5), transparent 70%)` }} />
-      <div className="absolute inset-0 bg-black/45" />
+      {/* a living backdrop of the artwork's colours (Apple Music) */}
+      <Aurora thumb={backdrop} art={art} dim={0.45} />
 
       <div className="drag absolute inset-x-0 top-0 z-10 flex h-16 items-center justify-center">
         <button
@@ -63,13 +113,26 @@ export function FullPlayer() {
         <div className="flex min-h-0 flex-col items-center justify-center">
           {track ? (
             <>
-              <motion.div key={track.uri} initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }} className="w-[min(52vh,100%)]">
-                <Artwork src={art} className="rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.6)] ring-1 ring-white/10" />
+              <motion.div key={track.uri} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="w-[min(52vh,100%)]">
+                {vinyl ? (
+                  <Vinyl src={art} paused={paused} />
+                ) : (
+                  // the artwork steps back on pause and comes forward again with a little bounce (Apple Music)
+                  <motion.div
+                    animate={{ scale: paused ? 0.84 : 1 }}
+                    transition={SPRING}
+                    className={cn("overflow-hidden rounded-3xl ring-1 ring-white/10 transition-shadow duration-500", paused ? "shadow-[0_12px_30px_rgba(0,0,0,0.45)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.6)]")}
+                  >
+                    <div className="kenburns">
+                      <Artwork src={art} className="rounded-none" />
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
               <div className="mt-8 w-[min(52vh,100%)]">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="min-w-0 truncate font-display text-3xl tracking-tight" onContextMenu={(event) => trackMenu(event, track)}>
-                    {track.name}
+                  <h2 className="min-w-0 font-display text-3xl tracking-tight" onContextMenu={(event) => trackMenu(event, track)}>
+                    <Marquee text={track.name} />
                   </h2>
                   <div className="flex shrink-0 items-center">
                     <button
@@ -88,6 +151,15 @@ export function FullPlayer() {
                     >
                       <Mic2 className="h-6 w-6" />
                     </button>
+                    <button
+                      onClick={() => setVinyl(!vinyl)}
+                      className={cn("rounded-full p-2 transition-colors", vinyl ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-white")}
+                      aria-label="Mode vinyle"
+                      aria-pressed={vinyl}
+                      title="Mode vinyle"
+                    >
+                      <Disc3 className="h-6 w-6" />
+                    </button>
                     <StoryButton track={track} />
                     <LikeButton track={track} size="h-6 w-6" />
                   </div>
@@ -99,6 +171,7 @@ export function FullPlayer() {
                   </button>
                 )}
                 <ProgressBar className="mt-6" />
+                <LoopButtons />
                 <div className="mt-4">
                   <TransportControls large />
                 </div>

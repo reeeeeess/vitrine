@@ -20,17 +20,17 @@ ou des données déjà chargées en vient.
 
 ## Étape 2 — Le lecteur
 
-- [ ] A1 La pochette recule à la pause, revient avec un petit rebond
-- [ ] A3 Fond vivant aux couleurs de la pochette (aurore du karaoké)
-- [ ] A4 Barre de progression qui s'épaissit, un seul déplacement au relâchement, temps restant au clic
-- [ ] A5 Titre trop long qui défile
-- [ ] A6 Balayer la barre du bas (pavé tactile ou souris) pour changer de titre
-- [ ] A7 Pochette qui glisse lentement (Ken Burns)
-- [ ] T10 Mode vinyle (disque qui tourne, bras de lecture)
-- [ ] T6 Boucle A–B et « refrain en boucle »
-- [ ] P4 « Ensuite » : le titre suivant annoncé 10 s avant la fin
-- [ ] E3 Minuteur de sommeil : fondu de 30 s avant la pause
-- [ ] H4 Une seule définition de ressort pour ce qui s'ouvre
+- [x] A1 La pochette recule à la pause, revient avec un petit rebond
+- [x] A3 Fond vivant aux couleurs de la pochette (aurore du karaoké)
+- [x] A4 Barre de progression qui s'épaissit, un seul déplacement au relâchement, temps restant au clic
+- [x] A5 Titre trop long qui défile
+- [x] A6 Balayer la barre du bas (pavé tactile ou souris) pour changer de titre
+- [x] A7 Pochette qui glisse lentement (Ken Burns)
+- [x] T10 Mode vinyle (disque qui tourne, bras de lecture)
+- [x] T6 Boucle A–B et « refrain en boucle »
+- [x] P4 « Ensuite » : le titre suivant annoncé 10 s avant la fin
+- [x] E3 Minuteur de sommeil : fondu de 30 s avant la pause
+- [x] H4 Une seule définition de ressort pour ce qui s'ouvre
 
 ## Étape 3 — Bibliothèque, pages, recherche
 

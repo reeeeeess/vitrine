@@ -114,6 +114,43 @@
     0% { transform: translate(0, 0) scale(1); }
     100% { transform: translate(9%, 7%) scale(1.15); }
   }
+  /* a title too long glides to its end and back (Apple Music) */
+  .marquee {
+    animation: marquee 10s ease-in-out infinite;
+  }
+  .marquee-box:hover .marquee {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    0%, 12% { transform: translateX(0); }
+    50%, 62% { transform: translateX(var(--shift)); }
+    100% { transform: translateX(0); }
+  }
+  /* the vinyl mode: 33⅓ rpm */
+  .vinyl {
+    animation: vinylspin 1.8s linear infinite;
+  }
+  @keyframes vinylspin {
+    to { transform: rotate(360deg); }
+  }
+  /* the artwork drifting slowly in the player (Ken Burns) */
+  .kenburns {
+    animation: kenburns 30s ease-in-out infinite alternate;
+  }
+  @keyframes kenburns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.08) translate(-2%, 1.5%); }
+  }
+  html.no-transitions .marquee,
+  html.no-transitions .vinyl,
+  html.no-transitions .kenburns {
+    animation: none !important;
+  }
+  /* the progress bar thickens while held (Apple Music) */
+  .range.range-held {
+    height: 8px;
+    --fill: rgb(var(--c-red-500));
+  }
   /* the lyrics' dots during a silence (Apple Music) */
   @keyframes breathe {
     0%, 100% { transform: scale(1); }
