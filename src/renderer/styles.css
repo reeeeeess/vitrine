@@ -194,6 +194,17 @@
   ::selection {
     background: rgb(220 38 38 / 0.5);
   }
+  /* the window's own buttons, drawn over the page: minimise, maximise, close on the right (Windows,
+     Linux), the three lights on the left (macOS). Full-screen views keep that corner free. */
+  :root {
+    --wc-left: 0px;
+    --wc-right: 9.5rem;
+    --wc-height: 4rem;
+  }
+  :root[data-platform="darwin"] {
+    --wc-left: 5.5rem;
+    --wc-right: 0px;
+  }
   /* the window is dragged by the header; everything clickable in it opts out */
   .drag {
     -webkit-app-region: drag;

@@ -77,7 +77,8 @@ describe("library order and recent additions (C2, C3)", () => {
 describe("plays and last play in Liked Songs (C4)", () => {
   it("counts plays of 30 s or more, and keeps the latest", () => {
     const stats = trackStats([play({}), play({ at: "2026-10-21T08:00:00.000Z" }), play({ playedMs: 10_000, at: "2026-10-22T08:00:00.000Z" })]);
-    expect(stats["spotify:track:t1"]).toEqual({ plays: 2, last: "2026-10-21T08:00:00.000Z" });
+    expect(stats["spotify:track:t1"]).toMatchObject({ plays: 2, last: "2026-10-21T08:00:00.000Z" });
+    expect(stats["spotify:track:t1"].first! <= stats["spotify:track:t1"].last).toBe(true);
   });
 
   it("sorts by plays, by last play, or the never played first", () => {

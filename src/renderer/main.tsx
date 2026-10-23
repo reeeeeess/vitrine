@@ -16,6 +16,9 @@ import { LyricsOverlay } from "./views/LyricsOverlay";
 
 applyTheme();
 applyLite();
+// the window's own buttons sit over the page (titleBarOverlay, electron/main.ts): styles.css keeps their
+// corner free with --wc-left and --wc-right
+document.documentElement.dataset.platform = window.vitrine?.platform ?? "";
 
 // the same page serves the lyrics overlay window (electron/overlay.ts), opened on #overlay
 createRoot(document.getElementById("root")!).render(<StrictMode>{location.hash === "#overlay" ? <LyricsOverlay /> : <App />}</StrictMode>);

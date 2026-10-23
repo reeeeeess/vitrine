@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Captions, ListMusic, SlidersHorizontal, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
+import { Captions, ListMusic, PanelRight, SlidersHorizontal, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
 import { SPRING } from "../lib/motion";
@@ -20,6 +20,7 @@ import { Marquee } from "./Marquee";
 import { SleepTimerButton } from "./SleepTimerButton";
 import { trackMenu } from "./TrackMenu";
 import { overlay, toggleOverlay } from "../player/overlayBridge";
+import { toggleNowPanel, useNowPanel } from "./NowPanel";
 
 /** Runs a playback command and shows what went wrong, if anything did. */
 export function run(command: () => Promise<unknown>): void {
@@ -247,6 +248,24 @@ function QueueButton() {
   );
 }
 
+/** The "À l'écoute" panel on the right (Spotify's Now Playing view). */
+function NowPanelButton() {
+  const open = useNowPanel();
+  const hasTrack = useStore(playback, (s) => Boolean(s.track));
+  return (
+    <button
+      className={cn("rounded-full p-2 transition-colors disabled:opacity-40", open ? "text-red-500" : "text-gray-400 hover:text-white")}
+      onClick={toggleNowPanel}
+      disabled={!hasTrack}
+      aria-label="Panneau À l'écoute"
+      aria-pressed={open}
+      title="À l'écoute : pochette, paroles, la suite, vos écoutes"
+    >
+      <PanelRight className="h-4 w-4" />
+    </button>
+  );
+}
+
 let lastSwipe: SwipeDirection = "next";
 
 export function NowPlayingBar() {
@@ -303,6 +322,7 @@ export function NowPlayingBar() {
           <Mic2 className="h-4 w-4" />
         </button>
         <OverlayButton />
+        <NowPanelButton />
         <QueueButton />
         <SleepTimerButton />
         <button className="rounded-full p-2 text-gray-400 transition-colors hover:text-white" onClick={openEqualizer} aria-label="Égaliseur" title="Égaliseur (sortie son de Windows)">

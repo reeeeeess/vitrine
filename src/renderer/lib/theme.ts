@@ -25,7 +25,27 @@ function savedDynamic(): boolean {
   }
 }
 
-export const theme = createStore({ current: saved(), dynamic: savedDynamic() });
+const AMBIANCE_KEY = "vitrine.ambiance";
+
+/** the artwork playing, blurred, behind the whole app (Spicetify's Hazy and Glowify): on unless turned off */
+function savedAmbiance(): boolean {
+  try {
+    return localStorage.getItem(AMBIANCE_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+export const theme = createStore({ current: saved(), dynamic: savedDynamic(), ambiance: savedAmbiance() });
+
+export function setAmbiance(on: boolean): void {
+  theme.set({ ambiance: on });
+  try {
+    localStorage.setItem(AMBIANCE_KEY, on ? "1" : "0");
+  } catch {
+    // for this session only
+  }
+}
 
 let fontsRequested = false;
 async function loadMysticFonts(): Promise<void> {

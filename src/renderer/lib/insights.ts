@@ -11,16 +11,22 @@ export interface TrackStat {
   plays: number;
   /** the last play, ISO */
   last: string;
+  /** the first play, ISO (the "À l'écoute" panel) */
+  first?: string;
+  /** time listened in all, ms */
+  ms?: number;
 }
 
-/** Plays and last play of each track (by uri), counted when heard for 30 s or more. */
+/** Plays, first and last play, and time listened of each track (by uri), counted when heard for 30 s or more. */
 export function trackStats(plays: HistoryPlay[]): Record<string, TrackStat> {
   const stats: Record<string, TrackStat> = {};
   for (const play of plays) {
     if (play.playedMs < 30_000) continue;
-    const stat = (stats[play.uri] ??= { plays: 0, last: play.at });
+    const stat = (stats[play.uri] ??= { plays: 0, last: play.at, first: play.at, ms: 0 });
     stat.plays += 1;
+    stat.ms = (stat.ms ?? 0) + play.playedMs;
     if (play.at > stat.last) stat.last = play.at;
+    if (play.at < (stat.first ?? play.at)) stat.first = play.at;
   }
   return stats;
 }

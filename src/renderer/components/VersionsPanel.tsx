@@ -42,7 +42,7 @@ export function VersionsPanel() {
   if (!track) return null;
   return (
     <motion.div className="fixed inset-0 z-[72] flex justify-end bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onMouseDown={(event) => event.target === event.currentTarget && close()}>
-      <motion.aside className="glass flex h-full w-[440px] flex-col rounded-l-3xl p-6" initial={{ x: 60 }} animate={{ x: 0 }} transition={SPRING}>
+      <motion.aside className="glass flex h-full w-[440px] flex-col rounded-l-3xl p-6 pt-[calc(var(--wc-height)+0.5rem)]" initial={{ x: 60 }} animate={{ x: 0 }} transition={SPRING}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <span className="kicker flex items-center gap-1.5 font-mono font-medium text-red-400">

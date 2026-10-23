@@ -7,7 +7,8 @@ import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
 import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
-import { setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
+import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
+import { nowPanel, setNowPanel } from "../components/NowPanel";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
@@ -350,6 +351,8 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
   usePageTitle(title, "Réglages");
   const current = useStore(theme, (s) => s.current);
   const dynamic = useStore(theme, (s) => s.dynamic);
+  const ambiance = useStore(theme, (s) => s.ambiance);
+  const panel = useStore(nowPanel, (s) => s.setting);
   const sdk = useStore(playback, (s) => s.sdk);
   const sdkMessage = useStore(playback, (s) => s.sdkMessage);
   const [info, setInfo] = useState<AppInfo>();
@@ -388,6 +391,23 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         </div>
         <Line label="Couleurs de la pochette" hint="L'accent du thème prend la couleur de la pochette du titre en cours.">
           <Switch on={dynamic} onChange={setDynamicAccent} label="Couleurs de la pochette" />
+        </Line>
+        <Line label="Ambiance de la pochette" hint="La pochette en cours, floutée, en fond de toute l'appli (comme les thèmes Hazy et Glowify de Spicetify). Masquée en mode léger.">
+          <Switch on={ambiance} onChange={setAmbiance} label="Ambiance de la pochette" />
+        </Line>
+        <Line label="Panneau « À l'écoute »" hint="À droite : la pochette, les paroles en direct, la suite, vos écoutes, vos moments, l'artiste. « Auto » l'ouvre sur un écran vertical ou très large.">
+          <div className="flex gap-1 rounded-full border border-white/10 p-1">
+            {(["auto", "on", "off"] as const).map((value) => (
+              <button
+                key={value}
+                onClick={() => setNowPanel(value)}
+                aria-pressed={panel === value}
+                className={cn("rounded-full px-3 py-1 text-xs font-medium transition-colors", panel === value ? "bg-white/15 text-white" : "text-gray-400 hover:text-white")}
+              >
+                {value === "auto" ? "Auto" : value === "on" ? "Toujours" : "Jamais"}
+              </button>
+            ))}
+          </div>
         </Line>
       </Section>
 

@@ -50,15 +50,25 @@ export function RomanizeToggle({ lines, className }: { lines: LyricLine[]; class
   );
 }
 
-/** One word, filling from left to right while it is sung, and rising a little once reached. */
+/** the word's light, from a dim colour to white across a soft edge (as Apple Music's) */
+const WORD_FILL = "linear-gradient(90deg, #fff 45%, rgb(255 255 255 / 0.38) 55%)";
+
+/** where the soft edge sits for a word sung this far: wholly dim at 0, wholly lit at 1 (image 2.5× the word) */
+export const fillPosition = (amount: number) => `${(91.67 - 83.34 * amount).toFixed(2)}% 0`;
+
+/**
+ * One word, filling from left to right while it is sung, and rising a little once reached. Before and after,
+ * it is a plain colour: a gradient at rest left a thin white line on the word's edge (seen on Windows).
+ */
 function Word({ text, amount }: { text: string; amount: number }) {
+  const singing = amount > 0 && amount < 1;
   return (
     <span
-      className="inline-block bg-clip-text text-transparent transition-[background-position,transform] duration-300 ease-linear will-change-transform"
+      className={cn("inline-block transition-[background-position,transform,color] duration-300 ease-linear will-change-transform", singing ? "bg-clip-text text-transparent" : amount >= 1 ? "text-white" : "text-white/[0.38]")}
       style={{
-        backgroundImage: "linear-gradient(90deg, #fff 50%, rgb(255 255 255 / 0.38) 50%)",
-        backgroundSize: "200% 100%",
-        backgroundPosition: `${100 - amount * 100}% 0`,
+        backgroundImage: singing ? WORD_FILL : undefined,
+        backgroundSize: "250% 100%",
+        backgroundPosition: fillPosition(amount),
         transform: amount > 0 ? "translateY(-0.04em)" : undefined,
       }}
     >

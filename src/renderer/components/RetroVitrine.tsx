@@ -95,7 +95,7 @@ export function RetroVitrine({ name }: { name?: string }) {
     <motion.div className="fixed inset-0 z-[66] overflow-hidden" style={{ background }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="fx-grain pointer-events-none absolute inset-[-50%] opacity-[0.07]" aria-hidden="true" />
       {/* the story's progress bars */}
-      <div className="absolute inset-x-10 top-6 z-10 flex gap-1.5">
+      <div className="absolute left-[max(2.5rem,var(--wc-left))] right-[calc(var(--wc-right)+1rem)] top-6 z-10 flex gap-1.5">
         {slides.map((slide, i) => (
           <div key={slide.key} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
             {i < index && <div className="h-full w-full rounded-full bg-white" />}
@@ -111,7 +111,7 @@ export function RetroVitrine({ name }: { name?: string }) {
           </div>
         ))}
       </div>
-      <button onClick={close} className="absolute right-8 top-12 z-20 rounded-full border border-white/25 p-2.5 text-white/80 hover:bg-white/10 hover:text-white" aria-label="Fermer Rétro Vitrine">
+      <button onClick={close} className="absolute right-8 top-[calc(var(--wc-height)+0.75rem)] z-20 rounded-full border border-white/25 p-2.5 text-white/80 hover:bg-white/10 hover:text-white" aria-label="Fermer Rétro Vitrine">
         <X className="h-5 w-5" />
       </button>
       {/* tap left or right to go back or on, hold to pause */}

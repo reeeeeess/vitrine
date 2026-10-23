@@ -373,6 +373,24 @@ export async function artist(id: string): Promise<{ artist: Artist; topTracks: T
   return { artist: mapped, topTracks, releases };
 }
 
+const artistCards = new Map<string, Promise<Artist>>();
+
+/** An artist's picture and genres, asked once per run (the "À l'écoute" panel shows it for each new artist). */
+export function artistCard(id: string): Promise<Artist> {
+  let pending = artistCards.get(id);
+  if (!pending) {
+    pending = request(`/artists/${encodeURIComponent(id)}`).then((raw) => {
+      const mapped = mapArtist(raw);
+      if (!mapped) throw new SpotifyApiError(404, "Artiste introuvable");
+      return mapped;
+    });
+    // a failure (a Spotify pause) is asked again later, not remembered
+    pending.catch(() => artistCards.delete(id));
+    artistCards.set(id, pending);
+  }
+  return pending;
+}
+
 /** An artist's releases of one kind (or albums and singles), newest first, 10 at most in development mode. */
 export async function artistReleases(id: string, groups = "album,single"): Promise<Collection[]> {
   const page = await request<{ items?: Json[] }>(`/artists/${encodeURIComponent(id)}/albums?include_groups=${groups}&limit=10`);

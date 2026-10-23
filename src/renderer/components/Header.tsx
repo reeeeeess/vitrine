@@ -40,11 +40,11 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(next)}
-      className="kicker flex items-center gap-2 rounded-btn border border-white/10 px-3 py-2 text-gray-400 transition-colors hover:border-red-500/60 hover:text-white"
+      className="kicker flex shrink-0 items-center gap-2 rounded-btn border border-white/10 px-3 py-2 text-gray-400 transition-colors hover:border-red-500/60 hover:text-white"
       title={`Passer au thème ${next === "mystic" ? "Mystic" : "Movix"}`}
     >
       <Palette className="h-4 w-4" />
-      {current === "mystic" ? "Mystic" : "Movix"}
+      <span className="hidden xl:inline">{current === "mystic" ? "Mystic" : "Movix"}</span>
     </button>
   );
 }
@@ -61,7 +61,7 @@ function CollapsedTitle() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
-          className="max-w-[12rem] shrink-0 truncate font-display text-lg tracking-tight"
+          className="hidden max-w-[12rem] shrink-0 truncate font-display text-lg tracking-tight xl:block"
         >
           {text}
         </motion.span>
@@ -169,7 +169,7 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
   return (
     <header
       className={cn(
-        "drag fixed inset-x-0 top-0 z-40 flex h-16 items-center gap-6 transition-all duration-300",
+        "drag fixed inset-x-0 top-0 z-40 flex h-16 items-center gap-3 transition-all duration-300 xl:gap-6",
         platform === "darwin" ? "pl-24" : "pl-6",
         platform === "darwin" ? "pr-6" : "pr-40",
         scrolled ? "border-b border-white/5 bg-black/80 backdrop-blur-xl" : "bg-gradient-to-b from-black/90 to-transparent",
@@ -179,7 +179,7 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
         <Logo />
       </button>
 
-      <nav className="flex items-center gap-1">
+      <nav className="flex shrink-0 items-center gap-1">
         {LINKS.map(({ label, route: target, icon: Icon }) => {
           const active = route.name === target.name;
           return (
@@ -190,9 +190,12 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
                 "flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                 active ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white",
               )}
+              title={label}
+              aria-label={label}
             >
               <Icon className="h-4 w-4" />
-              {label}
+              {/* a narrow window (a second screen on its side) keeps the icons only */}
+              <span className="hidden xl:inline">{label}</span>
             </button>
           );
         })}
@@ -200,7 +203,7 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
 
       <CollapsedTitle />
 
-      <div className="relative ml-auto w-[20rem] min-w-0">
+      <div className="relative ml-auto w-[20rem] min-w-[10rem] shrink">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <input
           ref={input}
@@ -229,7 +232,7 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
       <ThemeToggle />
       <button
         onClick={() => navigate({ name: "settings" })}
-        className={cn("rounded-lg p-2 transition-colors", route.name === "settings" ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
+        className={cn("shrink-0 rounded-lg p-2 transition-colors", route.name === "settings" ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
         aria-label="Réglages"
         title="Réglages"
       >

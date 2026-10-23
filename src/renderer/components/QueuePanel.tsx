@@ -31,7 +31,7 @@ export function QueuePanel() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
       transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-      className="fixed bottom-[112px] right-4 top-20 z-30 flex w-[360px] flex-col rounded-3xl border border-white/10 bg-panel/95 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl"
+      className="fixed bottom-[112px] right-4 top-20 z-[31] flex w-[360px] flex-col rounded-3xl border border-white/10 bg-panel/95 p-4 shadow-2xl shadow-black/60 backdrop-blur-xl"
       aria-label="File d'attente"
     >
       <header className="flex items-center justify-between px-2 pb-3">

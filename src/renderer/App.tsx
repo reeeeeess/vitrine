@@ -7,6 +7,8 @@ import { Roulette } from "./components/Roulette";
 import { ScreenSaver } from "./components/ScreenSaver";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { Header } from "./components/Header";
+import { Ambiance } from "./components/Ambiance";
+import { NowPanel, PANEL_ROOM, useNowPanel } from "./components/NowPanel";
 import { NowPlayingBar, run } from "./components/NowPlayingBar";
 import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
@@ -65,6 +67,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const routeKey = `${route.name}-${"id" in route ? route.id : ""}`;
   const [profile, setProfile] = useState<api.Profile>();
   const [scrolled, setScrolled] = useState(false);
+  const panel = useNowPanel();
 
   useEffect(() => {
     api.me().then(setProfile, () => undefined);
@@ -164,14 +167,18 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   if (mini) return <MiniPlayer />;
 
   return (
-    <div className="relative h-full">
+    // isolate: the ambiance sits under the page, above the window's own background
+    <div className="relative isolate h-full">
+      <Ambiance />
       <Header profile={profile} scrolled={scrolled || route.name === "flow"} onLogout={onLogout} />
       {/* Flow takes the whole height between the header and the player bar, and scrolls on its own */}
       {route.name === "flow" ? (
         view
       ) : (
       <main
-        className="main scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24"
+        className="main scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24 transition-[margin] duration-300"
+        // the "À l'écoute" panel takes the right of the window; the page and its scrollbar stop before it
+        style={{ marginRight: panel ? PANEL_ROOM : 0 }}
         onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}
         onClick={() => ui.get().devicesOpen && ui.set({ devicesOpen: false })}
       >
@@ -189,6 +196,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
         </AnimatePresence>
       </main>
       )}
+      <NowPanel />
       <NowPlayingBar />
       <AnimatePresence>{queueOpen && <QueuePanel />}</AnimatePresence>
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
