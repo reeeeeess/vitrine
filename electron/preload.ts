@@ -41,6 +41,11 @@ const api = {
   },
   info: () => ipcRenderer.invoke("app:info"),
   launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
+  equalizer: {
+    get: () => ipcRenderer.invoke("eq:get"),
+    set: (settings: unknown) => ipcRenderer.invoke("eq:set", settings),
+    openEditor: () => ipcRenderer.invoke("eq:open"),
+  },
   pins: {
     get: () => ipcRenderer.invoke("pins:get"),
     set: (pins: unknown) => ipcRenderer.invoke("pins:set", pins),

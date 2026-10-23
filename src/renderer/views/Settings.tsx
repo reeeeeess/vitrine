@@ -1,4 +1,5 @@
-import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw, Trash2 } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw, SlidersHorizontal, Trash2 } from "lucide-react";
+import { openEqualizer } from "../components/EqualizerPanel";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePageTitle } from "../lib/pageTitle";
 import type { AppInfo, DesktopSettings, DiscordInfo } from "../global";
@@ -402,6 +403,15 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
               Réessayer
             </button>
           )}
+        </Line>
+        <Line
+          label="Égaliseur"
+          hint="Dix bandes et des préréglages, appliqués à la sortie son de Windows par Equalizer APO (gratuit). Spotify ne laisse pas les applis modifier le son lui-même."
+        >
+          <button onClick={openEqualizer} className="btn-ghost min-h-0 shrink-0 px-4 py-2 text-sm">
+            <SlidersHorizontal className="h-4 w-4" />
+            Ouvrir
+          </button>
         </Line>
       </Section>
 

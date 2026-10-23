@@ -304,3 +304,26 @@
     width: 100%;
   }
 }
+
+/* the equalizer's vertical sliders (Chromium draws a range vertically with writing-mode) */
+.eq-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  cursor: pointer;
+}
+.eq-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgb(var(--c-white));
+  box-shadow: 0 0 0 4px rgb(var(--c-red-600) / 0.35), 0 4px 12px rgb(0 0 0 / 0.5);
+}
+.eq-slider:disabled {
+  cursor: default;
+}

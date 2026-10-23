@@ -14,6 +14,7 @@ import { Toasts } from "./components/Toasts";
 import { UpNext } from "./components/UpNext";
 import { ImagePreview } from "./components/ImagePreview";
 import { VersionsPanel } from "./components/VersionsPanel";
+import { EqualizerPanel } from "./components/EqualizerPanel";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
@@ -159,6 +160,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <AnimatePresence>{retroOpen && <RetroVitrine name={profile?.name} />}</AnimatePresence>
       <ImagePreview />
       <VersionsPanel />
+      <EqualizerPanel />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />

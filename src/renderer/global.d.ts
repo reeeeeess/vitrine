@@ -38,6 +38,11 @@ export interface VitrineBridge {
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
+  equalizer: {
+    get(): Promise<EqualizerStatus>;
+    set(settings: EqualizerSettings): Promise<EqualizerStatus>;
+    openEditor(): Promise<void>;
+  };
   pins: {
     get(): Promise<Pin[]>;
     set(pins: Pin[]): Promise<Pin[]>;
@@ -127,6 +132,20 @@ export interface HistoryPlay {
   playedMs: number;
   source?: "vitrine" | "spotify" | "import";
   device?: string;
+}
+
+export interface EqualizerSettings {
+  enabled: boolean;
+  preset: string;
+  gains: number[];
+}
+
+/** how the equalizer stands: Windows only, through Equalizer APO */
+export interface EqualizerStatus {
+  state: "unsupported" | "absent" | "needs-include" | "ready";
+  settings: EqualizerSettings;
+  includeLine?: string;
+  configPath?: string;
 }
 
 /** a playlist, album or artist pinned at the top of the library */

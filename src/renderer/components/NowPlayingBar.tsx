@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Captions, ListMusic, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
+import { Captions, ListMusic, SlidersHorizontal, Maximize2, Mic2, MonitorSpeaker, Pause, PictureInPicture2, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { cn } from "../lib/cn";
 import { SPRING } from "../lib/motion";
@@ -14,6 +14,7 @@ import { loop } from "../player/loop";
 import { useSwipe, type SwipeDirection } from "../player/useSwipe";
 import { Artwork } from "./Artwork";
 import { DevicesMenu } from "./DevicesMenu";
+import { openEqualizer } from "./EqualizerPanel";
 import { LikeButton } from "./LikeButton";
 import { Marquee } from "./Marquee";
 import { SleepTimerButton } from "./SleepTimerButton";
@@ -304,6 +305,9 @@ export function NowPlayingBar() {
         <OverlayButton />
         <QueueButton />
         <SleepTimerButton />
+        <button className="rounded-full p-2 text-gray-400 transition-colors hover:text-white" onClick={openEqualizer} aria-label="Égaliseur" title="Égaliseur (sortie son de Windows)">
+          <SlidersHorizontal className="h-4 w-4" />
+        </button>
         <button
           className="rounded-full p-2 text-gray-400 transition-colors hover:text-white"
           onClick={() => void setMini(true)}

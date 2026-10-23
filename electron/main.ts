@@ -28,6 +28,8 @@ import {
 import { formatListening } from "../src/renderer/lib/listening";
 import { fetchLyrics } from "./lyrics";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
+import fs from "node:fs";
+import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
 import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
 import { launchSpotify } from "./spotifyApp";
@@ -212,6 +214,18 @@ function handle(channel: string, listener: (...args: unknown[]) => unknown): voi
 }
 
 function registerIpc(): void {
+  handle("eq:get", () => applyEqualizer(cleanEqualizer(readConfig().equalizer ?? DEFAULT_EQUALIZER)));
+  handle("eq:set", (value) => {
+    const settings = cleanEqualizer(value);
+    updateConfig({ equalizer: settings });
+    return applyEqualizer(settings);
+  });
+  handle("eq:open", async () => {
+    // Equalizer APO's editor when it is installed, its download page otherwise
+    const { editor } = equalizerPaths();
+    if (process.platform === "win32" && fs.existsSync(editor)) return void (await shell.openPath(editor));
+    await shell.openExternal("https://sourceforge.net/projects/equalizerapo/");
+  });
   handle("pins:get", () => readConfig().pins ?? []);
   handle("pins:set", (value) => {
     const pins = cleanPins(value);

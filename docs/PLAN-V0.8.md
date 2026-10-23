@@ -65,7 +65,7 @@ ou des données déjà chargées en vient.
 
 ## Étape 6 — Égaliseur
 
-- [ ] K1 Égaliseur 10 bandes et préréglages, appliqué à la sortie de Windows par Equalizer APO
+- [x] K1 Égaliseur 10 bandes et préréglages, appliqué à la sortie de Windows par Equalizer APO
 
 ## Étape 7 — Idées maison
 
