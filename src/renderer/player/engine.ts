@@ -4,6 +4,7 @@
 //  - remote: whatever device is active (phone, the official app, a speaker) is driven through the
 //    Web API, and its state is polled.
 import type { SpotifySdk } from "../global";
+import { isRateLimited } from "../lib/apiGate";
 import * as api from "../lib/spotify";
 import { createStore } from "../lib/store";
 import { notify } from "../lib/ui";
@@ -11,7 +12,12 @@ import { pickImage, type Track } from "../lib/types";
 
 const SDK_URL = "https://sdk.scdn.co/spotify-player.js";
 const DEVICE_NAME = "Vitrine (cet ordinateur)";
-const POLL_MS = 2500;
+/** while this computer's player (the SDK, or the one in Edge or Chrome) reports what plays itself */
+const POLL_LOCAL_MS = 15_000;
+/** while another device plays */
+const POLL_PLAYING_MS = 5000;
+/** nothing playing, or paused */
+const POLL_IDLE_MS = 8000;
 
 export type Repeat = "off" | "context" | "track";
 
@@ -117,8 +123,29 @@ function applySdkState(state: SpotifySdk.State | null): void {
   }));
 }
 
+/**
+ * How long until Spotify is asked again what plays. Its requests are counted (Too many requests),
+ * so: rarely while this computer's player reports its own state, and only to notice another device
+ * taking over; often while another device plays, and right when its track should end; in between
+ * when nothing plays.
+ */
+export function pollDelay(state: Pick<PlaybackState, "track" | "paused" | "positionMs" | "durationMs" | "updatedAt">, local: boolean, now = Date.now()): number {
+  if (local) return POLL_LOCAL_MS;
+  if (!state.track || state.paused) return POLL_IDLE_MS;
+  const toEnd = (state.durationMs || Infinity) - currentPosition(state, now);
+  return Math.round(Math.min(POLL_PLAYING_MS, Math.max(1000, toEnd + 400)));
+}
+
+let pollTimer: ReturnType<typeof setTimeout> | undefined;
+
+function schedulePoll(delay = pollDelay(playback.get(), localActive)): void {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(() => void poll().finally(() => schedulePoll()), delay);
+}
+
 async function poll(): Promise<void> {
-  if (document.hidden) return;
+  // hidden, or Spotify asked to wait: asking anyway would only lengthen the wait
+  if (document.hidden || isRateLimited()) return;
   try {
     const remote = await api.playerState();
     const localId = playback.get().localDeviceId;
@@ -187,8 +214,7 @@ export async function startPlayback(widevine: boolean, reason: string): Promise<
   // React's strict mode runs effects twice in development; one player is enough
   if (started) return;
   started = true;
-  void poll();
-  setInterval(() => void poll(), POLL_MS);
+  void poll().finally(() => schedulePoll());
   watchBrowserPlayer();
   document.addEventListener("visibilitychange", () => !document.hidden && void poll());
 

@@ -64,8 +64,14 @@ export class RemoteControl {
     private readonly browser: () => BrowserPlayer | null,
   ) {}
 
+  /** Spotify's pause after too many requests: asking during it would only lengthen it */
+  private pausedUntil = 0;
+
   private async api(path: string, method = "GET"): Promise<Response> {
-    return net.fetch(`https://api.spotify.com/v1${path}`, { method, headers: { authorization: `Bearer ${await this.accessToken()}` } });
+    if (Date.now() < this.pausedUntil) throw new Error("Spotify demande d'attendre (trop de requêtes).");
+    const response = await net.fetch(`https://api.spotify.com/v1${path}`, { method, headers: { authorization: `Bearer ${await this.accessToken()}` } });
+    if (response.status === 429) this.pausedUntil = Date.now() + (Number(response.headers.get("retry-after")) || 30) * 1000;
+    return response;
   }
 
   /** the browser's player, when it is the one playing */

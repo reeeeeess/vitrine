@@ -357,9 +357,23 @@ app.on("activate", () => {
   if (app.isReady()) showWindow();
 });
 
+/**
+ * Spotify says how long to wait after too many requests (Retry-After) but does not let pages read
+ * that header: the page would retry blind, and keep Spotify's pause going. Expose it.
+ */
+function exposeRetryAfter(): void {
+  electron.session.defaultSession.webRequest.onHeadersReceived({ urls: ["https://api.spotify.com/*"] }, (details, callback) => {
+    const headers = { ...details.responseHeaders };
+    const key = Object.keys(headers).find((name) => name.toLowerCase() === "access-control-expose-headers");
+    headers[key ?? "Access-Control-Expose-Headers"] = [[...(key ? headers[key] : []), "Retry-After"].join(", ")];
+    callback({ responseHeaders: headers });
+  });
+}
+
 void app.whenReady().then(async () => {
   registerIpc();
   if (!DEV_SERVER_URL) serveRenderer();
+  exposeRetryAfter();
   // test machines without a keychain: keep the session with Chromium's fixed key (Linux, opt-in only)
   if (process.platform === "linux" && process.env.VITRINE_DEV_PLAINTEXT_SESSION === "1") {
     (electron.safeStorage as unknown as { setUsePlainTextEncryption?: (on: boolean) => void }).setUsePlainTextEncryption?.(true);

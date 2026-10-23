@@ -204,6 +204,13 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
 - **Sprint 8 (fait, v0.7.0)** : étude Movix / Mystic Saba (docs/INSPIRATION-MOVIX-MYSTIC.md), mémoire allégée (mode
   léger, page libérée quand cachée, Edge allégé, images à la bonne taille), logo [Vitrine], Top 10, titres numérotés,
   transitions, grain, paroles karaoké, carte 3 lignes, roulette, écran de veille
+- **v0.7.1 (correctif)** : « Too many requests » vu sous Windows dans la Bibliothèque. Causes : Vitrine ne pouvait pas
+  lire le délai demandé par Spotify (en-tête Retry-After masqué aux pages) et réessayait au bout d'une seconde, pendant
+  que l'état du lecteur était redemandé toutes les 2,5 s. Correctif : délai lu et respecté par toute l'appli (plus
+  aucune demande pendant la pause, reprise automatique des pages, message en français avec l'heure de reprise), 4
+  demandes à la fois au plus, lectures identiques partagées pendant 1 min, état du lecteur demandé toutes les 15 s
+  quand ce PC joue (il le dit lui-même), 5 s quand un autre appareil joue, 8 s à l'arrêt ; étude Apple Music
+  (docs/INSPIRATION-APPLE-MUSIC.md)
 - **Sprint 9 (prochain, v0.8.0)** : « Rétro Vitrine » (votre année en diapositives, façon Wrapped de Movix), dock
   flottant façon Musix (option du thème Mystic), calendrier des sorties de vos artistes, intro au lancement, thème
   « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; tests de bout en bout dans la CI
@@ -432,6 +439,7 @@ champs genres / popularité / abonnés des artistes.
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
 | Historique de tout le compte : Spotify ne montre aux applis que les 50 dernières écoutes | Vitrine fermée longtemps : les écoutes au-delà de 50 manquent | Lancement avec la session dans la zone de notification (réglage existant) ; import de l'export Spotify complet pour combler |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`, titres d'artiste par la recherche), Flow bâti uniquement sur des points d'accès ouverts, vérification en réel à chaque version, suivi du changelog Spotify |
+| Limite de requêtes Spotify (« Too many requests », plus basse en mode développement, comptée sur 30 s pour toute l'appli) | Pages vides, commandes refusées ; la pause peut durer des heures si l'appli insiste | v0.7.1 : délai Retry-After respecté partout, aucune demande pendant la pause, sondage adaptatif, lectures partagées ; les tests automatiques sur compte réel partagent ce quota : les espacer |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |

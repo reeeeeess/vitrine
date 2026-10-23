@@ -1,4 +1,5 @@
 // Spotify's official Web API, with the access token the main process hands out.
+import { Gate, pauseLength, pauseMessage, pauseUntil, rateLimit, ShortCache } from "./apiGate";
 import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, songKey, uniqueById, type Artist, type Collection, type Track } from "./types";
 
 const BASE = "https://api.spotify.com/v1";
@@ -17,24 +18,65 @@ type TimeRange = "short_term" | "medium_term" | "long_term";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function request<T = Json>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
-  const token = await window.vitrine.auth.token();
-  const response = await fetch(path.startsWith("https://") ? path : BASE + path, {
-    ...init,
-    headers: {
-      authorization: `Bearer ${token}`,
-      ...(init.body ? { "content-type": "application/json" } : {}),
-      ...init.headers,
-    },
-  });
-  if (retry && response.status === 429) {
-    await sleep(Math.min(Number(response.headers.get("retry-after") ?? "1"), 10) * 1000);
-    return request<T>(path, init, false);
+/** a pause Spotify asks for up to this long is waited out quietly; a longer one fails at once, and says why */
+const QUIET_WAIT_MS = 20_000;
+const TRIES_AFTER_429 = 3;
+const gate = new Gate(4);
+/** readings of the library, artists, albums…: not what plays, which must stay live */
+const readings = new ShortCache(60_000);
+let strikes = 0;
+
+function request<T = Json>(path: string, init: RequestInit = {}): Promise<T> {
+  const url = path.startsWith("https://") ? path : BASE + path;
+  if ((init.method ?? "GET").toUpperCase() !== "GET") {
+    // a change (a like, a playlist…) makes the readings stale
+    readings.clear();
+    return send<T>(url, init).finally(() => readings.clear());
   }
-  if (retry && response.status === 401) {
-    await window.vitrine.auth.token(true);
-    return request<T>(path, init, false);
+  if (url.startsWith(`${BASE}/me/player`)) return send<T>(url, init);
+  return readings.get(url, () => send<T>(url, init));
+}
+
+async function waitOutPause(): Promise<void> {
+  const { until } = rateLimit.get();
+  const left = until - Date.now();
+  if (left <= 0) return;
+  if (left > QUIET_WAIT_MS) throw new SpotifyApiError(429, pauseMessage(until));
+  await sleep(left);
+}
+
+async function send<T>(url: string, init: RequestInit): Promise<T> {
+  let refreshed = false;
+  for (let tries = 0; ; tries++) {
+    await waitOutPause();
+    const response = await gate.run(async () => {
+      const token = await window.vitrine.auth.token();
+      return fetch(url, {
+        ...init,
+        headers: {
+          authorization: `Bearer ${token}`,
+          ...(init.body ? { "content-type": "application/json" } : {}),
+          ...init.headers,
+        },
+      });
+    });
+    if (response.status === 429) {
+      const until = Date.now() + pauseLength(response.headers.get("retry-after"), strikes++);
+      pauseUntil(until);
+      if (tries < TRIES_AFTER_429) continue;
+      throw new SpotifyApiError(429, pauseMessage(until));
+    }
+    strikes = 0;
+    if (response.status === 401 && !refreshed) {
+      refreshed = true;
+      await window.vitrine.auth.token(true);
+      continue;
+    }
+    return read<T>(response);
   }
+}
+
+async function read<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let message = response.statusText || `Erreur ${response.status}`;
     try {
