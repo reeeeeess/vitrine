@@ -84,6 +84,9 @@
         }
       ],
       "category": "public.app-category.music",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Vitrine utilise le micro pour le karaoké : votre voix, avec écho ou réverbération, dans les enceintes."
+      },
       "icon": "build/icon.png",
       "identity": null,
       "artifactName": "Vitrine-${version}-${arch}.${ext}"

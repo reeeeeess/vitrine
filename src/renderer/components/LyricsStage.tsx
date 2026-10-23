@@ -1,45 +1,43 @@
 import { motion } from "framer-motion";
-import { Loader2, MicOff, X } from "lucide-react";
+import { Users, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { cn } from "../lib/cn";
-import { useStore } from "../lib/store";
+import { createStore, useStore } from "../lib/store";
 import { ui } from "../lib/ui";
 import { playback } from "../player/engine";
 import { usePosition } from "../player/hooks";
-import { karaoke, lyricsSource, startKaraoke, stopKaraoke } from "../player/karaoke";
+import { karaoke, lyricsSource } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
 import { Artwork } from "./Artwork";
 import { SPRING } from "../lib/motion";
 import { nowPanel } from "./NowPanel";
 import { Aurora } from "./Aurora";
-import { ProgressBar, run, TransportControls, VolumeControl } from "./NowPlayingBar";
-import { RomanizeToggle, StagedLyrics } from "./StagedLyrics";
+import { ProgressBar, TransportControls, VolumeControl } from "./NowPlayingBar";
+import { PlainLyrics, RomanizeToggle, StagedLyrics } from "./StagedLyrics";
+import { LyricsMenu } from "./LyricsMenu";
+import { MicButton, VoiceSlider } from "./SingControls";
+import { stopMic } from "../player/microphone";
+
+/** karaoke for two: the lines go left and right in turn (Apple Music Sing's duet view) */
+export const duet = createStore({ on: false });
+
+function DuetToggle() {
+  const on = useStore(duet, (s) => s.on);
+  return (
+    <button
+      onClick={() => duet.set({ on: !on })}
+      className={cn("flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors", on ? "border-white/40 bg-white/15 text-white" : "border-white/20 text-white/70 hover:text-white")}
+      aria-pressed={on}
+      title="Chanter à deux : une ligne chacun, à gauche puis à droite (quand le fichier ne dit pas qui chante)"
+    >
+      <Users className="h-3.5 w-3.5" />
+      Duo
+    </button>
+  );
+}
 
 /** the voice comes a little before the note: lines light up that much ahead */
 const LEAD_MS = 250;
-
-/** Karaoke without the voice: the official instrumental, at the same moment, the original's lyrics. */
-function KaraokeButton() {
-  const current = useStore(karaoke, (s) => s.current);
-  const searching = useStore(karaoke, (s) => s.searching);
-  return (
-    <div className="flex items-center gap-2">
-      {current?.approximate && <span className="rounded-full border border-amber-300/40 px-2.5 py-1 text-[11px] text-amber-200">synchro approximative</span>}
-      <button
-        onClick={() => run(current ? stopKaraoke : startKaraoke)}
-        disabled={searching}
-        className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
-          current ? "border-red-400/60 bg-red-500/25 text-white" : "border-white/20 text-white/70 hover:text-white",
-        )}
-        title={current ? "Remettre la version avec la voix, au même moment" : "Jouer la version instrumentale officielle, au même moment, et chanter sur les paroles"}
-      >
-        {searching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MicOff className="h-3.5 w-3.5" />}
-        {current ? "Remettre la voix" : "Karaoké sans la voix"}
-      </button>
-    </div>
-  );
-}
 
 /**
  * The lyrics screen, after Apple Music and Spicy Lyrics: the artwork, the title and the bar on the left,
@@ -59,21 +57,27 @@ export function LyricsStage() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && !ui.get().playlistDialog && ui.set({ lyricsStage: false });
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      // the microphone does not stay open once the lyrics are closed
+      stopMic();
+    };
   }, []);
 
-  const plain = useMemo(() => (state.status === "done" && !state.result?.synced ? state.result?.plain ?? null : null), [state]);
+  const plain = useMemo(() => (state.status === "done" && !state.result?.synced && !state.result?.lines?.length ? (state.result?.plain ?? null) : null), [state]);
 
   const portrait = useStore(nowPanel, (s) => s.height > s.width * 1.05 || s.width < 1000);
+  const alternate = useStore(duet, (s) => s.on);
+  const durationMs = useStore(playback, (s) => s.durationMs);
   const paused = useStore(playback, (s) => s.paused);
 
   const lyrics = (lineClassName: string, anchor: number) => (
     <>
       {state.status === "loading" && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Recherche des paroles…</p>}
       {state.status === "done" && state.result?.instrumental && <p className="pt-[18vh] text-5xl font-extrabold text-white/60">♪ Instrumental ♪</p>}
-      {lines.length > 0 && <StagedLyrics lines={lines} position={position + LEAD_MS} anchor={anchor} lineClassName={lineClassName} />}
-      {plain && <p className="scrollbar-hide h-full overflow-y-auto whitespace-pre-line pt-[18vh] text-3xl font-bold leading-snug text-white/80">{plain}</p>}
-      {state.status === "done" && !state.result?.synced && !plain && !state.result?.instrumental && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Pas de paroles pour ce titre.</p>}
+      {lines.length > 0 && <StagedLyrics lines={lines} position={position + LEAD_MS} anchor={anchor} lineClassName={lineClassName} alternate={alternate} />}
+      {plain && <PlainLyrics text={plain} position={position} durationMs={durationMs} className="py-[18vh] text-3xl font-bold leading-snug text-white/80" />}
+      {state.status === "done" && lines.length === 0 && !plain && !state.result?.instrumental && <p className="pt-[18vh] text-4xl font-extrabold text-white/40">Pas de paroles pour ce titre.</p>}
     </>
   );
 
@@ -98,7 +102,10 @@ export function LyricsStage() {
       {/* the buttons, left of the window's own */}
       <div className="drag absolute inset-x-0 top-0 z-10 flex h-16 items-center justify-end gap-3 pl-[max(2.5rem,var(--wc-left))] pr-[calc(var(--wc-right)+1rem)]">
         <div className="no-drag flex items-center gap-3">
-          <KaraokeButton />
+          {track && <LyricsMenu track={track} state={state} />}
+          <VoiceSlider />
+          <MicButton />
+          {lines.length > 0 && <DuetToggle />}
           <RomanizeToggle lines={lines} />
           <button onClick={() => ui.set({ lyricsStage: false })} className="no-drag rounded-full border border-white/25 p-2.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white" aria-label="Fermer les paroles">
             <X className="h-5 w-5" />

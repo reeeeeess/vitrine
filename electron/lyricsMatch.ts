@@ -13,6 +13,12 @@ export interface LyricsResult {
   synced: string | null;
   plain: string | null;
   instrumental: boolean;
+  /** word by word, with the duets and backing vocals (TTML) */
+  lines?: import("./lyricsProviders").TimedLine[];
+  /** where these lyrics come from */
+  source?: import("./lyricsProviders").LyricsSource;
+  /** every source that has the song, best first, to pick another */
+  sources?: { source: import("./lyricsProviders").LyricsSource; kind: import("./lyricsProviders").LyricsKind }[];
 }
 
 /** a record further than this from the track's length is another version of the song */

@@ -19,7 +19,8 @@ import { Artwork } from "./Artwork";
 import { LikeButton } from "./LikeButton";
 import { Marquee } from "./Marquee";
 import { ArtistLinks, run } from "./NowPlayingBar";
-import { StagedLyrics } from "./StagedLyrics";
+import { PlainLyrics, StagedLyrics } from "./StagedLyrics";
+import { SOURCE_NAMES } from "../lib/lyricsPrefs";
 import { shareStory } from "./StoryButton";
 import { openVersions } from "./VersionsPanel";
 
@@ -101,7 +102,9 @@ const iconButton = "rounded-full border border-white/15 p-1.5 text-white/75 tran
 function LyricsCard({ track, tint }: { track: Track; tint: string }) {
   const { state, lines } = useLyrics(track);
   const position = usePosition();
-  const plain = state.status === "done" && !state.result?.synced ? state.result?.plain : null;
+  const plain = state.status === "done" && lines.length === 0 ? state.result?.plain : null;
+  const durationMs = useStore(playback, (s) => s.durationMs);
+  const source = state.status === "done" ? state.result?.source : undefined;
   return (
     <Card
       title="Paroles"
@@ -124,12 +127,15 @@ function LyricsCard({ track, tint }: { track: Track; tint: string }) {
           <StagedLyrics lines={lines} position={position + 250} anchor={0.3} lineClassName="text-[22px] font-extrabold leading-[1.15] tracking-tight" />
         </div>
       ) : plain ? (
-        <p className="scrollbar-hide max-h-[230px] overflow-y-auto whitespace-pre-line text-lg font-bold leading-snug text-white/85">{plain}</p>
+        <div className="h-[230px]">
+          <PlainLyrics text={plain} position={position} durationMs={durationMs} className="text-lg font-bold leading-snug text-white/85" />
+        </div>
       ) : (
         <p className="py-6 text-center text-sm text-white/60">
           {state.status === "loading" ? "Recherche des paroles…" : state.status === "done" && state.result?.instrumental ? "♪ Instrumental ♪" : "Pas de paroles pour ce titre."}
         </p>
       )}
+      {source && <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">Paroles : {SOURCE_NAMES[source]}</p>}
     </Card>
   );
 }

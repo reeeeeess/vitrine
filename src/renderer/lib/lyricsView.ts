@@ -16,11 +16,27 @@ export interface SungWord {
   text: string;
   startMs: number;
   endMs: number;
+  /** no space before the next word (a syllable) */
+  glue?: boolean;
 }
 
 export type LyricEntry =
-  | { kind: "line"; timeMs: number; endMs: number; main: string; backing: string; words: SungWord[] }
+  | {
+      kind: "line";
+      timeMs: number;
+      endMs: number;
+      main: string;
+      backing: string;
+      words: SungWord[];
+      /** the backing vocals' own times, when the file has them (TTML) */
+      backingWords?: SungWord[];
+      /** a second voice of a duet, on the right */
+      side?: "right";
+    }
   | { kind: "gap"; timeMs: number; endMs: number };
+
+const sungWords = (words: NonNullable<LyricLine["words"]>, lineEnd: number): SungWord[] =>
+  words.map((word, index) => ({ text: word.text, startMs: word.timeMs, endMs: word.endMs ?? words[index + 1]?.timeMs ?? lineEnd, ...(word.glue ? { glue: true } : {}) }));
 
 /** parentheses that are part of the title or the credits, not backing vocals */
 const NOT_BACKING = /^(feat|ft|prod|remix|live|version|intro|outro|refrain|chorus|x\d)/i;
@@ -71,10 +87,25 @@ export function wordTimes(line: LyricLine, text: string, endMs: number): SungWor
 /** The lines as staged: backing vocals apart, words timed, and the silences of 5 s or more as dots. */
 export function stageLyrics(lines: LyricLine[]): LyricEntry[] {
   const entries: LyricEntry[] = [];
-  const sung = lines.filter((line) => line.text.trim());
+  const sung = lines.filter((line) => line.text.trim() || line.backing?.text);
   if (sung.length && sung[0].timeMs >= INTRO_MS) entries.push({ kind: "gap", timeMs: 0, endMs: sung[0].timeMs });
   sung.forEach((line, index) => {
     const nextMs = sung[index + 1]?.timeMs;
+    // TTML gives each word its end, who sings and the backing vocals: taken as they are
+    if (line.endMs !== undefined && line.words?.length) {
+      entries.push({
+        kind: "line",
+        timeMs: line.timeMs,
+        endMs: line.endMs,
+        main: line.text,
+        backing: line.backing?.text ?? "",
+        words: sungWords(line.words, line.endMs),
+        ...(line.backing ? { backingWords: sungWords(line.backing.words, line.endMs) } : {}),
+        ...(line.side ? { side: line.side } : {}),
+      });
+      if (nextMs !== undefined && nextMs - line.endMs >= GAP_MS) entries.push({ kind: "gap", timeMs: line.endMs, endMs: nextMs });
+      return;
+    }
     const { main, backing } = splitBacking(line.text);
     const endMs = line.timeMs + sungLength(line, nextMs);
     entries.push({ kind: "line", timeMs: line.timeMs, endMs, main, backing, words: wordTimes(line, main || backing, endMs) });

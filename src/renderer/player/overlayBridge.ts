@@ -1,6 +1,7 @@
 // Feeds the lyrics overlay (electron/overlay.ts) while it is open: the line being sung and the next
-// one, worked out here from LRCLIB's synced lyrics and the playback position.
-import { activeLineIndex, parseLrc, type LyricLine } from "../lib/lrc";
+// one, worked out here from the synced lyrics and the playback position.
+import { activeLineIndex, type LyricLine } from "../lib/lrc";
+import { lyricsQuery, prefsOf, timedLines } from "../lib/lyricsPrefs";
 import { createStore } from "../lib/store";
 import { currentPosition, playback } from "./engine";
 
@@ -24,9 +25,9 @@ export function connectOverlay(): () => void {
     if (lyrics?.uri !== track.uri && loading !== track.uri) {
       loading = track.uri;
       void window.vitrine.lyrics
-        .get({ track: track.name, artist: track.artists[0] ?? "", album: track.albumName, durationMs: track.durationMs })
+        .get(lyricsQuery(track))
         .then(
-          (result) => (lyrics = { uri: track.uri, lines: result?.synced ? parseLrc(result.synced) : [] }),
+          (result) => (lyrics = { uri: track.uri, lines: timedLines(result, prefsOf(track.uri).offsetMs) }),
           () => (lyrics = { uri: track.uri, lines: [] }),
         )
         .finally(() => (loading = ""));

@@ -2,7 +2,8 @@ import { Loader2, Share2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
-import { activeLineIndex, parseLrc } from "../lib/lrc";
+import { activeLineIndex } from "../lib/lrc";
+import { lyricsQuery, prefsOf, timedLines } from "../lib/lyricsPrefs";
 import { saveBlob } from "../lib/recap";
 import { renderStory, storyFileName } from "../lib/story";
 import type { Track } from "../lib/types";
@@ -13,10 +14,8 @@ import { currentPosition, playback } from "../player/engine";
 async function lyricNow(track: Track): Promise<string | undefined> {
   const state = playback.get();
   if (state.track?.uri !== track.uri) return undefined;
-  const result = await window.vitrine.lyrics
-    .get({ track: track.name, artist: track.artists[0] ?? "", album: track.albumName, durationMs: track.durationMs })
-    .catch(() => null);
-  const lines = result?.synced ? parseLrc(result.synced) : [];
+  const result = await window.vitrine.lyrics.get(lyricsQuery(track)).catch(() => null);
+  const lines = timedLines(result, prefsOf(track.uri).offsetMs);
   return lines[activeLineIndex(lines, currentPosition(state) + 250)]?.text;
 }
 

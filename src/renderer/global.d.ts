@@ -10,10 +10,18 @@ export interface DrmStatus {
   detail: string;
 }
 
+export type LyricsSource = "amll" | "lrclib" | "netease" | "lyricsovh";
+export type LyricsKind = "word" | "synced" | "instrumental" | "plain";
+
 export interface LyricsResult {
   synced: string | null;
   plain: string | null;
   instrumental: boolean;
+  /** word by word, with the duets and backing vocals (TTML) */
+  lines?: import("./lib/lrc").LyricLine[];
+  source?: LyricsSource;
+  /** every source that has the song, best first */
+  sources?: { source: LyricsSource; kind: LyricsKind }[];
 }
 
 export interface VitrineBridge {
@@ -25,7 +33,10 @@ export interface VitrineBridge {
     token(force?: boolean): Promise<string>;
   };
   drm: { status(): Promise<DrmStatus> };
-  lyrics: { get(query: { track: string; artist: string; album?: string; durationMs?: number }): Promise<LyricsResult | null> };
+  lyrics: {
+    get(query: { track: string; artist: string; album?: string; durationMs?: number; spotifyId?: string; source?: LyricsSource; netease?: boolean }): Promise<LyricsResult | null>;
+    clear(): Promise<void>;
+  };
   openExternal(url: string): Promise<void>;
   copy(text: string): Promise<void>;
   overlay: {

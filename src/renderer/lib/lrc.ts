@@ -4,13 +4,37 @@
 export interface LyricWord {
   timeMs: number;
   text: string;
+  /** when the word ends (TTML) */
+  endMs?: number;
+  /** no space before the next word: a syllable, or a character in Chinese or Japanese (TTML) */
+  glue?: boolean;
 }
 
 export interface LyricLine {
   timeMs: number;
   text: string;
-  /** when the file times each word (enhanced LRC) */
+  /** when the file times each word (enhanced LRC, TTML) */
   words?: LyricWord[];
+  /** when the line ends (TTML) */
+  endMs?: number;
+  /** a second voice of a duet, on the right (TTML) */
+  side?: "right";
+  /** backing vocals timed apart (TTML) */
+  backing?: { text: string; words: LyricWord[] };
+}
+
+/** Every time moved by `offsetMs` (positive: the lyrics come later), as the person set it for the song. */
+export function shiftLines(lines: LyricLine[], offsetMs: number): LyricLine[] {
+  if (!offsetMs) return lines;
+  const move = (ms: number) => Math.max(0, ms + offsetMs);
+  const words = (list: LyricWord[]) => list.map((word) => ({ ...word, timeMs: move(word.timeMs), ...(word.endMs !== undefined ? { endMs: move(word.endMs) } : {}) }));
+  return lines.map((line) => ({
+    ...line,
+    timeMs: move(line.timeMs),
+    ...(line.endMs !== undefined ? { endMs: move(line.endMs) } : {}),
+    ...(line.words ? { words: words(line.words) } : {}),
+    ...(line.backing ? { backing: { ...line.backing, words: words(line.backing.words) } } : {}),
+  }));
 }
 
 const TIMESTAMP = /\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;

@@ -3,7 +3,8 @@ import { useStore } from "../lib/store";
 import { usePosition } from "../player/hooks";
 import { karaoke, lyricsSource } from "../player/karaoke";
 import { useLyrics } from "../player/useLyrics";
-import { RomanizeToggle, StagedLyrics } from "./StagedLyrics";
+import { PlainLyrics, RomanizeToggle, StagedLyrics } from "./StagedLyrics";
+import { playback } from "../player/engine";
 
 /** lines light up a little ahead, as the singer breathes in */
 const LEAD_MS = 250;
@@ -13,6 +14,7 @@ export function Lyrics({ track: playing }: { track: Track }) {
   const source = lyricsSource(playing, useStore(karaoke, (s) => s.current));
   const { state, lines } = useLyrics(source.track);
   const position = source.toLyrics(usePosition());
+  const durationMs = useStore(playback, (s) => s.durationMs);
 
   if (state.status === "loading") {
     return <p className="text-2xl font-bold text-white/40">Recherche des paroles…</p>;
@@ -27,15 +29,7 @@ export function Lyrics({ track: playing }: { track: Track }) {
   }
 
   if (lines.length === 0) {
-    return (
-      <div className="scrollbar-hide h-full overflow-y-auto pb-[40vh] pt-[10vh]">
-        {result.plain!.split("\n").map((line, index) => (
-          <p key={index} className="py-1.5 text-2xl font-bold leading-snug text-white/80">
-            {line || " "}
-          </p>
-        ))}
-      </div>
-    );
+    return <PlainLyrics text={result.plain ?? ""} position={position} durationMs={durationMs} className="py-[10vh] text-2xl font-bold leading-[1.6] text-white/80" />;
   }
 
   return (

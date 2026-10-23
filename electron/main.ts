@@ -26,7 +26,7 @@ import {
   weekToTell,
 } from "./history";
 import { formatListening } from "../src/renderer/lib/listening";
-import { fetchLyrics } from "./lyrics";
+import { clearLyricsCache, fetchLyrics } from "./lyrics";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
 import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
@@ -250,6 +250,7 @@ function registerIpc(): void {
   handle("auth:token", (force) => auth.accessToken(force === true));
   handle("drm:status", () => drm);
   handle("lyrics:get", (query) => fetchLyrics(query));
+  handle("lyrics:clear", () => clearLyricsCache());
   handle("shell:open", (url) => {
     // web pages, and the Spotify app on a track, album, artist or playlist
     if (typeof url === "string" && (url.startsWith("https://") || /^spotify:(track|album|artist|playlist):[A-Za-z0-9]{1,40}$/.test(url))) return shell.openExternal(url);

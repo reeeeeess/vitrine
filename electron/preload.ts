@@ -15,6 +15,7 @@ const api = {
   },
   lyrics: {
     get: (query: unknown) => ipcRenderer.invoke("lyrics:get", query),
+    clear: () => ipcRenderer.invoke("lyrics:clear"),
   },
   openExternal: (url: string) => ipcRenderer.invoke("shell:open", url),
   copy: (text: string) => ipcRenderer.invoke("clipboard:write", text),

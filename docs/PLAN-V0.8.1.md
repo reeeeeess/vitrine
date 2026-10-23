@@ -35,20 +35,20 @@ comme pour le lecteur web de Spotify (refusé au même titre).
 
 ## Étape 3 — Les paroles de toutes les sources
 
-- [ ] AMLL TTML DB (mot à mot, duo, chœurs) par identifiant Spotify, LRCLIB, NetEase (synchronisées), lyrics.ovh (texte)
-- [ ] La meilleure d'abord : mot à mot > synchronisées > texte ; crédits « 作词 / 作曲 » retirés
-- [ ] Choix de la source dans l'écran des paroles, retenu par titre ; « Ce ne sont pas les bonnes paroles »
-- [ ] Décalage réglable (± 0,25 s) retenu par titre
-- [ ] Cache sur le disque (moins de demandes, paroles disponibles hors ligne)
-- [ ] Paroles non synchronisées qui défilent avec la chanson
+- [x] AMLL TTML DB (mot à mot, duo, chœurs) par identifiant Spotify, LRCLIB, NetEase (synchronisées), lyrics.ovh (texte)
+- [x] La meilleure d'abord : mot à mot > synchronisées > texte ; crédits « 作词 / 作曲 » retirés
+- [x] Choix de la source dans l'écran des paroles, retenu par titre ; « Ce ne sont pas les bonnes paroles »
+- [x] Décalage réglable (± 0,25 s) retenu par titre
+- [x] Cache sur le disque (moins de demandes, paroles disponibles hors ligne)
+- [x] Paroles non synchronisées qui défilent avec la chanson
 
 ## Étape 4 — Le karaoké façon Apple Music Sing
 
-- [ ] Lignes qui glissent avec un ressort décalé (la vague d'Apple Music)
-- [ ] Mots tenus qui grossissent et brillent
-- [ ] Vue duo : le deuxième chanteur à droite (TTML), ou « chacun son tour » quand on chante à deux
-- [ ] Curseur « Voix » façon Apple : version originale ou instrumentale officielle, au même instant
-- [ ] Le micro du PC : votre voix avec écho ou réverbération (salle, studio, stade), niveau affiché
+- [x] Lignes qui glissent avec un ressort décalé (la vague d'Apple Music)
+- [x] Mots tenus qui grossissent et brillent
+- [x] Vue duo : le deuxième chanteur à droite (TTML), ou « chacun son tour » quand on chante à deux
+- [x] Curseur « Voix » façon Apple : version originale ou instrumentale officielle, au même instant
+- [x] Le micro du PC : votre voix avec écho ou réverbération (salle, studio, stade), niveau affiché
 
 ## Étape 5 — TikTok
 

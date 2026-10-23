@@ -9,6 +9,7 @@ import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
 import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
 import { nowPanel, setNowPanel } from "../components/NowPanel";
+import { lyricsPrefs, setNetease } from "../lib/lyricsPrefs";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
@@ -346,6 +347,35 @@ function HistorySettings() {
   );
 }
 
+/**
+ * Where the lyrics come from: AMLL TTML DB (word by word), LRCLIB, NetEase (not an official API, so the
+ * person may leave it out) and lyrics.ovh; and the copy kept on this computer.
+ */
+function LyricsSettingsLines() {
+  const netease = useStore(lyricsPrefs, (s) => s.netease);
+  const [cleared, setCleared] = useState(false);
+  return (
+    <>
+      <p className="text-xs text-gray-400">
+        Vitrine cherche les paroles chez AMLL TTML DB (mot à mot, duos), LRCLIB, NetEase et lyrics.ovh, et garde la meilleure. Dans l'écran des paroles, « Paroles : … » change de source ou décale
+        la synchro pour un titre.
+      </p>
+      <Line label="NetEase" hint="Beaucoup de paroles synchronisées, rap français compris, mais ce n'est pas une API officielle : son moteur de recherche public est interrogé avec le titre et l'artiste.">
+        <Switch on={netease} onChange={setNetease} label="NetEase" />
+      </Line>
+      <Line label="Paroles gardées sur cet ordinateur" hint="Chaque titre n'est cherché qu'une fois, et ses paroles restent disponibles hors ligne.">
+        <button
+          className="btn-ghost min-h-0 px-3 py-1.5 text-xs"
+          disabled={cleared}
+          onClick={() => void window.vitrine.lyrics.clear().then(() => setCleared(true), () => undefined)}
+        >
+          {cleared ? "Vidé" : "Vider"}
+        </button>
+      </Line>
+    </>
+  );
+}
+
 export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: () => void }) {
   const title = useRef<HTMLHeadingElement>(null);
   usePageTitle(title, "Réglages");
@@ -409,6 +439,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
             ))}
           </div>
         </Line>
+      </Section>
+
+      <Section title="Paroles">
+        <LyricsSettingsLines />
       </Section>
 
       <Section title="Performance">
