@@ -1,5 +1,5 @@
 import { Play } from "lucide-react";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { artworkColor, rgbVar } from "../lib/palette";
 import { Artwork } from "./Artwork";
@@ -14,10 +14,11 @@ interface MediaCardProps {
   index?: number;
   onOpen?: () => void;
   onPlay?: () => void;
+  onContextMenu?: (event: MouseEvent) => void;
 }
 
 /** A square artwork card that takes on the artwork's colour when hovered. */
-export function MediaCard({ title, subtitle, image, cover, round, index = 0, onOpen, onPlay }: MediaCardProps) {
+export function MediaCard({ title, subtitle, image, cover, round, index = 0, onOpen, onPlay, onContextMenu }: MediaCardProps) {
   const [color, setColor] = useState<string>();
   const warm = () => {
     if (!color) void artworkColor(image).then((rgb) => setColor(rgbVar(rgb)));
@@ -28,6 +29,7 @@ export function MediaCard({ title, subtitle, image, cover, round, index = 0, onO
       style={{ ...(color ? { "--media-color": color } : {}), animationDelay: `${Math.min(index, 12) * 35}ms` } as CSSProperties}
       onMouseEnter={warm}
       onFocus={warm}
+      onContextMenu={onContextMenu}
     >
       <div className="media-surface rounded-2xl border border-transparent p-2.5 transition-colors duration-200">
         <div className="relative cursor-pointer overflow-hidden rounded-lg" onClick={onOpen}>

@@ -34,16 +34,16 @@ ou des données déjà chargées en vient.
 
 ## Étape 3 — Bibliothèque, pages, recherche
 
-- [ ] C1 Épingles (clic droit), rangée en tête de Bibliothèque et d'Accueil, liste de raccourcis Windows, menu de la zone
+- [x] C1 Épingles (clic droit), rangée en tête de Bibliothèque et d'Accueil, liste de raccourcis Windows, menu de la zone
       de notification
-- [ ] C2 « Ajoutés récemment »
-- [ ] C3 Tri de la bibliothèque, grille ou liste
-- [ ] C4 Colonnes « Lectures » et « Dernière écoute » dans Titres likés (historique local)
-- [ ] D1 Page d'album : pied de page (sortie, titres, durée, ©/℗) et « Plus de cet artiste »
-- [ ] D2 Page d'artiste : grand bouton aléatoire, dernière sortie, Albums / Singles et EP / Apparitions
-- [ ] D3 Recherche : recherches récentes, « Dans ma bibliothèque »
-- [ ] H1 Grands titres qui se replient dans l'en-tête
-- [ ] P5 « Accès rapide » en tête de l'Accueil (le plus écouté selon l'historique)
+- [x] C2 « Ajoutés récemment »
+- [x] C3 Tri de la bibliothèque, grille ou liste
+- [x] C4 Colonnes « Lectures » et « Dernière écoute » dans Titres likés (historique local)
+- [x] D1 Page d'album : pied de page (sortie, titres, durée, ©/℗) et « Plus de cet artiste »
+- [x] D2 Page d'artiste : grand bouton aléatoire, dernière sortie, Albums / Singles et EP / Apparitions
+- [x] D3 Recherche : recherches récentes, « Dans ma bibliothèque »
+- [x] H1 Grands titres qui se replient dans l'en-tête
+- [x] P5 « Accès rapide » en tête de l'Accueil (le plus écouté selon l'historique)
 
 ## Étape 4 — Bilans et partage
 

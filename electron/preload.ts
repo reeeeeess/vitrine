@@ -41,6 +41,10 @@ const api = {
   },
   info: () => ipcRenderer.invoke("app:info"),
   launchSpotify: () => ipcRenderer.invoke("spotify:launch"),
+  pins: {
+    get: () => ipcRenderer.invoke("pins:get"),
+    set: (pins: unknown) => ipcRenderer.invoke("pins:set", pins),
+  },
   desktop: {
     get: () => ipcRenderer.invoke("desktop:get"),
     set: (settings: unknown) => ipcRenderer.invoke("desktop:set", settings),
@@ -56,6 +60,7 @@ const api = {
     add: (play: unknown) => ipcRenderer.invoke("history:add", play),
     extend: (at: string, playedMs: number) => ipcRenderer.invoke("history:extend", at, playedMs),
     summary: (query: unknown) => ipcRenderer.invoke("history:summary", query),
+    insight: (kind: string) => ipcRenderer.invoke("history:insight", kind),
     info: () => ipcRenderer.invoke("history:info"),
     sync: () => ipcRenderer.invoke("history:sync"),
     import: () => ipcRenderer.invoke("history:import"),

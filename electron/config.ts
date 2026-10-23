@@ -17,6 +17,16 @@ export interface DesktopSettings {
   globalShortcuts: boolean;
   /** the page closes after a minute in the tray, when the music does not play in it */
   freeWhenHidden: boolean;
+  /** Monday's recap of the week and the milestones, as notifications */
+  recaps: boolean;
+}
+
+/** a playlist, album or artist pinned at the top of the library (Apple Music, iOS 26) */
+export interface Pin {
+  uri: string;
+  name: string;
+  image?: string;
+  kind: "playlist" | "album" | "artist";
 }
 
 export interface Config {
@@ -25,6 +35,10 @@ export interface Config {
   desktop?: Partial<DesktopSettings>;
   /** `after` and `lastSync`: where the reading of Spotify's "recently played" got to, epoch ms */
   history?: { enabled: boolean; after?: number; lastSync?: number };
+  pins?: Pin[];
+  /** the milestones already said (I3), and the last week whose recap was given (T8) */
+  milestones?: string[];
+  weekTold?: string;
 }
 
 const file = () => path.join(app.getPath("userData"), "config.json");

@@ -27,28 +27,47 @@ interface MenuState {
   context: MenuContext;
 }
 
-const menu = createStore<{ open: MenuState | null }>({ open: null });
+/** a menu for something other than a track: a playlist, an album, an artist */
+interface CustomMenu {
+  x: number;
+  y: number;
+  title: string;
+  groups: Item[][];
+}
 
-/** Opens the menu of a track where the mouse is (or under the element, from the keyboard). */
-export function trackMenu(event: ReactMouseEvent | MouseEvent, track: Track, context: MenuContext = {}): void {
-  if (!track.uri.startsWith("spotify:track:")) return;
-  event.preventDefault();
-  event.stopPropagation();
+const menu = createStore<{ open: MenuState | null; custom: CustomMenu | null }>({ open: null, custom: null });
+
+function where(event: ReactMouseEvent | MouseEvent): { x: number; y: number } {
   let { clientX: x, clientY: y } = event;
   if (x === 0 && y === 0 && event.currentTarget instanceof Element) {
     const box = event.currentTarget.getBoundingClientRect();
     x = box.left + 24;
     y = box.bottom;
   }
-  menu.set({ open: { x, y, track, context } });
+  return { x, y };
 }
 
-const close = () => menu.set({ open: null });
+/** Opens a menu of the given actions where the mouse is (right click on a playlist, an album, an artist). */
+export function openMenu(event: ReactMouseEvent | MouseEvent, title: string, groups: Item[][]): void {
+  event.preventDefault();
+  event.stopPropagation();
+  menu.set({ open: null, custom: { ...where(event), title, groups: groups.filter((group) => group.length > 0) } });
+}
+
+/** Opens the menu of a track where the mouse is (or under the element, from the keyboard). */
+export function trackMenu(event: ReactMouseEvent | MouseEvent, track: Track, context: MenuContext = {}): void {
+  if (!track.uri.startsWith("spotify:track:")) return;
+  event.preventDefault();
+  event.stopPropagation();
+  menu.set({ open: { ...where(event), track, context }, custom: null });
+}
+
+const close = () => menu.set({ open: null, custom: null });
 
 const trackId = (track: Track) => track.uri.split(":")[2] ?? track.id;
 export const trackLink = (track: Track) => `https://open.spotify.com/track/${trackId(track)}`;
 
-interface Item {
+export interface Item {
   label: string;
   icon: LucideIcon;
   run: () => unknown;
@@ -152,8 +171,13 @@ function useItems(state: MenuState): Item[][] {
   ].filter((group) => group.length > 0);
 }
 
-function MenuPanel({ state }: { state: MenuState }) {
+function TrackMenuPanel({ state }: { state: MenuState }) {
   const groups = useItems(state);
+  return <MenuPanel x={state.x} y={state.y} title={`${state.track.name} · ${state.track.artists.join(", ")}`} groups={groups} />;
+}
+
+function MenuPanel({ x, y, title, groups }: { x: number; y: number; title: string; groups: Item[][] }) {
+  const state = { x, y };
   const panel = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: state.x, top: state.y });
 
@@ -165,7 +189,7 @@ function MenuPanel({ state }: { state: MenuState }) {
     const top = state.y + box.height > window.innerHeight - 8 ? Math.max(8, window.innerHeight - box.height - 8) : state.y;
     setPosition({ left, top });
     panel.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
-  }, [state, groups.length]);
+  }, [x, y, groups.length]);
 
   const onKey = (event: React.KeyboardEvent) => {
     const items = [...(panel.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [])];
@@ -184,7 +208,7 @@ function MenuPanel({ state }: { state: MenuState }) {
     <motion.div
       ref={panel}
       role="menu"
-      aria-label={`Actions pour ${state.track.name}`}
+      aria-label={`Actions pour ${title}`}
       onKeyDown={onKey}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -193,9 +217,7 @@ function MenuPanel({ state }: { state: MenuState }) {
       style={position}
       className="glass fixed z-[70] w-80 origin-top-left rounded-2xl p-1.5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
     >
-      <div className="truncate px-3 pb-1.5 pt-1 text-xs text-gray-400">
-        {state.track.name} · {state.track.artists.join(", ")}
-      </div>
+      <div className="truncate px-3 pb-1.5 pt-1 text-xs text-gray-400">{title}</div>
       {groups.map((group, g) => (
         <div key={g} className={cn(g > 0 && "mt-1 border-t border-white/10 pt-1")}>
           {group.map((item) => (
@@ -224,8 +246,9 @@ function MenuPanel({ state }: { state: MenuState }) {
 /** Mounted once, at the root: shows the menu a right click opened. */
 export function TrackMenuHost() {
   const open = useStore(menu, (s) => s.open);
+  const custom = useStore(menu, (s) => s.custom);
   useEffect(() => {
-    if (!open) return;
+    if (!open && !custom) return;
     const onScroll = () => close();
     window.addEventListener("resize", close);
     window.addEventListener("blur", close);
@@ -235,10 +258,10 @@ export function TrackMenuHost() {
       window.removeEventListener("blur", close);
       document.removeEventListener("scroll", onScroll, true);
     };
-  }, [open]);
+  }, [open, custom]);
   return (
     <AnimatePresence>
-      {open && (
+      {(open || custom) && (
         <div
           className="fixed inset-0 z-[69]"
           onMouseDown={(event) => event.target === event.currentTarget && close()}
@@ -247,7 +270,8 @@ export function TrackMenuHost() {
             close();
           }}
         >
-          <MenuPanel key={`${open.track.uri}-${open.x}-${open.y}`} state={open} />
+          {open && <TrackMenuPanel key={`${open.track.uri}-${open.x}-${open.y}`} state={open} />}
+          {custom && <MenuPanel key={`${custom.title}-${custom.x}-${custom.y}`} x={custom.x} y={custom.y} title={custom.title} groups={custom.groups} />}
         </div>
       )}
     </AnimatePresence>

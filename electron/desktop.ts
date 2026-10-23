@@ -5,7 +5,7 @@
 import { app, BrowserWindow, globalShortcut, Menu, nativeImage, net, Notification, Tray, type NativeImage } from "electron";
 import path from "node:path";
 import { GLOBAL_SHORTCUTS, type DesktopCommand } from "./cli";
-import { readConfig, updateConfig, type DesktopSettings } from "./config";
+import { readConfig, updateConfig, type DesktopSettings, type Pin } from "./config";
 
 export type { DesktopSettings };
 
@@ -18,7 +18,7 @@ export interface DesktopNowPlaying {
   holdsAudio?: boolean;
 }
 
-const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false, globalShortcuts: true, freeWhenHidden: true };
+const DEFAULTS: DesktopSettings = { closeToTray: true, notifications: false, openAtLogin: false, globalShortcuts: true, freeWhenHidden: true, recaps: true };
 /** passed when Windows or macOS starts Vitrine with the session: it opens straight into the tray */
 export const HIDDEN_ARG = "--hidden";
 
@@ -86,6 +86,14 @@ export class Desktop {
     this.window()?.webContents.send("desktop:command", command);
   }
 
+  private pins: Pin[] = [];
+
+  /** The pinned playlists, albums and artists, for the tray menu. */
+  setPins(pins: Pin[]): void {
+    this.pins = pins;
+    this.refreshTray();
+  }
+
   /** set by main.ts: what to do with a command while the page is freed */
   withoutPage: ((command: DesktopCommand) => void) | null = null;
 
@@ -145,6 +153,12 @@ export class Desktop {
         { label: playing?.paused === false ? "Pause" : "Lecture", enabled: Boolean(playing), click: () => this.send("toggle") },
         { label: "Suivant", enabled: Boolean(playing), click: () => this.send("next") },
         { label: "Précédent", enabled: Boolean(playing), click: () => this.send("previous") },
+        ...(this.pins.length
+          ? [
+              { type: "separator" as const },
+              { label: "Épinglés", submenu: this.pins.map((pin) => ({ label: pin.name.slice(0, 50), click: () => this.send(`play:${pin.uri}`) })) },
+            ]
+          : []),
         { type: "separator" },
         { label: "Afficher Vitrine", click: () => this.showWindow() },
         {
@@ -175,6 +189,24 @@ export class Desktop {
       { tooltip: playing?.paused === false ? "Pause" : "Lecture", icon: playing?.paused === false ? this.icons.pause : this.icons.play, flags, click: () => this.send("toggle") },
       { tooltip: "Suivant", icon: this.icons.next, flags, click: () => this.send("next") },
     ]);
+  }
+
+  private lastAnnounce = 0;
+
+  /**
+   * A recap or a milestone, as a notification (once a day at most, so it stays a pleasure); a click
+   * opens the stats.
+   */
+  announce(title: string, body: string): boolean {
+    if (!desktopSettings().recaps || !Notification.isSupported() || Date.now() - this.lastAnnounce < 20 * 3_600_000) return false;
+    this.lastAnnounce = Date.now();
+    const notification = new Notification({ title, body, silent: true });
+    notification.on("click", () => {
+      this.showWindow();
+      this.command("stats");
+    });
+    notification.show();
+    return true;
   }
 
   private async notify(track: DesktopNowPlaying): Promise<void> {

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Loader2, Share2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { usePageTitle } from "../lib/pageTitle";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
 import { Listening } from "../components/Listening";
 import { trackMenu } from "../components/TrackMenu";
@@ -22,6 +23,8 @@ const RANGES: { value: Range; label: string }[] = [
 
 export function Stats() {
   const [range, setRange] = useState<Range>("short_term");
+  const title = useRef<HTMLHeadingElement>(null);
+  usePageTitle(title, "Statistiques");
   const { data, error, loading } = useAsync(async () => {
     // one of the two may be paused by Spotify (Too many requests): show the other
     const [tracks, artists] = await Promise.allSettled([api.topTracks(range, 20), api.topArtists(range, 12)]);
@@ -51,7 +54,9 @@ export function Stats() {
       <div className="flex items-end justify-between gap-4 px-1">
         <div>
           <span className="kicker font-semibold text-red-500">Vos statistiques</span>
-          <h1 className="mt-1 font-display text-4xl tracking-tight">Ce que vous écoutez</h1>
+          <h1 ref={title} className="mt-1 font-display text-4xl tracking-tight">
+            Ce que vous écoutez
+          </h1>
         </div>
         <div className="flex items-center gap-3">
         <button onClick={() => void share()} disabled={!data || sharing} className="btn-ghost min-h-0 px-4 py-2 text-sm disabled:opacity-40">

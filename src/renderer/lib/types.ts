@@ -37,6 +37,15 @@ export interface Collection {
   /** playlists only: who owns it, and whether others may add to it */
   ownerId?: string;
   collaborative?: boolean;
+  /** albums: the first artist, for "more by this artist" */
+  artistId?: string;
+  /** albums from an artist's page: "album", "single", "appears_on", "compilation" */
+  group?: string;
+  /** albums: the label and the © / ℗ lines, when Spotify gives them */
+  label?: string;
+  copyrights?: string[];
+  /** saved albums: when the person added it */
+  addedAt?: string;
 }
 
 export interface Artist {
@@ -140,6 +149,18 @@ export function mapAlbum(raw: Raw): Collection | null {
     card: pickImage(raw.images, 300),
     total: typeof raw.total_tracks === "number" ? raw.total_tracks : undefined,
     releaseDate: str(raw.release_date) || undefined,
+    artistId: Array.isArray(raw.artists) ? str((raw.artists as Raw[])[0]?.id) || undefined : undefined,
+    group: str(raw.album_group) || undefined,
+    label: str(raw.label) || undefined,
+    copyrights: Array.isArray(raw.copyrights)
+      ? (raw.copyrights as Raw[])
+          .map((c) => {
+            const text = str(c?.text).trim();
+            // Spotify writes the symbol in the text most of the time, not always
+            return text && !/^[©℗(]/.test(text) ? `${str(c?.type) === "P" ? "℗" : "©"} ${text}` : text;
+          })
+          .filter(Boolean)
+      : undefined,
   };
 }
 

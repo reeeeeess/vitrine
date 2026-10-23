@@ -1,5 +1,6 @@
 import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw, Trash2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePageTitle } from "../lib/pageTitle";
 import type { AppInfo, DesktopSettings, DiscordInfo } from "../global";
 import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
@@ -204,6 +205,12 @@ function DesktopSettingsLines() {
         <Switch on={settings.freeWhenHidden} onChange={(on) => void change({ freeWhenHidden: on })} label="Libérer la mémoire quand Vitrine est cachée" />
       </Line>
       <Line
+        label="Bilan de la semaine et étapes"
+        hint="Le lundi, votre semaine en une notification (temps d'écoute, artiste et titre n° 1) ; et quand vous franchissez une étape (100e écoute d'un titre, 1 000 minutes…). Une par jour au plus, calculée sur ce PC."
+      >
+        <Switch on={settings.recaps} onChange={(on) => void change({ recaps: on })} label="Bilan de la semaine et étapes" />
+      </Line>
+      <Line
         label="Raccourcis clavier globaux"
         hint={
           <>
@@ -334,6 +341,8 @@ function HistorySettings() {
 }
 
 export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: () => void }) {
+  const title = useRef<HTMLHeadingElement>(null);
+  usePageTitle(title, "Réglages");
   const current = useStore(theme, (s) => s.current);
   const dynamic = useStore(theme, (s) => s.dynamic);
   const sdk = useStore(playback, (s) => s.sdk);
@@ -349,7 +358,9 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
 
   return (
     <div className="mx-auto max-w-3xl animate-skeleton-fade space-y-6">
-      <h1 className="px-1 font-display text-4xl tracking-tight">Réglages</h1>
+      <h1 ref={title} className="px-1 font-display text-4xl tracking-tight">
+        Réglages
+      </h1>
 
       <Section title="Apparence">
         <div className="grid grid-cols-2 gap-3">

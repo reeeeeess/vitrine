@@ -38,16 +38,25 @@ export interface VitrineBridge {
   window: { setMini(on: boolean): Promise<boolean> };
   info(): Promise<AppInfo>;
   launchSpotify(): Promise<"app" | "protocol" | null>;
+  pins: {
+    get(): Promise<Pin[]>;
+    set(pins: Pin[]): Promise<Pin[]>;
+  };
   desktop: {
     get(): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     set(settings: DesktopSettings): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean; holdsAudio?: boolean } | null): Promise<void>;
-    onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow" | "lyrics") => void): () => void;
+    onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow" | "lyrics" | "stats" | `play:${string}`) => void): () => void;
   };
   history: {
     add(play: HistoryPlay): Promise<void>;
     extend(at: string, playedMs: number): Promise<void>;
-    summary(query: { days: number; source: "all" | "vitrine" | "spotify" | "import" }): Promise<import("./lib/listening").ListeningSummary>;
+    summary(query: { days: number; source: "all" | "vitrine" | "spotify" | "import"; since?: number; until?: number }): Promise<import("./lib/listening").ListeningSummary>;
+    insight(kind: "trackStats"): Promise<Record<string, import("./lib/insights").TrackStat>>;
+    insight(kind: "quickPicks"): Promise<import("./lib/insights").QuickPick[]>;
+    insight(kind: "moment"): Promise<import("./lib/insights").Moment | null>;
+    insight(kind: "iceberg"): Promise<import("./lib/insights").IcebergLevel[] | null>;
+    insight(kind: "week"): Promise<import("./lib/insights").WeekRecap | null>;
     info(): Promise<import("./lib/listening").HistoryInfo>;
     /** reads "recently played" now; resolves to how many plays were new */
     sync(): Promise<number>;
@@ -99,6 +108,7 @@ export interface DesktopSettings {
   openAtLogin: boolean;
   globalShortcuts: boolean;
   freeWhenHidden: boolean;
+  recaps: boolean;
 }
 
 /** A play kept in this computer's listening history (electron/historyFile.ts). */
@@ -116,6 +126,14 @@ export interface HistoryPlay {
   playedMs: number;
   source?: "vitrine" | "spotify" | "import";
   device?: string;
+}
+
+/** a playlist, album or artist pinned at the top of the library */
+export interface Pin {
+  uri: string;
+  name: string;
+  image?: string;
+  kind: "playlist" | "album" | "artist";
 }
 
 export interface AppInfo {

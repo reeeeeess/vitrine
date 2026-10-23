@@ -25,6 +25,7 @@ import { connectDesktop } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
+import { loadPins } from "./lib/pins";
 import { connectOverlay } from "./player/overlayBridge";
 import { connectTrash } from "./player/trashBridge";
 import { connectDynamicAccent } from "./player/dynamicAccent";
@@ -67,6 +68,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectUpdates(), []);
   useEffect(() => connectHistory(), []);
   useEffect(() => connectLoop(), []);
+  useEffect(() => void loadPins(), []);
   useEffect(() => connectOverlay(), []);
   useEffect(() => connectTrash(), []);
 

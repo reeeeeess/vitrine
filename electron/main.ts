@@ -16,14 +16,19 @@ import {
   extendPlay,
   historyEnabled,
   historyInfo,
+  historyInsight,
   historySummary,
   importHistory,
+  newMilestones,
   setHistoryEnabled,
   startAccountSync,
   syncAccount,
+  weekToTell,
 } from "./history";
+import { formatListening } from "../src/renderer/lib/listening";
 import { fetchLyrics } from "./lyrics";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
+import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
@@ -101,7 +106,7 @@ function startWithoutPage(): void {
   pollTimer = setInterval(refresh, POLL_WITHOUT_PAGE_MS);
   if (browserPlayer) browserPlayer.onState = () => refresh();
   desktop.withoutPage = (command) => {
-    if (command === "flow") {
+    if (command === "flow" || command.startsWith("play:")) {
       showWindow();
       mainWindow?.webContents.once("did-finish-load", () => setTimeout(() => desktop.command(command), 1500));
       return;
@@ -207,6 +212,14 @@ function handle(channel: string, listener: (...args: unknown[]) => unknown): voi
 }
 
 function registerIpc(): void {
+  handle("pins:get", () => readConfig().pins ?? []);
+  handle("pins:set", (value) => {
+    const pins = cleanPins(value);
+    updateConfig({ pins });
+    applyJumpList(pins);
+    desktop.setPins(pins);
+    return pins;
+  });
   handle("auth:status", () => auth.status());
   handle("auth:login", (clientId) => auth.login(typeof clientId === "string" ? clientId : ""));
   handle("auth:logout", () => {
@@ -247,13 +260,21 @@ function registerIpc(): void {
       openAtLogin: input.openAtLogin === true,
       globalShortcuts: input.globalShortcuts === true,
       freeWhenHidden: input.freeWhenHidden === true,
+      recaps: input.recaps !== false,
     });
   });
   handle("desktop:update", (raw) => {
     holdsAudio = (raw as { holdsAudio?: unknown } | null)?.holdsAudio === true;
     desktop.update(desktopNowPlaying(raw));
   });
-  handle("history:add", (play) => addPlay(play));
+  handle("history:add", (play) => {
+    addPlay(play);
+    // a milestone crossed by this play (the 100th of a track, 1 000 minutes…)
+    const at = (play as { at?: unknown } | null)?.at;
+    const crossed = typeof at === "string" ? newMilestones(at) : [];
+    if (crossed.length) desktop.announce("Étape franchie", crossed[crossed.length - 1].text);
+  });
+  handle("history:insight", (kind) => historyInsight(kind));
   handle("history:extend", (at, playedMs) => extendPlay(at, playedMs));
   handle("history:summary", (query) => historySummary(query));
   handle("history:info", () => historyInfo());
@@ -383,6 +404,9 @@ void app.whenReady().then(async () => {
   mainWindow = createWindow();
   desktop.start();
   desktop.attach(mainWindow);
+  const pins = readConfig().pins ?? [];
+  desktop.setPins(pins);
+  applyJumpList(pins);
   // a first start with a command runs it once the page is there
   const command = cliCommand(process.argv);
   if (command) mainWindow.webContents.once("did-finish-load", () => setTimeout(() => desktop.command(command), 1500));
@@ -390,4 +414,15 @@ void app.whenReady().then(async () => {
   if (settings) discord.configure(settings.enabled, settings.appId);
   startUpdater(() => mainWindow);
   startAccountSync(() => auth.accessToken(), () => auth.status().then((status) => status.loggedIn));
+  // Monday's recap of the week before (Airbuds), checked now and every few hours
+  const tellWeek = () => {
+    if (!desktop.settings().recaps) return;
+    const recap = weekToTell();
+    if (recap) {
+      const parts = [`${formatListening(recap.ms)} d'écoute`, recap.topArtist && `artiste n° 1 : ${recap.topArtist}`, recap.topTrack && `titre n° 1 : ${recap.topTrack}`];
+      desktop.announce("Votre semaine en musique", parts.filter(Boolean).join(" · "));
+    }
+  };
+  setTimeout(tellWeek, 60_000);
+  setInterval(tellWeek, 6 * 3_600_000);
 });

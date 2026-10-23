@@ -4,6 +4,8 @@ import { MediaCard } from "../components/MediaCard";
 import { run } from "../components/NowPlayingBar";
 import { Row } from "../components/Row";
 import { Top10 } from "../components/Top10";
+import { collectionMenu, PinnedRow } from "../components/Pins";
+import { MomentCard, QuickAccess } from "../components/QuickAccess";
 import { LikedCover } from "../components/LikedCover";
 import { ErrorNote, Spinner } from "../components/Artwork";
 import { greeting } from "../lib/format";
@@ -34,6 +36,9 @@ async function loadHome() {
     top: settled(top, []),
   };
 }
+
+/** A playlist or an album, as something to pin. */
+export const pinOf = (collection: Collection) => ({ uri: collection.uri, name: collection.name, image: collection.card ?? collection.image, kind: collection.kind });
 
 export function openCollection(collection: Collection): void {
   navigate(collection.kind === "album" ? { name: "album", id: collection.id } : { name: "playlist", id: collection.id });
@@ -93,6 +98,11 @@ export function Home({ name }: { name?: string }) {
           Roulette
         </button>
       </div>
+      <QuickAccess />
+      <MomentCard />
+      <div className="mt-8">
+        <PinnedRow />
+      </div>
 
       {recentTracks.length > 0 && (
         <Row title="Écoutés récemment" number={1} kicker="ÉCOUTE">
@@ -124,6 +134,7 @@ export function Home({ name }: { name?: string }) {
               image={collection.card ?? collection.image}
               onOpen={() => openCollection(collection)}
               onPlay={() => playCollection(collection)}
+              onContextMenu={(event) => collectionMenu(event, pinOf(collection))}
             />
           ))}
         </Row>
@@ -141,6 +152,7 @@ export function Home({ name }: { name?: string }) {
               image={artist.card ?? artist.image}
               onPlay={() => run(() => engine.playContext(artist.uri))}
               onOpen={() => navigate({ name: "artist", id: artist.id })}
+              onContextMenu={(event) => collectionMenu(event, { uri: artist.uri, name: artist.name, image: artist.card ?? artist.image, kind: "artist" })}
             />
           ))}
         </Row>

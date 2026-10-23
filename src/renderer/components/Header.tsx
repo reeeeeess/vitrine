@@ -1,7 +1,9 @@
 import { BarChart3, Download, Home, Hourglass, Library, LogOut, Palette, Search, Settings, Sparkles, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { rateLimit } from "../lib/apiGate";
 import { cn } from "../lib/cn";
+import { pageTitle } from "../lib/pageTitle";
 import type { Profile } from "../lib/spotify";
 import { formatWait, pauseMessage } from "../lib/spotifyLimit";
 import { useStore } from "../lib/store";
@@ -44,6 +46,27 @@ export function ThemeToggle() {
       <Palette className="h-4 w-4" />
       {current === "mystic" ? "Mystic" : "Movix"}
     </button>
+  );
+}
+
+/** The page's title, small, once its big title has scrolled under the header. */
+function CollapsedTitle() {
+  const text = useStore(pageTitle, (s) => s.text);
+  return (
+    <AnimatePresence>
+      {text && (
+        <motion.span
+          key={text}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2 }}
+          className="max-w-[12rem] shrink-0 truncate font-display text-lg tracking-tight"
+        >
+          {text}
+        </motion.span>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -122,7 +145,11 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
 
   // typing searches as you go, a moment after the last key
   useEffect(() => {
-    if (!query.trim()) return;
+    // an emptied box on the results shows the recent searches again (Apple Music)
+    if (!query.trim()) {
+      if (ui.get().route.name === "search" && (ui.get().route as { query?: string }).query) navigate({ name: "search" });
+      return;
+    }
     const timer = setTimeout(() => navigate({ name: "search", query: query.trim() }), 350);
     return () => clearTimeout(timer);
   }, [query]);
@@ -170,13 +197,15 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
         })}
       </nav>
 
+      <CollapsedTitle />
+
       <div className="relative ml-auto w-[20rem] min-w-0">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <input
           ref={input}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onFocus={() => query.trim() && navigate({ name: "search", query: query.trim() })}
+          onFocus={() => navigate(query.trim() ? { name: "search", query: query.trim() } : { name: "search" })}
           placeholder="Titres, artistes, albums…  (Ctrl K)"
           className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 transition-all focus:border-red-500/50 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-red-500/30"
         />

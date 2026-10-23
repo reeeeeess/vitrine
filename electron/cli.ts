@@ -1,6 +1,10 @@
 // What Vitrine can be asked from the command line or a keyboard shortcut. Only one Vitrine runs:
 // started again with one of these flags, it hands the command to the one already open and quits.
-export type DesktopCommand = "toggle" | "next" | "previous" | "like" | "flow" | "lyrics";
+export type DesktopCommand = "toggle" | "next" | "previous" | "like" | "flow" | "lyrics" | "stats" | `play:${string}`;
+
+/** what `--play=` may start: a playlist, an album or an artist, never anything else */
+const PLAYABLE = /^spotify:(playlist|album|artist):[A-Za-z0-9]{1,64}$/;
+export const isPlayableUri = (uri: unknown): uri is string => typeof uri === "string" && PLAYABLE.test(uri);
 
 const FLAGS: Record<string, DesktopCommand> = {
   "--play-pause": "toggle",
@@ -13,7 +17,11 @@ const FLAGS: Record<string, DesktopCommand> = {
 
 /** The command in these arguments, or null for a plain start (which just shows the window). */
 export function cliCommand(argv: readonly string[]): DesktopCommand | null {
-  for (const arg of argv) if (FLAGS[arg]) return FLAGS[arg];
+  for (const arg of argv) {
+    if (FLAGS[arg]) return FLAGS[arg];
+    // a pinned playlist from Windows' jump list: --play=spotify:playlist:…
+    if (arg.startsWith("--play=") && isPlayableUri(arg.slice(7))) return `play:${arg.slice(7)}`;
+  }
   return null;
 }
 

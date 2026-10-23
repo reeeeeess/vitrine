@@ -1,6 +1,7 @@
 import { Clock3, ListPlus, Play, Plus } from "lucide-react";
 import { cn } from "../lib/cn";
 import { formatTime } from "../lib/format";
+import { lastPlayedLabel, type TrackStat } from "../lib/insights";
 import { useStore } from "../lib/store";
 import type { Track } from "../lib/types";
 import { errorMessage } from "../lib/format";
@@ -17,6 +18,8 @@ interface TrackListProps {
   showArt?: boolean;
   /** what a right click on a track may also do here (take it out of this playlist) */
   menuContext?: MenuContext;
+  /** plays and last play of each track (local history): two more columns, as in iTunes */
+  stats?: Record<string, TrackStat>;
 }
 
 function Equalizer() {
@@ -33,10 +36,16 @@ function Equalizer() {
   );
 }
 
-export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, menuContext }: TrackListProps) {
+export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, menuContext, stats }: TrackListProps) {
   const currentUri = useStore(playback, (s) => s.track?.uri);
   const paused = useStore(playback, (s) => s.paused);
-  const columns = showAlbum ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_7rem]" : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
+  const columns = stats
+    ? showAlbum
+      ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_5rem_7rem_7rem]"
+      : "grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_7rem]"
+    : showAlbum
+      ? "grid-cols-[2.5rem_minmax(0,4fr)_minmax(0,3fr)_7rem]"
+      : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
 
   return (
     <div className="mt-6" role="table" aria-label="Titres">
@@ -44,6 +53,8 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
         <span className="text-right">#</span>
         <span>Titre</span>
         {showAlbum && <span>Album</span>}
+        {stats && <span className="text-right">Lectures</span>}
+        {stats && <span>Dernière écoute</span>}
         <Clock3 className="ml-auto h-4 w-4" aria-label="Durée" />
       </div>
       <div className="mt-2">
@@ -88,6 +99,8 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
                   {track.albumName}
                 </button>
               )}
+              {stats && <span className="text-right text-sm tabular-nums text-gray-400">{stats[track.uri]?.plays ?? 0}</span>}
+              {stats && <span className="truncate text-sm text-gray-400">{lastPlayedLabel(stats[track.uri]?.last)}</span>}
               <span className="flex items-center justify-end gap-2 text-sm tabular-nums text-gray-400">
                 <button
                   className="hidden text-gray-400 hover:text-white group-hover:block"

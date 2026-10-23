@@ -190,7 +190,13 @@ export async function myPlaylists(max = 200): Promise<Collection[]> {
 
 export async function savedAlbums(max = 100): Promise<Collection[]> {
   const items = await collect("/me/albums?limit=50", max);
-  return items.map((item) => mapAlbum((item as Json).album as Json)).filter((c): c is Collection => c !== null);
+  return items
+    .map((item) => {
+      const album = mapAlbum((item as Json).album as Json);
+      const addedAt = (item as Json).added_at;
+      return album && typeof addedAt === "string" ? { ...album, addedAt } : album;
+    })
+    .filter((c): c is Collection => c !== null);
 }
 
 /** One page of Liked Songs, from `offset` (newest first), and how many there are in all. */
@@ -356,25 +362,20 @@ export async function queue(): Promise<{ current: Track | null; next: Track[] }>
 // ── artists ───────────────────────────────────────────────────────────────
 
 export async function artist(id: string): Promise<{ artist: Artist; topTracks: Track[]; releases: Collection[] }> {
-  const path = `/artists/${encodeURIComponent(id)}`;
-  const [info, top, albums] = await Promise.allSettled([
-    request(path),
-    request<{ tracks?: unknown[] }>(`${path}/top-tracks?market=from_token`),
-    artistReleases(id),
-  ]);
+  // Spotify closed an artist's top tracks to apps in development mode: not asked any more (one request
+  // saved per page); search finds the artist's best known instead
+  const [info, albums, singles] = await Promise.allSettled([request(`/artists/${encodeURIComponent(id)}`), artistReleases(id, "album"), artistReleases(id, "single")]);
   if (info.status === "rejected") throw info.reason;
   const mapped = mapArtist(info.value);
   if (!mapped) throw new SpotifyApiError(404, "Artiste introuvable");
-  // top tracks and releases are extras: an endpoint Spotify closes to an app leaves the page standing
-  let topTracks = top.status === "fulfilled" ? asTracks(top.value.tracks ?? []).slice(0, 10) : [];
-  // Spotify closed top tracks to apps in development mode: search finds the artist's best known
-  if (topTracks.length === 0) topTracks = await artistTracksBySearch(mapped).catch(() => []);
-  return { artist: mapped, topTracks, releases: albums.status === "fulfilled" ? albums.value : [] };
+  const topTracks = await artistTracksBySearch(mapped).catch(() => []);
+  const releases = [...(albums.status === "fulfilled" ? albums.value : []), ...(singles.status === "fulfilled" ? singles.value : [])];
+  return { artist: mapped, topTracks, releases };
 }
 
-/** The artist's albums and singles, newest first, with their release dates. */
-export async function artistReleases(id: string): Promise<Collection[]> {
-  const page = await request<{ items?: Json[] }>(`/artists/${encodeURIComponent(id)}/albums?include_groups=album,single&limit=10`);
+/** An artist's releases of one kind (or albums and singles), newest first, 10 at most in development mode. */
+export async function artistReleases(id: string, groups = "album,single"): Promise<Collection[]> {
+  const page = await request<{ items?: Json[] }>(`/artists/${encodeURIComponent(id)}/albums?include_groups=${groups}&limit=10`);
   return (page.items ?? []).map(mapAlbum).filter((c): c is Collection => c !== null);
 }
 

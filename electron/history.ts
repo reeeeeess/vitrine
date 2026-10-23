@@ -5,6 +5,7 @@
 import { app, dialog, type BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { iceberg, lastWeek, milestones, momentMix, quickPicks, trackStats, type Milestone, type WeekRecap } from "../src/renderer/lib/insights";
 import { summarize, type HistoryInfo, type ListeningSummary } from "../src/renderer/lib/listening";
 import { readConfig, updateConfig } from "./config";
 import { extendLine, fromRecentlyPlayed, fromStreamingHistory, newPlays, parsePlay, playLine, readPlays, toCsv, type Play, type PlaySource } from "./historyFile";
@@ -68,6 +69,25 @@ export function addPlay(raw: unknown): void {
   addPlays([{ ...play, source: "vitrine" }]);
 }
 
+/** The milestones the play `at` crossed, not said before; remembered as said. */
+export function newMilestones(at: string): Milestone[] {
+  const plays = listPlays();
+  const play = plays.find((item) => item.at === at);
+  if (!play) return [];
+  const told = new Set(readConfig().milestones ?? []);
+  const found = milestones(plays, play, told);
+  if (found.length) updateConfig({ milestones: [...told, ...found.map((m) => m.key)].slice(-500) });
+  return found;
+}
+
+/** Last week's recap, once per week: null when already given (or nothing was played). */
+export function weekToTell(): WeekRecap | null {
+  const recap = lastWeek(listPlays());
+  if (!recap || readConfig().weekTold === recap.week) return null;
+  updateConfig({ weekTold: recap.week });
+  return recap;
+}
+
 export function extendPlay(at: unknown, playedMs: unknown): void {
   if (typeof at !== "string" || typeof playedMs !== "number" || !historyEnabled()) return;
   if (!fs.existsSync(file())) return;
@@ -83,11 +103,35 @@ export function clearHistory(): void {
 export type SourceFilter = "all" | PlaySource;
 
 export function historySummary(raw: unknown): ListeningSummary {
-  const input = (raw ?? {}) as { days?: unknown; source?: unknown };
+  const input = (raw ?? {}) as { days?: unknown; source?: unknown; since?: unknown; until?: unknown };
   const days = typeof input.days === "number" && input.days > 0 ? input.days : 0;
   const source = (["vitrine", "spotify", "import"] as const).find((s) => s === input.source);
   const plays = source ? listPlays().filter((play) => (play.source ?? "vitrine") === source) : listPlays();
+  // a calendar month or year (Rétro Vitrine), or the last `days` days
+  if (typeof input.since === "number") {
+    const until = typeof input.until === "number" ? input.until : Date.now();
+    return summarize(plays, input.since, until);
+  }
   return summarize(plays, days ? Date.now() - days * 86_400_000 : 0);
+}
+
+/** What the history says beyond the stats page, one question at a time (lib/insights.ts). */
+export function historyInsight(kind: unknown): unknown {
+  const plays = listPlays();
+  switch (kind) {
+    case "trackStats":
+      return trackStats(plays);
+    case "quickPicks":
+      return quickPicks(plays, 30);
+    case "moment":
+      return momentMix(plays);
+    case "iceberg":
+      return iceberg(plays);
+    case "week":
+      return lastWeek(plays);
+    default:
+      return null;
+  }
 }
 
 export function historyInfo(): HistoryInfo {
