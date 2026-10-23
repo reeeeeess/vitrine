@@ -213,7 +213,11 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   (docs/INSPIRATION-APPLE-MUSIC.md)
 - **Sprint 9 (prochain, v0.8.0)** : « Rétro Vitrine » (votre année en diapositives, façon Wrapped de Movix), dock
   flottant façon Musix (option du thème Mystic), calendrier des sorties de vos artistes, intro au lancement, thème
-  « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; tests de bout en bout dans la CI
+  « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; les petits gestes d'Apple Music
+  (lecteur, paroles, épingles, tri, recherche : liste « v0.8 » de docs/INSPIRATION-APPLE-MUSIC.md) ; tests de bout en
+  bout dans la CI
+- **Sprint 10 (v0.9.0)** : Apple Music, les gros morceaux : mini-lecteur qui grandit, paroles mot par mot et
+  prononciation, playlists intelligentes, pages d'album et d'artiste, mini-lecteur compact, bilan mensuel
 - Signature DRM « VMP » castlabs (requise pour une lecture fiable en production)
 - Signature de code Windows et notarisation Apple (supprime les alertes de sécurité à l'installation)
 - Bêta fermée (≤ 25 utilisateurs, limite du mode développement Spotify)
@@ -306,7 +310,15 @@ l'API officielle : pas de blocage de publicité ni de faux Premium (exclus dès 
 | | Shuffle+ (vrai aléatoire) | Mélange parfait sur toute la liste | S | ✅ v0.6.0 |
 | | Marketplace de thèmes | Thèmes partageables (fichier de couleurs et polices) | M | ⬜ |
 | **Deezer** | Flow, le mix sans fin | Le nom et l'esprit de Flow | — | ✅ v0.5.0 |
-| **Apple Music / Spotify Wrapped** | Replay, Wrapped | « Rétro Vitrine » : votre année en story animée, quand vous voulez, depuis votre historique complet | M | ⬜ v0.7 |
+| **Apple Music / Spotify Wrapped** | Replay, Wrapped | « Rétro Vitrine » : votre année en story animée, quand vous voulez, depuis votre historique complet ; bilan mensuel et étapes | M | ⬜ v0.8 |
+| **Apple Music** *(étude : docs/INSPIRATION-APPLE-MUSIC.md)* | Lecteur : pochette qui recule à la pause, fond vivant, barre élastique, temps restant | Les mêmes gestes dans le lecteur plein écran | S | ⬜ v0.8 |
+| | Paroles : points pendant les silences, chœurs plus petits, flou selon la distance, défilement libre | Prolonge le karaoké de v0.7.0 | S | ⬜ v0.8 |
+| | Épingles (iOS 26), ajoutés récemment, tri | Épingles + liste de raccourcis Windows (clic droit sur l'icône) | S | ⬜ v0.8 |
+| | Mini-lecteur qui grandit en plein écran, mot par mot, prononciation (coréen, japonais, chinois) | Élément partagé framer-motion, temps par mot estimé, romanisation locale | M | ⬜ v0.9 |
+| | Playlists intelligentes, nombre de lectures (Musique sur Mac) | Règles sur l'historique local, vraie playlist Spotify mise à jour une fois par jour | M | ⬜ v0.9 |
+| | Pages d'artiste d'iOS 27 (grand bouton aléatoire, dernière sortie, sections) | Même structure, nom en Clash Display géant | M | ⬜ v0.9 |
+| | Traduction des paroles, import de playlists, crédits | Clé DeepL de l'utilisateur ; Deezer par ISRC et fichiers exportés ; MusicBrainz | M | ⬜ v1.0 |
+| | AutoMix, Sing, égaliseur, dossiers, pochettes animées, Lossless | Impossible avec Spotify (son protégé, API muette) ; fondu enchaîné simple à la place d'AutoMix | — | ❌ |
 | **SoundCloud** | Commentaires horodatés | Notes perso à un moment d'un titre, affichées pendant l'écoute | S | ⬜ v0.7 |
 | **Last.fm** | Scrobbling | Envoyer vos écoutes à Last.fm (clé personnelle) | S | ⬜ v0.7 |
 | **Shazam** | Reconnaître un titre autour de soi | Écouter par le micro et ouvrir le titre dans Vitrine (service de reconnaissance payant) | M | ⬜ à étudier |
