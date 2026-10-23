@@ -17,6 +17,8 @@ export interface Track {
   thumb?: string;
   durationMs: number;
   explicit: boolean;
+  /** the recording's international code, for its credits (MusicBrainz) */
+  isrc?: string;
 }
 
 export interface Collection {
@@ -111,6 +113,7 @@ export function mapTrack(raw: Raw, album?: { name: string; id?: string; image?: 
     thumb: album?.thumb ?? pickImage(rawAlbum?.images ?? raw.images, 64),
     durationMs: typeof raw.duration_ms === "number" ? raw.duration_ms : 0,
     explicit: raw.explicit === true,
+    ...(str(obj(raw.external_ids)?.isrc) ? { isrc: str(obj(raw.external_ids)?.isrc) } : {}),
   };
 }
 

@@ -373,6 +373,24 @@ export async function artist(id: string): Promise<{ artist: Artist; topTracks: T
   return { artist: mapped, topTracks, releases };
 }
 
+const isrcs = new Map<string, Promise<string | undefined>>();
+
+/**
+ * A track's ISRC, for its credits: from the track when the poll gave it, otherwise asked once per track
+ * and run (the player in the app does not give it).
+ */
+export function trackIsrc(track: Track): Promise<string | undefined> {
+  if (track.isrc) return Promise.resolve(track.isrc);
+  if (!/^[0-9A-Za-z]{22}$/.test(track.id)) return Promise.resolve(undefined);
+  let pending = isrcs.get(track.id);
+  if (!pending) {
+    pending = request<Json>(`/tracks/${encodeURIComponent(track.id)}`).then((raw) => mapTrack(raw)?.isrc);
+    pending.catch(() => isrcs.delete(track.id));
+    isrcs.set(track.id, pending);
+  }
+  return pending;
+}
+
 const artistCards = new Map<string, Promise<Artist>>();
 
 /** An artist's picture and genres, asked once per run (the "À l'écoute" panel shows it for each new artist). */

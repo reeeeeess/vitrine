@@ -14,12 +14,14 @@ import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
 import { MomentsView } from "./views/Moments";
+import { ReleasesView } from "./views/Releases";
 import { UpNext } from "./components/UpNext";
 import { ImagePreview } from "./components/ImagePreview";
 import { VersionsPanel } from "./components/VersionsPanel";
 import { EqualizerPanel } from "./components/EqualizerPanel";
 import { ClassicMode } from "./components/ClassicMode";
 import { Salon, openSalon } from "./components/Salon";
+import { ImportDialog } from "./components/ImportDialog";
 import { Intro } from "./components/Intro";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
@@ -36,6 +38,7 @@ import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
 import { connectKaraoke } from "./player/karaoke";
+import { connectInfinite } from "./player/infinite";
 import { loadPins } from "./lib/pins";
 import { addMoment, loadMoments, moments, reachedMoment } from "./lib/moments";
 import { connectOverlay } from "./player/overlayBridge";
@@ -84,6 +87,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectHistory(), []);
   useEffect(() => connectLoop(), []);
   useEffect(() => connectKaraoke(), []);
+  useEffect(() => connectInfinite(), []);
   useEffect(() => void loadPins(), []);
   useEffect(() => {
     void loadMoments();
@@ -157,6 +161,9 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
     case "moments":
       view = <MomentsView />;
       break;
+    case "releases":
+      view = <ReleasesView />;
+      break;
     case "settings":
       view = <Settings profile={profile} onLogout={onLogout} />;
       break;
@@ -222,6 +229,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <EqualizerPanel />
       <ClassicMode />
       <Salon />
+      <ImportDialog />
       <Intro />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>

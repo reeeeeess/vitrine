@@ -1,6 +1,7 @@
-import { Bookmark, Disc3, LayoutGrid, List, Plus } from "lucide-react";
+import { Bookmark, CalendarDays, FileUp, Disc3, LayoutGrid, List, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
+import { importDialog } from "../components/ImportDialog";
 import { LikedCover } from "../components/LikedCover";
 import { MediaCard } from "../components/MediaCard";
 import { collectionMenu, PinnedRow } from "../components/Pins";
@@ -90,6 +91,14 @@ export function Library() {
           <button onClick={() => navigate({ name: "moments" })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Vos instants de titres, avec une note">
             <Bookmark className="h-4 w-4" />
             Moments
+          </button>
+          <button onClick={() => navigate({ name: "releases" })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Les nouveautés de vos artistes du moment">
+            <CalendarDays className="h-4 w-4" />
+            Sorties
+          </button>
+          <button onClick={() => importDialog.set({ open: true })} className="btn-ghost min-h-0 px-4 py-2 text-sm" title="Une playlist d'ailleurs (Deezer, Apple Music, YouTube Music…) depuis un fichier">
+            <FileUp className="h-4 w-4" />
+            Importer
           </button>
         </div>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">

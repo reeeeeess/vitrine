@@ -10,6 +10,7 @@ import { useStore } from "../lib/store";
 import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
 import { nowPanel, setNowPanel } from "../components/NowPanel";
 import { lyricsPrefs, setNetease } from "../lib/lyricsPrefs";
+import { infinite, setInfinite } from "../player/infinite";
 import type { TranslationSettings } from "../global";
 import { notify } from "../lib/ui";
 import { updates } from "../lib/updates";
@@ -425,6 +426,16 @@ function TranslationLines() {
   );
 }
 
+/** The infinite queue: when a list ends, the music goes on around its last track. */
+function InfiniteLine() {
+  const on = useStore(infinite, (s) => s.on);
+  return (
+    <Line label="File infinie" hint="Quand une playlist ou un album se termine, la musique continue avec des titres proches du dernier (comme la lecture automatique de Spotify).">
+      <Switch on={on} onChange={setInfinite} label="File infinie" />
+    </Line>
+  );
+}
+
 /**
  * Where the lyrics come from: AMLL TTML DB (word by word), LRCLIB, NetEase (not an official API, so the
  * person may leave it out) and lyrics.ovh; and the copy kept on this computer.
@@ -518,6 +529,10 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
             ))}
           </div>
         </Line>
+      </Section>
+
+      <Section title="Lecture">
+        <InfiniteLine />
       </Section>
 
       <Section title="Paroles">

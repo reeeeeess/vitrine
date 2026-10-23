@@ -18,6 +18,9 @@ const api = {
     clear: () => ipcRenderer.invoke("lyrics:clear"),
     translate: (lines: unknown) => ipcRenderer.invoke("lyrics:translate", { lines }),
   },
+  credits: {
+    get: (isrc: string) => ipcRenderer.invoke("credits:get", isrc),
+  },
   translation: {
     get: () => ipcRenderer.invoke("translation:get"),
     set: (settings: unknown) => ipcRenderer.invoke("translation:set", settings),

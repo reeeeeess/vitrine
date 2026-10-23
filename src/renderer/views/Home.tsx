@@ -14,6 +14,9 @@ import * as api from "../lib/spotify";
 import type { Collection } from "../lib/types";
 import { navigate, ui } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
+import { useEffect } from "react";
+import { loadReleases, releaseLabel, releases } from "../lib/releases";
+import { useStore } from "../lib/store";
 import * as engine from "../player/engine";
 
 const settled = <T,>(result: PromiseSettledResult<T>, fallback: T): T => (result.status === "fulfilled" ? result.value : fallback);
@@ -76,6 +79,37 @@ function heroSlides(contexts: string[], collections: Collection[]): HeroSlide[] 
   }));
 }
 
+/** The newest releases of the person's artists, looked at in the background (twice a day at most). */
+function ReleasesRow() {
+  const data = useStore(releases, (s) => s.data);
+  useEffect(() => void loadReleases(), []);
+  const list = data?.list.slice(0, 15) ?? [];
+  if (list.length === 0) return null;
+  return (
+    <Row
+      title="Sorties de vos artistes"
+      kicker="NOUVEAUTÉS"
+      action={
+        <button onClick={() => navigate({ name: "releases" })} className="text-sm font-semibold text-gray-400 hover:text-white">
+          Tout voir
+        </button>
+      }
+    >
+      {list.map((collection, index) => (
+        <MediaCard
+          key={collection.id}
+          index={index}
+          title={collection.name}
+          subtitle={`${collection.subtitle.split(" · ")[0]} · ${releaseLabel(collection.releaseDate)}`}
+          image={collection.card ?? collection.image}
+          onOpen={() => openCollection(collection)}
+          onPlay={() => playCollection(collection)}
+        />
+      ))}
+    </Row>
+  );
+}
+
 export function Home({ name }: { name?: string }) {
   const { data, error, loading } = useAsync(loadHome, []);
 
@@ -128,6 +162,8 @@ export function Home({ name }: { name?: string }) {
       )}
 
       <Top10 tracks={data.top} number={2} />
+
+      <ReleasesRow />
 
       {data.playlists.length > 0 && (
         <Row title="Vos playlists" number={3} kicker="BIBLIOTHÈQUE">

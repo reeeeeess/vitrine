@@ -28,6 +28,7 @@ import {
 import { formatListening } from "../src/renderer/lib/listening";
 import { clearLyricsCache, fetchLyrics } from "./lyrics";
 import { setTranslationSettings, translateLyrics, translationSettings } from "./translate";
+import { fetchCredits } from "./credits";
 import { LyricsOverlay, parseOverlayLine } from "./overlay";
 import fs from "node:fs";
 import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } from "./equalizer";
@@ -253,6 +254,7 @@ function registerIpc(): void {
   handle("lyrics:get", (query) => fetchLyrics(query));
   handle("lyrics:clear", () => clearLyricsCache());
   handle("lyrics:translate", (query) => translateLyrics(query));
+  handle("credits:get", (isrc) => fetchCredits(isrc));
   handle("translation:get", () => translationSettings());
   handle("translation:set", (settings) => setTranslationSettings(settings));
   handle("shell:open", (url) => {

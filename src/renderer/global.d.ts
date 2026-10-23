@@ -47,6 +47,8 @@ export interface VitrineBridge {
     /** each line in the language chosen (null where it says the same), `same` when they already are */
     translate(lines: string[]): Promise<{ lines: (string | null)[]; from?: string; same: boolean; service: string }>;
   };
+  /** a track's credits from MusicBrainz, by ISRC: writers, producers, sound, musicians */
+  credits: { get(isrc: string): Promise<import("../../electron/creditsParse").Credits | null> };
   translation: {
     get(): Promise<TranslationSettings>;
     set(settings: Partial<TranslationSettings>): Promise<TranslationSettings>;

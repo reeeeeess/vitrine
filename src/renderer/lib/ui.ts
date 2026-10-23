@@ -13,6 +13,7 @@ export type Route =
   | { name: "artist"; id: string }
   | { name: "settings" }
   | { name: "moments" }
+  | { name: "releases" }
   | { name: "liked" };
 
 export interface Toast {

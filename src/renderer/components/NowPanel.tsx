@@ -9,6 +9,7 @@ import { artworkColor, FALLBACK, rgbVar, type Rgb } from "../lib/palette";
 import * as api from "../lib/spotify";
 import { createStore, useStore } from "../lib/store";
 import type { Artist, Track } from "../lib/types";
+import type { Credits } from "../../../electron/creditsParse";
 import { navigate, notify, ui } from "../lib/ui";
 import * as engine from "../player/engine";
 import { playback } from "../player/engine";
@@ -264,6 +265,50 @@ function MomentsCard({ track }: { track: Track }) {
   );
 }
 
+const CREDIT_PARTS: { key: keyof Credits; label: string }[] = [
+  { key: "writing", label: "Écriture" },
+  { key: "production", label: "Production" },
+  { key: "sound", label: "Son" },
+  { key: "musicians", label: "Musiciens" },
+];
+
+/** Who made the track (D5), from MusicBrainz by its ISRC; nothing shown when MusicBrainz does not know it. */
+function CreditsCard({ track }: { track: Track }) {
+  const [credits, setCredits] = useState<Credits | null>(null);
+  useEffect(() => {
+    let current = true;
+    setCredits(null);
+    void api
+      .trackIsrc(track)
+      .then((isrc) => (isrc ? window.vitrine.credits?.get(isrc) : null))
+      .then((found) => current && setCredits(found ?? null), () => undefined);
+    return () => {
+      current = false;
+    };
+  }, [track.uri]);
+  if (!credits) return null;
+  return (
+    <Card title="Crédits">
+      <div className="space-y-3">
+        {CREDIT_PARTS.filter(({ key }) => credits[key].length).map(({ key, label }) => (
+          <div key={key}>
+            <p className="kicker font-mono text-[10px] text-white/45">{label.toUpperCase()}</p>
+            <ul className="mt-1 space-y-1">
+              {credits[key].slice(0, 6).map((credit) => (
+                <li key={credit.name} className="text-sm leading-tight">
+                  <span className="font-semibold">{credit.name}</span>
+                  <span className="text-xs text-gray-400"> · {credit.roles.join(", ")}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <p className="text-[10px] text-white/35">Source : MusicBrainz</p>
+      </div>
+    </Card>
+  );
+}
+
 /** The first artist: picture, genres, and the way to their page (one request per artist and run). */
 function ArtistCard({ track }: { track: Track }) {
   const id = track.artistIds[0];
@@ -366,6 +411,7 @@ export function NowPanel() {
             <ListensCard track={track} />
             <MomentsCard track={track} />
             <ArtistCard track={track} />
+            <CreditsCard track={track} />
             <div className="grid grid-cols-2 gap-2 pb-1">
               <button className="btn-ghost min-h-0 justify-center px-3 py-2 text-xs" onClick={() => openVersions(track)}>
                 <Layers className="h-3.5 w-3.5" />

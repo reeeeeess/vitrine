@@ -29,11 +29,11 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 - [x] B7 Traduction des paroles sous chaque ligne (MyMemory sans clé, ou DeepL avec votre clé), gardée sur le disque
 
 ### La découverte et la bibliothèque
-- [ ] I6 Sorties de vos artistes : les nouveautés de vos artistes du moment, avec un budget de demandes
-- [ ] C8 Import de playlists : un fichier (CSV d'Exportify, TuneMyMusic, liste « Artiste - Titre ») devient une
+- [x] I6 Sorties de vos artistes : les nouveautés de vos artistes du moment, avec un budget de demandes
+- [x] C8 Import de playlists : un fichier (CSV d'Exportify, TuneMyMusic, liste « Artiste - Titre ») devient une
       playlist Spotify, au rythme permis
-- [ ] D5 Crédits d'un titre (MusicBrainz par ISRC) : paroliers, compositeurs, producteurs
-- [ ] E1 File infinie : quand la playlist ou l'album finit, la musique continue dans le même esprit
+- [x] D5 Crédits d'un titre (MusicBrainz par ISRC) : paroliers, compositeurs, producteurs
+- [x] E1 File infinie : quand la playlist ou l'album finit, la musique continue dans le même esprit
 
 ### Les connexions et le partage
 - [ ] P7 Last.fm : vos écoutes envoyées (« scrobble ») avec votre clé
