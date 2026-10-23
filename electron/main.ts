@@ -36,6 +36,7 @@ import { applyEqualizer, cleanEqualizer, DEFAULT_EQUALIZER, equalizerPaths } fro
 import { cleanMoments } from "./moments";
 import { applyJumpList, cleanPins } from "./pins";
 import { RemoteControl, type Playing } from "./remote";
+import { clearErrors, copyReport, errorInfo, openTicket, recordError, watchMainErrors } from "./errorReport";
 import { setLanguage } from "./locale";
 import { launchSpotify } from "./spotifyApp";
 import { checkForUpdates, installUpdate, startUpdater, updateState } from "./updater";
@@ -56,6 +57,8 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 if (!app.requestSingleInstanceLock()) app.quit();
+// errors are kept on this computer for the report the person may send (Settings)
+watchMainErrors();
 
 const auth = new AuthManager();
 const discord = new DiscordPresence();
@@ -288,6 +291,8 @@ function registerIpc(): void {
     if (command) browserPlayer?.command(command);
   });
   handle("desktop:get", () => desktop.settings());
+  handle("desktop:keys", () => desktop.keys());
+  handle("desktop:set-keys", (raw) => desktop.setKeys(raw));
   handle("desktop:set", (raw) => {
     const input = (raw ?? {}) as Record<string, unknown>;
     return desktop.setSettings({
@@ -321,6 +326,11 @@ function registerIpc(): void {
   handle("history:enabled", () => historyEnabled());
   handle("history:set-enabled", (on) => setHistoryEnabled(on === true));
   handle("app:info", () => ({ version: app.getVersion(), platform: process.platform, packaged: app.isPackaged }));
+  handle("errors:add", (raw) => recordError(raw, "page"));
+  handle("errors:info", () => errorInfo());
+  handle("errors:copy", () => copyReport());
+  handle("errors:ticket", () => openTicket());
+  handle("errors:clear", () => clearErrors());
   handle("app:language", (raw) => {
     setLanguage(raw);
     desktop.relabel();

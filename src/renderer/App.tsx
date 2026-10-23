@@ -25,6 +25,10 @@ import { ImportDialog } from "./components/ImportDialog";
 import { Intro } from "./components/Intro";
 import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
+import { ShortcutsDialog } from "./components/ShortcutsDialog";
+import { Announcer } from "./components/Announcer";
+import { Welcome } from "./components/Welcome";
+import { actionFor, comboOf, shortcuts, type ShortcutAction } from "./lib/shortcuts";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
 import { useStore } from "./lib/store";
@@ -33,7 +37,7 @@ import { lite } from "./lib/lite";
 import { theme } from "./lib/theme";
 import { navigate, notify, ui } from "./lib/ui";
 import * as engine from "./player/engine";
-import { connectDesktop } from "./player/desktopBridge";
+import { connectDesktop, likeCurrent } from "./player/desktopBridge";
 import { connectDiscord } from "./player/discordBridge";
 import { connectHistory } from "./player/history";
 import { connectLoop } from "./player/loop";
@@ -57,6 +61,39 @@ import { Login } from "./views/Login";
 import { Search } from "./views/Search";
 import { Settings } from "./views/Settings";
 import { Stats } from "./views/Stats";
+
+function runShortcut(action: ShortcutAction): void {
+  const state = engine.playback.get();
+  switch (action) {
+    case "togglePlay":
+      return run(engine.togglePlay);
+    case "next":
+      return run(engine.next);
+    case "previous":
+      return run(engine.previous);
+    case "volumeUp":
+    case "volumeDown":
+      return engine.setVolume(state.volume + (action === "volumeUp" ? 0.05 : -0.05));
+    case "search":
+      return document.querySelector<HTMLInputElement>("input[data-search]")?.focus();
+    case "reveal":
+      if (!state.track?.albumId) return;
+      ui.set({ reveal: state.track.uri });
+      return navigate({ name: "album", id: state.track.albumId });
+    case "moment":
+      if (state.track) void addMoment(state.track, engine.currentPosition(state));
+      return;
+    case "lyrics":
+      return ui.set({ lyricsStage: !ui.get().lyricsStage, fullPlayer: false });
+    case "like":
+      return run(likeCurrent);
+    case "salon":
+      if (state.track) openSalon();
+      return;
+    case "help":
+      return shortcuts.set({ open: !shortcuts.get().open });
+  }
+}
 
 function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const route = useStore(ui, (s) => s.route);
@@ -108,33 +145,19 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   useEffect(() => connectOverlay(), []);
   useEffect(() => connectTrash(), []);
 
-  // space plays and pauses, except while typing; and the Music app's shortcuts (Mac): Ctrl+L goes to
-  // the track playing, Ctrl+↑/↓ sets the volume, Ctrl+M marks a moment
+  // the keyboard: the person's own keys (lib/shortcuts.ts, "?" lists and changes them); while typing,
+  // only search's keys count
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
-      if (event.code === "Space" && !typing) {
-        event.preventDefault();
-        run(engine.togglePlay);
-        return;
-      }
-      if (!(event.ctrlKey || event.metaKey) || event.altKey || typing) return;
-      const state = engine.playback.get();
-      const key = event.key.toLowerCase();
-      if (key === "l" && state.track?.albumId) {
-        event.preventDefault();
-        ui.set({ reveal: state.track.uri });
-        navigate({ name: "album", id: state.track.albumId });
-      } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-        event.preventDefault();
-        engine.setVolume(state.volume + (event.key === "ArrowUp" ? 0.05 : -0.05));
-      } else if (key === "m" && state.track) {
-        event.preventDefault();
-        void addMoment(state.track, engine.currentPosition(state));
-      } else if (key === "s" && event.shiftKey && state.track) {
-        event.preventDefault();
-        openSalon();
-      }
+      const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target as HTMLElement | null)?.isContentEditable;
+      const combo = comboOf(event);
+      // Ctrl+F searches too, as in the Music app
+      const action = combo ? (actionFor(combo) ?? (combo === "Ctrl+F" ? "search" : undefined)) : undefined;
+      if (!action || (typing && action !== "search")) return;
+      // a focused button already answers Space: no second toggle
+      if (action === "togglePlay" && event.target instanceof HTMLButtonElement) return;
+      event.preventDefault();
+      runShortcut(action);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -184,13 +207,22 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
     // isolate: the ambiance sits under the page, above the window's own background
     <div className="relative isolate h-full">
       <Ambiance />
+      {/* the keyboard's first stop: straight to the page, past the header (WCAG 2.4.1) */}
+      <a href="#content" className="skip-link" onClick={(event) => (event.preventDefault(), document.getElementById("content")?.focus())}>
+        Aller au contenu
+      </a>
+      <Announcer />
       <Header profile={profile} scrolled={scrolled || route.name === "flow"} onLogout={onLogout} />
       {/* Flow takes the whole height between the header and the player bar, and scrolls on its own */}
       {route.name === "flow" ? (
-        view
+        <main id="content" tabIndex={-1} className="outline-none">
+          {view}
+        </main>
       ) : (
       <main
-        className="main scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24 transition-[margin] duration-300"
+        id="content"
+        tabIndex={-1}
+        className="main outline-none scrollbar-thin h-full overflow-y-auto px-8 pb-36 pt-24 transition-[margin] duration-300"
         // the "À l'écoute" panel takes the right of the window; the page and its scrollbar stop before it
         style={{ marginRight: panel ? PANEL_ROOM : 0 }}
         onScroll={(event) => {
@@ -236,6 +268,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />
+      <ShortcutsDialog />
       {/* mysticsaba.com's film grain, over everything, in the Mystic theme */}
       {mystic && <div className="fx-grain pointer-events-none fixed inset-[-50%] z-[65] opacity-[0.045]" aria-hidden="true" />}
     </div>
@@ -272,6 +305,7 @@ export function App() {
       )}
       <Toasts />
       <UpNext />
+      <Welcome />
     </MotionConfig>
   );
 }

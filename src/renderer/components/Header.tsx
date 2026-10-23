@@ -10,6 +10,7 @@ import { useStore } from "../lib/store";
 import { setTheme, theme, type Theme } from "../lib/theme";
 import { updates } from "../lib/updates";
 import { navigate, notify, ui, type Route } from "../lib/ui";
+import { keysLabel, shortcuts } from "../lib/shortcuts";
 
 const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
   { label: "Accueil", route: { name: "home" }, icon: Home },
@@ -143,6 +144,7 @@ function UpdatePill() {
 export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scrolled: boolean; onLogout: () => void }) {
   const route = useStore(ui, (s) => s.route);
   const [query, setQuery] = useState(route.name === "search" ? (route.query ?? "") : "");
+  const searchKeys = useStore(shortcuts, (state) => state.keys.search);
   const input = useRef<HTMLInputElement>(null);
   const platform = window.vitrine.platform;
 
@@ -156,18 +158,6 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
     const timer = setTimeout(() => navigate({ name: "search", query: query.trim() }), 350);
     return () => clearTimeout(timer);
   }, [query]);
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      // Ctrl+K, and Ctrl+F as in the Music app
-      if ((event.metaKey || event.ctrlKey) && ["k", "f"].includes(event.key.toLowerCase())) {
-        event.preventDefault();
-        input.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   return (
     <header
@@ -210,10 +200,11 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <input
           ref={input}
+          data-search
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => navigate(query.trim() ? { name: "search", query: query.trim() } : { name: "search" })}
-          placeholder="Titres, artistes, albums…  (Ctrl K)"
+          placeholder={`Titres, artistes, albums…  (${keysLabel(searchKeys)})`}
           className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 transition-all focus:border-red-500/50 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-red-500/30"
         />
         {query && (

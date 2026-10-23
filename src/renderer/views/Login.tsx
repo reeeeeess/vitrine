@@ -27,7 +27,7 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
   };
 
   return (
-    <div className="relative flex h-full items-center justify-center overflow-hidden">
+    <main className="relative flex h-full items-center justify-center overflow-hidden">
       <div className="drag absolute inset-x-0 top-0 h-16" />
       <div className={window.vitrine.platform === "darwin" ? "absolute right-6 top-4 z-10" : "absolute right-40 top-4 z-10"}>
         <ThemeToggle />
@@ -93,6 +93,6 @@ export function Login({ status, drm, onLoggedIn }: { status: AuthStatus; drm?: D
           </span>
         </div>
       </motion.div>
-    </div>
+    </main>
   );
 }

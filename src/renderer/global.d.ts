@@ -40,6 +40,12 @@ export interface LyricsResult {
   sources?: { source: LyricsSource; kind: LyricsKind }[];
 }
 
+export interface GlobalKeys {
+  shortcuts: { accelerator: string; command: string; label: string }[];
+  /** accelerators another app already holds */
+  taken: string[];
+}
+
 export interface VitrineBridge {
   platform: string;
   auth: {
@@ -83,6 +89,14 @@ export interface VitrineBridge {
   app: {
     setLanguage(language: "auto" | "fr" | "en"): Promise<void>;
   };
+  /** the error report, kept on this computer until the person copies or sends it */
+  errors: {
+    add(error: { message: string; stack?: string }): Promise<void>;
+    info(): Promise<{ count: number; last?: string }>;
+    copy(): Promise<void>;
+    ticket(): Promise<void>;
+    clear(): Promise<void>;
+  };
   launchSpotify(): Promise<"app" | "protocol" | null>;
   equalizer: {
     get(): Promise<EqualizerStatus>;
@@ -102,6 +116,9 @@ export interface VitrineBridge {
     set(settings: DesktopSettings): Promise<DesktopSettings & { takenShortcuts: string[] }>;
     update(nowPlaying: { title: string; artist: string; imageUrl?: string; paused: boolean; holdsAudio?: boolean } | null): Promise<void>;
     onCommand(listener: (command: "toggle" | "next" | "previous" | "like" | "flow" | "lyrics" | "stats" | `play:${string}`) => void): () => void;
+    keys(): Promise<GlobalKeys>;
+    /** new keys for one global shortcut; `accelerator: null` gives it its own back */
+    setKeys(change: { command: string; accelerator: string | null }): Promise<GlobalKeys>;
   };
   history: {
     add(play: HistoryPlay): Promise<void>;

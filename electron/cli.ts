@@ -34,3 +34,23 @@ export const GLOBAL_SHORTCUTS: { accelerator: string; command: DesktopCommand; l
   { accelerator: "CommandOrControl+Alt+F", command: "flow", label: "Ouvrir Flow" },
   { accelerator: "CommandOrControl+Alt+K", command: "lyrics", label: "Paroles sur le bureau" },
 ];
+
+/**
+ * A global shortcut chosen by the person, made safe: at least Ctrl or Alt (a plain key would be taken from
+ * every other app), then one letter, digit, arrow, Space or F-key. Null when it is not one.
+ */
+export function cleanAccelerator(raw: unknown): string | null {
+  if (typeof raw !== "string" || raw.length > 60) return null;
+  const parts = raw.split("+");
+  const key = parts.pop() ?? "";
+  const modifiers = new Set(parts);
+  if (![...modifiers].every((part) => ["CommandOrControl", "Alt", "Shift"].includes(part)) || modifiers.size !== parts.length) return null;
+  if (!modifiers.has("CommandOrControl") && !modifiers.has("Alt")) return null;
+  if (!/^([A-Z0-9]|Space|Right|Left|Up|Down|F([1-9]|1[0-9]|2[0-4]))$/.test(key)) return null;
+  return ["CommandOrControl", "Alt", "Shift"].filter((part) => modifiers.has(part)).concat(key).join("+");
+}
+
+/** The global shortcuts with the person's own keys where they changed them. */
+export function globalShortcuts(own: Partial<Record<DesktopCommand, string>> = {}): typeof GLOBAL_SHORTCUTS {
+  return GLOBAL_SHORTCUTS.map((shortcut) => ({ ...shortcut, accelerator: cleanAccelerator(own[shortcut.command]) ?? shortcut.accelerator }));
+}

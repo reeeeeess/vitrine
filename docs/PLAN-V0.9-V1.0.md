@@ -48,11 +48,14 @@ Règle commune, inchangée : **aucune demande régulière de plus à Spotify** ;
 - [x] Version anglaise (choix de la langue, automatique selon le système) : 580 textes et une centaine de phrases
       composées traduits à l'écran ; titres, artistes et paroles jamais traduits ; dates et nombres à l'anglaise ;
       menus de la zone de notification, boîtes de dialogue et cartes à partager aussi
-- [ ] Accessibilité : clavier partout (contour visible, aller au contenu), « ? » liste les raccourcis, titres
-      annoncés aux lecteurs d'écran, contrastes vérifiés
-- [ ] Raccourcis personnalisables
-- [ ] Rapport d'erreur sur consentement : les erreurs gardées sur l'ordinateur, copiées ou envoyées en ticket par vous
-- [ ] Accueil du premier lancement (ce que fait Vitrine, en trois écrans)
+- [x] Accessibilité : clavier partout (contour visible, aller au contenu), « ? » liste les raccourcis, titres
+      annoncés aux lecteurs d'écran, contrastes vérifiés (audit axe WCAG AA dans l'essai de bout en bout : gris
+      éclairci à 4,5:1, liste des titres, cartes cachées de Flow hors du clavier, repères de page)
+- [x] Raccourcis personnalisables : chaque action de Vitrine et chaque raccourci global, touches à changer dans
+      « ? » (deux actions échangent leurs touches ; un raccourci global demande Ctrl ou Alt)
+- [x] Rapport d'erreur sur consentement : les erreurs gardées sur l'ordinateur (sans jeton, clé ni nom
+      d'utilisateur), copiées ou envoyées en ticket GitHub par vous ; une page cassée affiche un écran de secours
+- [x] Accueil du premier lancement (ce que fait Vitrine, en trois écrans ; thème et langue choisis tout de suite)
 - [ ] Version Linux (AppImage)
 - [ ] Mesures mémoire et processeur de la v1.0
 - [ ] Dossier « quota étendu » Spotify prêt à envoyer, et la liste de diffusion (signature, notarisation)

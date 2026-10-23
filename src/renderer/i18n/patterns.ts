@@ -13,6 +13,7 @@ const re = (source: string) => new RegExp(`^${source.replace(/\{n\}/g, N)}$`, "s
 
 export const PATTERNS: Pattern[] = [
   // player and lyrics
+  [re("En lecture : (.+)"), ([song]) => `Now playing: ${song}`],
   [re("Votre moment à (.+)"), ([at]) => `Your moment at ${at}`],
   [re("Boucle (\\S+)–(\\S+)"), ([a, b]) => `Loop ${a}–${b}`],
   [re("Lecture sur cet ordinateur via (.+) : son lecteur DRM est reconnu par Spotify\\."), ([browser]) => `Playing on this computer through ${browser}: its DRM player is recognised by Spotify.`],
@@ -133,4 +134,10 @@ export const PATTERNS: Pattern[] = [
   ],
   [re("(.+) — lancer la lecture"), ([kind], tr) => `${tr(kind)} — play`],
   [re("En pause · (.+)"), ([name]) => `Paused · ${name}`],
+  [re("Écran {n} sur {n}"), ([n, total]) => `Screen ${n} of ${total}`],
+  [
+    re("{n} erreur\\(s\\) gardée\\(s\\) sur cet ordinateur, la dernière le (.+)\\. (Rien n'est envoyé .+)"),
+    ([n, at, rest], tr) => `${n} error(s) kept on this computer, the last one on ${at}. ${tr(rest)}`,
+  ],
+  [re("Aucune erreur pour l'instant\\. (Rien n'est envoyé .+)"), ([rest], tr) => `No errors so far. ${tr(rest)}`],
 ];

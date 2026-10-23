@@ -5,9 +5,11 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { chromium } from "playwright";
 
 const root = fileURLToPath(new URL("../../dist/renderer/", import.meta.url));
+const axe = await readFile(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2", ".woff": "font/woff", ".png": "image/png", ".svg": "image/svg+xml" };
 
 const server = createServer(async (request, response) => {
@@ -64,6 +66,7 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 await context.addInitScript((lyrics) => {
   try {
     sessionStorage.setItem("vitrine.introShown", "1");
+    localStorage.setItem("vitrine.welcomed", "1");
   } catch {}
   // the desktop bridge: what the screens read, and a quiet "nothing" for everything else
   const known = {
@@ -155,8 +158,53 @@ await check("en anglais : l'interface traduite, les paroles et les titres intact
     }
     return left;
   });
-  if (french.length) throw new Error(`encore en français : ${french.slice(0, 5).join(" | ")}`);
+  // the language is kept for the whole site: back to French for the next pages
+  await english.evaluate(() => localStorage.removeItem("vitrine.language"));
   await english.close();
+  if (french.length) throw new Error(`encore en français : ${french.slice(0, 5).join(" | ")}`);
+});
+// accessibility: axe's rules (WCAG A and AA), what is serious or critical fails
+const audit = async (target) => {
+  await target.evaluate(axe + ";0");
+  const found = await target.evaluate(async () =>
+    (await window.axe.run(document, { resultTypes: ["violations"], rules: { region: { enabled: false } } })).violations
+      .filter((rule) => rule.impact === "serious" || rule.impact === "critical")
+      .map((rule) => `${rule.id} (${rule.nodes.map((node) => node.html.slice(0, 160)).slice(0, 3).join(", ")})`),
+  );
+  if (found.length) throw new Error(found.join(" | "));
+};
+await check("accessibilité de l'accueil et des réglages (axe, WCAG AA)", async () => {
+  await page.getByRole("button", { name: "Accueil", exact: true }).first().click();
+  await page.waitForTimeout(1200);
+  await audit(page);
+  await page.getByRole("button", { name: "Réglages" }).first().click();
+  await page.waitForTimeout(1200);
+  await audit(page);
+});
+await check("« ? » liste les raccourcis, Échap ferme", async () => {
+  await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+  await page.keyboard.press("?");
+  await page.getByRole("dialog", { name: "Raccourcis" }).waitFor({ timeout: 5000 });
+  await audit(page);
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog", { name: "Raccourcis" }).waitFor({ state: "detached", timeout: 5000 });
+});
+await check("premier lancement : l'accueil en trois écrans, puis le clavier va d'abord au contenu", async () => {
+  const first = await context.newPage();
+  first.on("pageerror", (error) => errors.push(error.message));
+  await first.addInitScript(() => localStorage.removeItem("vitrine.welcomed"));
+  await first.goto(base);
+  const welcome = first.getByRole("dialog", { name: /Votre musique/ });
+  await welcome.waitFor({ timeout: 15_000 });
+  await audit(first);
+  await first.keyboard.press("ArrowRight");
+  await first.keyboard.press("ArrowRight");
+  await first.getByRole("button", { name: "C'est parti" }).click();
+  await first.getByRole("dialog").waitFor({ state: "detached", timeout: 5000 });
+  await first.keyboard.press("Tab");
+  const skip = await first.evaluate(() => document.activeElement?.textContent?.trim());
+  if (skip !== "Aller au contenu") throw new Error(`premier Tab sur « ${skip} »`);
+  await first.close();
 });
 await check("aucune erreur dans la page", async () => {
   if (errors.length) throw new Error(errors.join(" | "));

@@ -10,11 +10,14 @@ import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { connectErrorLog } from "./lib/errorLog";
 import { languageSetting, startTranslating } from "./lib/i18n";
 import { applyLite } from "./lib/lite";
 import { applyTheme } from "./lib/theme";
 import { LyricsOverlay } from "./views/LyricsOverlay";
 
+connectErrorLog();
 applyTheme();
 applyLite();
 // English: every text is swapped as it appears (lib/i18n.ts); the main process follows the same choice
@@ -25,4 +28,8 @@ void window.vitrine?.app?.setLanguage(languageSetting()).catch(() => undefined);
 document.documentElement.dataset.platform = window.vitrine?.platform ?? "";
 
 // the same page serves the lyrics overlay window (electron/overlay.ts), opened on #overlay
-createRoot(document.getElementById("root")!).render(<StrictMode>{location.hash === "#overlay" ? <LyricsOverlay /> : <App />}</StrictMode>);
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ErrorBoundary>{location.hash === "#overlay" ? <LyricsOverlay /> : <App />}</ErrorBoundary>
+  </StrictMode>,
+);

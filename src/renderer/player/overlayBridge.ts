@@ -44,7 +44,9 @@ export function connectOverlay(): () => void {
     void bridge.send({ line, next, title }).catch(() => undefined);
   };
 
-  const apply = (open: boolean) => {
+  const apply = (answer: unknown) => {
+    // only a plain "yes" opens it: anything else from the bridge reads as closed
+    const open = answer === true;
     overlay.set({ open });
     clearInterval(timer);
     sent = "";

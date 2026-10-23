@@ -248,7 +248,7 @@ export function Flow({ seed }: { seed?: Track }) {
       <div className="pointer-events-none absolute inset-0 bg-black/40" />
 
       <div className="absolute left-8 top-4 z-10 flex items-center gap-3">
-        <span className="kicker font-semibold text-red-500">Flow</span>
+        <h1 className="kicker font-semibold text-red-500">Flow</h1>
         <button onClick={toggleHook} className={cn("rounded-full border px-3 py-1 text-xs transition-colors", hook ? "border-red-500/60 bg-red-500/15 text-white" : "border-white/15 text-gray-400 hover:text-white")} aria-pressed={hook}>
           Démarrer au refrain
         </button>
@@ -273,6 +273,8 @@ export function Flow({ seed }: { seed?: Track }) {
             className="absolute inset-0 flex items-center justify-center gap-6 py-6 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
             style={{ transform: `translateY(${(index - active) * 100}%)` }}
             aria-hidden={index !== active}
+            // the cards above and below: not reachable with Tab either
+            {...(index !== active ? { inert: "" } : {})}
           >
             <Card
               item={item}

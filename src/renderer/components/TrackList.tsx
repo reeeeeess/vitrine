@@ -61,8 +61,9 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
       : "grid-cols-[2.5rem_minmax(0,1fr)_7rem]";
 
   return (
-    <div ref={list} className="mt-6" role="table" aria-label="Titres">
-      <div className={cn("kicker grid items-center gap-4 border-b border-white/10 px-4 pb-2 text-gray-500", columns)} role="row">
+    <div ref={list} className="mt-6" role="list" aria-label="Titres">
+      {/* the columns' names, for the eye: each row reads in full on its own */}
+      <div className={cn("kicker grid items-center gap-4 border-b border-white/10 px-4 pb-2 text-gray-500", columns)} aria-hidden="true">
         <span className="text-right">#</span>
         <span>Titre</span>
         {showAlbum && <span>Album</span>}
@@ -77,7 +78,7 @@ export function TrackList({ tracks, onPlay, showAlbum = true, showArt = true, me
             <div
               key={`${track.id}-${index}`}
               data-uri={track.uri}
-              role="row"
+              role="listitem"
               tabIndex={0}
               onDoubleClick={() => onPlay(track, index)}
               onContextMenu={(event) => trackMenu(event, track, menuContext)}

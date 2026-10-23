@@ -1,4 +1,4 @@
-import { CheckCircle2, Download, ExternalLink, Loader2, LogOut, RefreshCw, SlidersHorizontal, Trash2 } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Loader2, LogOut, RefreshCw, SlidersHorizontal, Trash2 } from "lucide-react";
 import { openEqualizer } from "../components/EqualizerPanel";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePageTitle } from "../lib/pageTitle";
@@ -7,7 +7,7 @@ import { cn } from "../lib/cn";
 import { errorMessage } from "../lib/format";
 import type { Profile } from "../lib/spotify";
 import { useStore } from "../lib/store";
-import { setAmbiance, setDynamicAccent, setTheme, theme, type Theme } from "../lib/theme";
+import { setAmbiance, setDynamicAccent, setTheme, theme, THEMES } from "../lib/theme";
 import { nowPanel, setNowPanel } from "../components/NowPanel";
 import { lyricsPrefs, setNetease } from "../lib/lyricsPrefs";
 import { infinite, setInfinite } from "../player/infinite";
@@ -17,7 +17,8 @@ import { updates } from "../lib/updates";
 import { playback, retryLocalPlayback } from "../player/engine";
 import { restore, trash } from "../lib/trash";
 import { EFFECTS, lite, REASONS, setEffect, setLiteSetting, type LiteSetting } from "../lib/lite";
-import { languageSetting, setLanguage, t, type LanguageSetting } from "../lib/i18n";
+import { languageSetting, LOCALE, setLanguage, t, type LanguageSetting } from "../lib/i18n";
+import { shortcuts } from "../lib/shortcuts";
 
 const REPO = "https://github.com/reeeeeess/vitrine";
 const DISCORD_PORTAL = "https://discord.com/developers/applications";
@@ -74,7 +75,7 @@ function Switch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) 
   return (
     <button
       role="switch"
-      aria-checked={on}
+      aria-checked={on === true}
       aria-label={label}
       onClick={() => onChange(!on)}
       className={cn("relative h-7 w-12 shrink-0 rounded-full transition-colors", on ? "accent-bg" : "bg-white/15")}
@@ -84,11 +85,6 @@ function Switch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) 
   );
 }
 
-const THEMES: { id: Theme; name: string; hint: string; swatches: string[] }[] = [
-  { id: "movix", name: "Movix", hint: "Noir et rouge, Inter et Archivo Black", swatches: ["#000000", "#dc2626", "#ffffff"] },
-  { id: "mystic", name: "Mystic", hint: "mysticsaba.com : noir chaud, ambre → rouge, Clash Display", swatches: ["#0a0908", "#f2a33c", "#ff3d2e", "#ede8dd"] },
-  { id: "glass", name: "Verre", hint: "Liquid Glass d'iOS 26 : tout en verre dépoli sur la pochette floutée, bleu iOS", swatches: ["#1e1e24", "#0a84ff", "#5e5ce6", "#ffffff"] },
-];
 
 const DISCORD_STATE: Record<DiscordInfo["state"], string> = {
   off: "Désactivé",
@@ -255,10 +251,11 @@ function DesktopSettingsLines() {
       >
         <Switch on={settings.globalShortcuts} onChange={(on) => void change({ globalShortcuts: on })} label="Raccourcis clavier globaux" />
       </Line>
-      <Line
-        label="Raccourcis dans Vitrine"
-        hint="Espace lecture / pause · Ctrl+K ou Ctrl+F recherche · Ctrl+L aller au titre en cours · Ctrl+↑ / ↓ volume · Ctrl+M marquer un moment (⌘ sur Mac)."
-      />
+      <Line label="Raccourcis dans Vitrine" hint="Tous les raccourcis, et leurs touches à changer : « ? » n'importe où dans Vitrine.">
+        <button onClick={() => shortcuts.set({ open: true })} className="btn-ghost shrink-0 text-sm">
+          Voir et modifier
+        </button>
+      </Line>
     </>
   );
 }
@@ -458,6 +455,55 @@ function TranslationLines() {
  * Last.fm (P7): the person's own application keys (last.fm/api/account/create, free), one authorisation in the
  * browser, then what plays on this computer is sent there.
  */
+/** The errors kept on this computer, and what the person may do with them: nothing leaves by itself. */
+function ErrorReportLines() {
+  const [info, setInfo] = useState<{ count: number; last?: string }>();
+  const [done, setDone] = useState("");
+  useEffect(() => void window.vitrine.errors?.info().then(setInfo, () => undefined), []);
+  if (!info) return null;
+  const act = (task: () => Promise<void>, message: string) =>
+    void task().then(
+      () => setDone(message),
+      (error: unknown) => setDone(errorMessage(error)),
+    );
+  const hint = info.count
+    ? `${info.count} erreur(s) gardée(s) sur cet ordinateur, la dernière le ${new Date(info.last ?? Date.now()).toLocaleString(LOCALE, { dateStyle: "short", timeStyle: "short" })}.`
+    : "Aucune erreur pour l'instant.";
+  return (
+    <>
+      <Line label="Erreurs gardées sur cet ordinateur" hint={`${hint} Rien n'est envoyé tout seul : sans clé, jeton ni nom d'utilisateur, le rapport part seulement si vous le copiez ou ouvrez un ticket.`} />
+      {info.count > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => act(() => window.vitrine.errors.copy(), "Rapport copié.")} className="btn-ghost min-h-0 px-4 py-2 text-sm">
+            <Copy className="h-4 w-4" aria-hidden="true" />
+            Copier le rapport
+          </button>
+          <button onClick={() => act(() => window.vitrine.errors.ticket(), "Ticket ouvert dans le navigateur (le rapport complet est aussi copié).")} className="btn-ghost min-h-0 px-4 py-2 text-sm">
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            Ouvrir un ticket sur GitHub
+          </button>
+          <button
+            onClick={() =>
+              act(async () => {
+                await window.vitrine.errors.clear();
+                setInfo({ count: 0 });
+              }, "Erreurs effacées.")
+            }
+            className="btn-ghost min-h-0 px-4 py-2 text-sm"
+          >
+            Effacer
+          </button>
+        </div>
+      )}
+      {done && (
+        <p className="text-xs text-gray-400" role="status">
+          {done}
+        </p>
+      )}
+    </>
+  );
+}
+
 function LastfmSettings() {
   const [status, setStatus] = useState<LastfmStatus>();
   const [apiKey, setApiKey] = useState("");
@@ -626,10 +672,6 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         </Line>
       </Section>
 
-      <Section title="Lecture et file d'attente">
-        <InfiniteLine />
-      </Section>
-
       <Section title="Paroles">
         <LyricsSettingsLines />
       </Section>
@@ -642,7 +684,8 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         <DesktopSettingsLines />
       </Section>
 
-      <Section title="Lecture et file d'attente">
+      <Section title="Lecture et son">
+        <InfiniteLine />
         <Line label="Lecteur intégré" hint={player}>
           {sdk !== "ready" && sdk !== "loading" && (
             <button onClick={retryLocalPlayback} className="btn-ghost min-h-0 shrink-0 px-4 py-2 text-sm">
@@ -691,8 +734,12 @@ export function Settings({ profile, onLogout }: { profile?: Profile; onLogout: (
         </Line>
       </Section>
 
+      <Section title="Rapport d'erreur">
+        <ErrorReportLines />
+      </Section>
+
       <Section title="À propos">
-        <Line label="Vitrine PC" hint="Lecteur Spotify de bureau sur l'API officielle de Spotify. Paroles : LRCLIB.">
+        <Line label="Vitrine PC" hint="Lecteur Spotify de bureau sur l'API officielle de Spotify. Paroles : AMLL, LRCLIB, NetEase et lyrics.ovh.">
           <button onClick={() => void window.vitrine.openExternal(REPO)} className="btn-ghost min-h-0 px-4 py-2 text-sm">
             <ExternalLink className="h-4 w-4" />
             GitHub

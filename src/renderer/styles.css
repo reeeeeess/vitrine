@@ -9,7 +9,7 @@
   --c-black: 0 0 0;
   --c-gray-300: 209 213 219;
   --c-gray-400: 156 163 175;
-  --c-gray-500: 107 114 128;
+  --c-gray-500: 125 132 145; /* 4.5:1 or better on the dark panels (WCAG AA), Tailwind's 107 114 128 fell short */
   --c-gray-600: 75 85 99;
   --c-gray-700: 55 65 81;
   --c-gray-800: 31 41 55;
@@ -39,7 +39,7 @@
   --c-black: 10 9 8;
   --c-gray-300: 205 199 186;
   --c-gray-400: 185 179 164;
-  --c-gray-500: 131 126 111;
+  --c-gray-500: 146 140 124;
   --c-gray-600: 96 92 81;
   --c-gray-700: 60 56 48;
   --c-gray-800: 33 29 22;
@@ -420,4 +420,33 @@
 }
 .eq-slider:disabled {
   cursor: default;
+}
+
+/* ── accessibility (v1.0) ─────────────────────────────────────────────────
+   The keyboard's place always shows, in the theme's red, and never for a mouse click (:focus-visible).
+   Text fields keep their own ring; a panel or page given the focus by Vitrine (tabindex -1) shows none. */
+:focus-visible:not(input):not(textarea):not([tabindex="-1"]) {
+  outline: 2px solid rgb(var(--c-red-400));
+  outline-offset: 2px;
+}
+.range:focus-visible {
+  outline: 2px solid rgb(var(--c-red-400));
+  outline-offset: 4px;
+}
+/* "Aller au contenu": hidden until the first Tab */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 999px;
+  background: rgb(var(--c-white));
+  color: rgb(var(--c-black));
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: top 160ms ease;
+}
+.skip-link:focus-visible {
+  top: 1rem;
 }

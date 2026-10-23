@@ -6,7 +6,7 @@ import * as engine from "./engine";
 import { playback } from "./engine";
 
 /** Adds the track playing to Liked Songs (a shortcut does not take it out: pressed twice, it stays). */
-async function likeCurrent(): Promise<void> {
+export async function likeCurrent(): Promise<void> {
   const track = playback.get().track;
   if (!track?.uri.startsWith("spotify:track:")) return;
   await api.saveTrack(track.id);

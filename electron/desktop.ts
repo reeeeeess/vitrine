@@ -4,7 +4,7 @@
 // Settings live in config.json ("desktop").
 import { app, BrowserWindow, globalShortcut, Menu, nativeImage, net, Notification, Tray, type NativeImage } from "electron";
 import path from "node:path";
-import { GLOBAL_SHORTCUTS, type DesktopCommand } from "./cli";
+import { cleanAccelerator, GLOBAL_SHORTCUTS, globalShortcuts, type DesktopCommand } from "./cli";
 import { readConfig, updateConfig, type DesktopSettings, type Pin } from "./config";
 import { tr } from "./locale";
 
@@ -77,6 +77,32 @@ export class Desktop {
     return this.settings();
   }
 
+  /** The global shortcuts and their keys, the person's own where changed. */
+  keys(): { shortcuts: ReturnType<typeof globalShortcuts>; taken: string[] } {
+    return { shortcuts: globalShortcuts(readConfig().globalKeys), taken: this.takenShortcuts };
+  }
+
+  /** New keys for one global shortcut (or its own back, without keys); two with the same keys swap. */
+  setKeys(raw: unknown): ReturnType<Desktop["keys"]> {
+    const input = (raw ?? {}) as { command?: unknown; accelerator?: unknown };
+    const target = GLOBAL_SHORTCUTS.find((shortcut) => shortcut.command === input.command);
+    if (target) {
+      const current = globalShortcuts(readConfig().globalKeys);
+      const own: Partial<Record<DesktopCommand, string>> = Object.fromEntries(current.map((shortcut) => [shortcut.command, shortcut.accelerator]));
+      const wanted = input.accelerator === null ? target.accelerator : cleanAccelerator(input.accelerator);
+      if (wanted) {
+        const holder = current.find((shortcut) => shortcut.accelerator === wanted && shortcut.command !== target.command);
+        if (holder) own[holder.command] = own[target.command];
+        own[target.command] = wanted;
+        // only what differs from Vitrine's own keys is kept
+        const changed = Object.fromEntries(GLOBAL_SHORTCUTS.filter((shortcut) => own[shortcut.command] !== shortcut.accelerator).map((shortcut) => [shortcut.command, own[shortcut.command]]));
+        updateConfig({ globalKeys: changed });
+        this.applyShortcuts(desktopSettings().globalShortcuts);
+      }
+    }
+    return this.keys();
+  }
+
   /** A command from the tray, the taskbar, a shortcut or the command line, for the page to run. */
   command(command: DesktopCommand): void {
     const own = this.own[command];
@@ -121,7 +147,7 @@ export class Desktop {
     globalShortcut.unregisterAll();
     this.takenShortcuts = [];
     if (!on) return;
-    for (const { accelerator, command } of GLOBAL_SHORTCUTS) {
+    for (const { accelerator, command } of globalShortcuts(readConfig().globalKeys)) {
       // false when another app holds it: Vitrine goes without that one
       if (!globalShortcut.register(accelerator, () => this.command(command))) this.takenShortcuts.push(accelerator);
     }

@@ -57,6 +57,13 @@ const api = {
     setMini: (on: boolean) => ipcRenderer.invoke("window:mini", on),
   },
   info: () => ipcRenderer.invoke("app:info"),
+  errors: {
+    add: (error: unknown) => ipcRenderer.invoke("errors:add", error),
+    info: () => ipcRenderer.invoke("errors:info"),
+    copy: () => ipcRenderer.invoke("errors:copy"),
+    ticket: () => ipcRenderer.invoke("errors:ticket"),
+    clear: () => ipcRenderer.invoke("errors:clear"),
+  },
   app: {
     /** the interface's language, for the tray, the dialogs and the notifications */
     setLanguage: (language: string) => ipcRenderer.invoke("app:language", language),
@@ -79,6 +86,8 @@ const api = {
     get: () => ipcRenderer.invoke("desktop:get"),
     set: (settings: unknown) => ipcRenderer.invoke("desktop:set", settings),
     update: (nowPlaying: unknown) => ipcRenderer.invoke("desktop:update", nowPlaying),
+    keys: () => ipcRenderer.invoke("desktop:keys"),
+    setKeys: (change: unknown) => ipcRenderer.invoke("desktop:set-keys", change),
     /** Commands from the tray and the taskbar buttons; returns the function that stops listening. */
     onCommand: (listener: (command: unknown) => void) => {
       const forward = (_event: unknown, command: unknown) => listener(command);

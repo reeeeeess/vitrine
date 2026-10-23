@@ -4,6 +4,13 @@ import { createStore } from "./store";
 
 export type Theme = "movix" | "mystic" | "glass";
 
+/** each look as the Settings and the first launch show it */
+export const THEMES: { id: Theme; name: string; hint: string; swatches: string[] }[] = [
+  { id: "movix", name: "Movix", hint: "Noir et rouge, Inter et Archivo Black", swatches: ["#000000", "#dc2626", "#ffffff"] },
+  { id: "mystic", name: "Mystic", hint: "mysticsaba.com : noir chaud, ambre → rouge, Clash Display", swatches: ["#0a0908", "#f2a33c", "#ff3d2e", "#ede8dd"] },
+  { id: "glass", name: "Verre", hint: "Liquid Glass d'iOS 26 : tout en verre dépoli sur la pochette floutée, bleu iOS", swatches: ["#1e1e24", "#0a84ff", "#5e5ce6", "#ffffff"] },
+];
+
 const KEY = "vitrine.theme";
 const FONTSHARE = "https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap";
 
