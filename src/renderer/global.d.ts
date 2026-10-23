@@ -57,6 +57,7 @@ export interface VitrineBridge {
     insight(kind: "moment"): Promise<import("./lib/insights").Moment | null>;
     insight(kind: "iceberg"): Promise<import("./lib/insights").IcebergLevel[] | null>;
     insight(kind: "week"): Promise<import("./lib/insights").WeekRecap | null>;
+    insight(kind: "monthTop" | "yearTop"): Promise<{ uri: string; name: string; plays: number }[]>;
     info(): Promise<import("./lib/listening").HistoryInfo>;
     /** reads "recently played" now; resolves to how many plays were new */
     sync(): Promise<number>;

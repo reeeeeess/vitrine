@@ -12,6 +12,8 @@ import { PlaylistDialog } from "./components/PlaylistDialog";
 import { QueuePanel } from "./components/QueuePanel";
 import { Toasts } from "./components/Toasts";
 import { UpNext } from "./components/UpNext";
+import { ImagePreview } from "./components/ImagePreview";
+import { retro, RetroVitrine } from "./components/RetroVitrine";
 import { TrackMenuHost } from "./components/TrackMenu";
 import type { AuthStatus, DrmStatus } from "./global";
 import * as api from "./lib/spotify";
@@ -50,6 +52,7 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
   const queueOpen = useStore(ui, (s) => s.queueOpen);
   const mini = useStore(ui, (s) => s.mini);
   const playlistDialog = useStore(ui, (s) => s.playlistDialog);
+  const retroOpen = useStore(retro, (s) => s.period !== null);
   const mystic = useStore(theme, (s) => s.current === "mystic");
   // a new page animates in; a new search in the same page does not
   const routeKey = `${route.name}-${"id" in route ? route.id : ""}`;
@@ -150,6 +153,8 @@ function Shell({ drm, onLogout }: { drm: DrmStatus; onLogout: () => void }) {
       <AnimatePresence>{fullPlayer && <FullPlayer />}</AnimatePresence>
       <AnimatePresence>{lyricsStage && <LyricsStage />}</AnimatePresence>
       <AnimatePresence>{roulette && <Roulette />}</AnimatePresence>
+      <AnimatePresence>{retroOpen && <RetroVitrine name={profile?.name} />}</AnimatePresence>
+      <ImagePreview />
       <ScreenSaver />
       <AnimatePresence>{playlistDialog && <PlaylistDialog />}</AnimatePresence>
       <TrackMenuHost />

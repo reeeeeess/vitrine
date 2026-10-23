@@ -47,16 +47,16 @@ ou des données déjà chargées en vient.
 
 ## Étape 4 — Bilans et partage
 
-- [ ] I2 Rétro Vitrine : le mois ou l'année en diapositives plein écran, image finale à partager
-- [ ] T1 Le reçu de vos écoutes
-- [ ] T2 L'affiche de festival
-- [ ] T3 Votre iceberg (vos pépites enfouies)
-- [ ] T4 Votre aura musicale
-- [ ] T7 « Ce moment » (daylist locale)
-- [ ] T8 Le bilan de la semaine (notification du lundi)
-- [ ] I3 Les étapes (100e écoute, 1 000 minutes…)
-- [ ] I4 Playlists intelligentes en un clic (Pépites oubliées, En boucle ce mois-ci, Jamais écoutés)
-- [ ] I5 « Mon année » en playlist
+- [x] I2 Rétro Vitrine : le mois ou l'année en diapositives plein écran, image finale à partager
+- [x] T1 Le reçu de vos écoutes
+- [x] T2 L'affiche de festival
+- [x] T3 Votre iceberg (vos pépites enfouies)
+- [x] T4 Votre aura musicale
+- [x] T7 « Ce moment » (daylist locale)
+- [x] T8 Le bilan de la semaine (notification du lundi)
+- [x] I3 Les étapes (100e écoute, 1 000 minutes…)
+- [x] I4 Playlists intelligentes en un clic (Pépites oubliées, En boucle ce mois-ci, Jamais écoutés)
+- [x] I5 « Mon année » en playlist
 
 ## Étape 5 — Versions et karaoké sans la voix
 

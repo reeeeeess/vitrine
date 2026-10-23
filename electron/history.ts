@@ -5,7 +5,7 @@
 import { app, dialog, type BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
-import { iceberg, lastWeek, milestones, momentMix, quickPicks, trackStats, type Milestone, type WeekRecap } from "../src/renderer/lib/insights";
+import { iceberg, lastWeek, milestones, momentMix, quickPicks, topTracksSince, trackStats, type Milestone, type WeekRecap } from "../src/renderer/lib/insights";
 import { summarize, type HistoryInfo, type ListeningSummary } from "../src/renderer/lib/listening";
 import { readConfig, updateConfig } from "./config";
 import { extendLine, fromRecentlyPlayed, fromStreamingHistory, newPlays, parsePlay, playLine, readPlays, toCsv, type Play, type PlaySource } from "./historyFile";
@@ -129,6 +129,10 @@ export function historyInsight(kind: unknown): unknown {
       return iceberg(plays);
     case "week":
       return lastWeek(plays);
+    case "monthTop":
+      return topTracksSince(plays, Date.now() - 30 * 86_400_000, 50).filter((track) => track.plays >= 2);
+    case "yearTop":
+      return topTracksSince(plays, new Date(new Date().getFullYear(), 0, 1).getTime(), 100);
     default:
       return null;
   }

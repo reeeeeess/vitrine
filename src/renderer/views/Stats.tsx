@@ -1,16 +1,14 @@
 import { motion } from "framer-motion";
-import { Loader2, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { usePageTitle } from "../lib/pageTitle";
 import { Artwork, ErrorNote, Spinner } from "../components/Artwork";
 import { Listening } from "../components/Listening";
+import { ShareStudio } from "../components/ShareStudio";
 import { trackMenu } from "../components/TrackMenu";
 import { run } from "../components/NowPlayingBar";
 import { cn } from "../lib/cn";
 import * as api from "../lib/spotify";
-import { errorMessage } from "../lib/format";
-import { renderRecap, saveBlob } from "../lib/recap";
-import { navigate, notify } from "../lib/ui";
+import { navigate } from "../lib/ui";
 import { useAsync } from "../lib/useAsync";
 import * as engine from "../player/engine";
 
@@ -31,24 +29,6 @@ export function Stats() {
     if (tracks.status === "rejected" && artists.status === "rejected") throw tracks.reason;
     return { tracks: tracks.status === "fulfilled" ? tracks.value : [], artists: artists.status === "fulfilled" ? artists.value : [] };
   }, [range]);
-  const [sharing, setSharing] = useState(false);
-
-  const share = async () => {
-    if (!data) return;
-    setSharing(true);
-    try {
-      const profile = await api.me().catch(() => undefined);
-      const period = RANGES.find((option) => option.value === range)?.label ?? "";
-      const blob = await renderRecap({ period, name: profile?.name ?? "", tracks: data.tracks, artists: data.artists });
-      saveBlob(blob, `vitrine-recap-${range.replace("_term", "")}.png`);
-      notify("Récap prêt : choisissez où l'enregistrer.");
-    } catch (error) {
-      notify(errorMessage(error), "error");
-    } finally {
-      setSharing(false);
-    }
-  };
-
   return (
     <div className="animate-skeleton-fade">
       <div className="flex items-end justify-between gap-4 px-1">
@@ -59,10 +39,6 @@ export function Stats() {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-        <button onClick={() => void share()} disabled={!data || sharing} className="btn-ghost min-h-0 px-4 py-2 text-sm disabled:opacity-40">
-          {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-          Partager mon récap
-        </button>
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
           {RANGES.map(({ value, label }) => (
             <button
@@ -76,6 +52,8 @@ export function Stats() {
         </div>
         </div>
       </div>
+
+      {data && <ShareStudio period={RANGES.find((option) => option.value === range)?.label ?? ""} tracks={data.tracks} artists={data.artists} />}
 
       {loading && !data && <Spinner className="py-40" />}
       {error && <ErrorNote text={error} />}

@@ -39,6 +39,18 @@ export function lastPlayedLabel(iso: string | undefined, now = Date.now()): stri
   return `il y a ${Math.floor(days / 365)} an${days >= 730 ? "s" : ""}`;
 }
 
+/** The tracks played most since `since` (30 s or more), most played first. */
+export function topTracksSince(plays: HistoryPlay[], since: number, limit: number): { uri: string; name: string; plays: number }[] {
+  const counts = new Map<string, { uri: string; name: string; plays: number }>();
+  for (const play of plays) {
+    if (play.playedMs < 30_000 || time(play) < since) continue;
+    const entry = counts.get(play.uri) ?? { uri: play.uri, name: play.name, plays: 0 };
+    entry.plays += 1;
+    counts.set(play.uri, entry);
+  }
+  return [...counts.values()].sort((a, b) => b.plays - a.plays).slice(0, limit);
+}
+
 export interface QuickPick {
   kind: "album" | "artist";
   id: string;
