@@ -1,5 +1,6 @@
 // Spotify's official Web API, with the access token the main process hands out.
-import { Gate, pauseLength, pauseMessage, pauseUntil, rateLimit, ShortCache } from "./apiGate";
+import { Gate, pausedUntil, pauseUntil, ShortCache } from "./apiGate";
+import { areaOf, pauseLength, pauseMessage } from "./spotifyLimit";
 import { mapAlbum, mapArtist, mapPlaylist, mapTrack, pickImage, songKey, uniqueById, type Artist, type Collection, type Track } from "./types";
 
 const BASE = "https://api.spotify.com/v1";
@@ -34,21 +35,25 @@ function request<T = Json>(path: string, init: RequestInit = {}): Promise<T> {
     return send<T>(url, init).finally(() => readings.clear());
   }
   if (url.startsWith(`${BASE}/me/player`)) return send<T>(url, init);
-  return readings.get(url, () => send<T>(url, init));
+  return readings.get(url, () => send<T>(url, init)).catch((error: unknown) => {
+    // Spotify makes this part wait: its last known answer is better than an empty page
+    const known = readings.lastGood<T>(url);
+    if (known !== undefined && error instanceof SpotifyApiError && error.status === 429) return known;
+    throw error;
+  });
 }
 
-async function waitOutPause(): Promise<void> {
-  const { until } = rateLimit.get();
-  const left = until - Date.now();
-  if (left <= 0) return;
-  if (left > QUIET_WAIT_MS) throw new SpotifyApiError(429, pauseMessage(until));
-  await sleep(left);
+async function waitOutPause(url: string): Promise<void> {
+  const until = pausedUntil(url);
+  if (!until) return;
+  if (until - Date.now() > QUIET_WAIT_MS) throw new SpotifyApiError(429, pauseMessage(until, areaOf(url)));
+  await sleep(until - Date.now());
 }
 
 async function send<T>(url: string, init: RequestInit): Promise<T> {
   let refreshed = false;
   for (let tries = 0; ; tries++) {
-    await waitOutPause();
+    await waitOutPause(url);
     const response = await gate.run(async () => {
       const token = await window.vitrine.auth.token();
       return fetch(url, {
@@ -62,9 +67,9 @@ async function send<T>(url: string, init: RequestInit): Promise<T> {
     });
     if (response.status === 429) {
       const until = Date.now() + pauseLength(response.headers.get("retry-after"), strikes++);
-      pauseUntil(until);
+      pauseUntil(url, until);
       if (tries < TRIES_AFTER_429) continue;
-      throw new SpotifyApiError(429, pauseMessage(until));
+      throw new SpotifyApiError(429, pauseMessage(until, areaOf(url)));
     }
     strikes = 0;
     if (response.status === 401 && !refreshed) {

@@ -2,12 +2,13 @@
 // anywhere: plays on this computer, plays on every other device (Spotify's "recently played", read
 // every 15 minutes while Vitrine runs, even in the tray), and the history Spotify lets a person
 // download. It can be exported as CSV, cleared, or turned off ("history" in config.json).
-import { app, dialog, net, type BrowserWindow } from "electron";
+import { app, dialog, type BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { summarize, type HistoryInfo, type ListeningSummary } from "../src/renderer/lib/listening";
 import { readConfig, updateConfig } from "./config";
 import { extendLine, fromRecentlyPlayed, fromStreamingHistory, newPlays, parsePlay, playLine, readPlays, toCsv, type Play, type PlaySource } from "./historyFile";
+import { spotifyFetch } from "./spotifyPauses";
 import { readZip } from "./zip";
 
 const file = () => path.join(app.getPath("userData"), "listening-history.jsonl");
@@ -103,7 +104,7 @@ export async function syncAccount(accessToken: () => Promise<string>): Promise<n
   if (!historyEnabled()) return 0;
   const after = readConfig().history?.after;
   const query = after ? `limit=50&after=${after}` : "limit=50";
-  const response = await net.fetch(`https://api.spotify.com/v1/me/player/recently-played?${query}`, {
+  const response = await spotifyFetch(`https://api.spotify.com/v1/me/player/recently-played?${query}`, {
     headers: { authorization: `Bearer ${await accessToken()}` },
   });
   if (!response.ok) throw new Error(`Spotify a répondu ${response.status}`);

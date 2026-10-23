@@ -211,6 +211,12 @@ Légende : ✅ fait et testé sur compte réel · 🧪 fait, vérifié sur donn�
   demandes à la fois au plus, lectures identiques partagées pendant 1 min, état du lecteur demandé toutes les 15 s
   quand ce PC joue (il le dit lui-même), 5 s quand un autre appareil joue, 8 s à l'arrêt ; étude Apple Music
   (docs/INSPIRATION-APPLE-MUSIC.md)
+- **v0.7.2 (correctif)** : Spotify a imposé une pause de 18 h (« 1100 min »), comme d'autres développeurs l'ont
+  signalé en 2026 (13 à 19 h). La pause est désormais tenue **partie par partie** (playlists, albums, tops…), car
+  Spotify peut bloquer une partie et laisser répondre les autres ; elle est gardée après un redémarrage (sinon chaque
+  relance redemandait et risquait de la prolonger) ; une page bloquée montre sa dernière version connue ; la
+  Bibliothèque et les Stats chargent chaque partie séparément ; un compteur ⏳ dans l'en-tête donne le détail ;
+  l'historique du compte et la télécommande du processus principal respectent aussi la pause
 - **Sprint 9 (prochain, v0.8.0)** : « Rétro Vitrine » (votre année en diapositives, façon Wrapped de Movix), dock
   flottant façon Musix (option du thème Mystic), calendrier des sorties de vos artistes, intro au lancement, thème
   « Verre » (Vitrine iOS), notes horodatées (SoundCloud), scrobbling Last.fm ; les petits gestes d'Apple Music
@@ -451,7 +457,7 @@ champs genres / popularité / abonnés des artistes.
 | Widevine non signé VMP refusé par Spotify en production | Lecture locale en échec (symptômes observés sous Windows : saut au titre suivant, son coupé après une avance) | Compte castlabs EVS + signature VMP dans la chaîne de build (déjà prévue) |
 | Historique de tout le compte : Spotify ne montre aux applis que les 50 dernières écoutes | Vitrine fermée longtemps : les écoutes au-delà de 50 manquent | Lancement avec la session dans la zone de notification (réglage existant) ; import de l'export Spotify complet pour combler |
 | Évolution de l'API Spotify (points d'accès retirés) | Écrans vides | Appels défensifs, replis (`/items` → `/tracks`, titres d'artiste par la recherche), Flow bâti uniquement sur des points d'accès ouverts, vérification en réel à chaque version, suivi du changelog Spotify |
-| Limite de requêtes Spotify (« Too many requests », plus basse en mode développement, comptée sur 30 s pour toute l'appli) | Pages vides, commandes refusées ; la pause peut durer des heures si l'appli insiste | v0.7.1 : délai Retry-After respecté partout, aucune demande pendant la pause, sondage adaptatif, lectures partagées ; les tests automatiques sur compte réel partagent ce quota : les espacer |
+| Limite de requêtes Spotify (« Too many requests », plus basse en mode développement, comptée sur 30 s pour toute l'appli) | Pages vides, commandes refusées ; la pause peut durer des heures si l'appli insiste | v0.7.1 : délai Retry-After respecté partout, sondage adaptatif, lectures partagées ; v0.7.2 : pause par partie de l'API, gardée après redémarrage, dernière version connue affichée. Spotify peut imposer 13 à 19 h : rien d'autre à faire qu'attendre (créer un autre Client ID n'est plus possible : un seul par développeur depuis février 2026). Les tests sur compte réel partagent ce quota : les espacer |
 | Lecture déclenchée sur un autre appareil de l'utilisateur | Musique qui démarre ailleurs (vécu en test) | Règle de choix de l'appareil corrigée et testée ; le test automatique s'arrête si la lecture n'est pas sur Vitrine |
 | Licence des polices Clash Display et Satoshi (Fontshare, ITF Free Font License) | Diffusion du thème Mystic | Polices chargées depuis les serveurs Fontshare, pas intégrées ; vérifier la licence avant diffusion, repli automatique sur Archivo Black / Inter |
 | Usage commercial | Les conditions développeur Spotify encadrent la monétisation | Validation juridique avant toute diffusion payante |

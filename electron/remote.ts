@@ -1,9 +1,9 @@
 // While the page is freed (Vitrine hidden in the tray, see main.ts), the main process answers the tray,
 // the taskbar buttons and the shortcuts itself, and keeps the tray and Discord told of what plays:
 // through the browser's player when it is the one playing, otherwise through the Web API.
-import { net } from "electron";
 import type { BrowserPlayer } from "./browserPlayer";
 import type { DesktopCommand } from "./cli";
+import { spotifyFetch } from "./spotifyPauses";
 
 export interface Playing {
   title: string;
@@ -64,14 +64,8 @@ export class RemoteControl {
     private readonly browser: () => BrowserPlayer | null,
   ) {}
 
-  /** Spotify's pause after too many requests: asking during it would only lengthen it */
-  private pausedUntil = 0;
-
   private async api(path: string, method = "GET"): Promise<Response> {
-    if (Date.now() < this.pausedUntil) throw new Error("Spotify demande d'attendre (trop de requêtes).");
-    const response = await net.fetch(`https://api.spotify.com/v1${path}`, { method, headers: { authorization: `Bearer ${await this.accessToken()}` } });
-    if (response.status === 429) this.pausedUntil = Date.now() + (Number(response.headers.get("retry-after")) || 30) * 1000;
-    return response;
+    return spotifyFetch(`https://api.spotify.com/v1${path}`, { method, headers: { authorization: `Bearer ${await this.accessToken()}` } });
   }
 
   /** the browser's player, when it is the one playing */

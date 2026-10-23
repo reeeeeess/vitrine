@@ -5,6 +5,7 @@
 //    Web API, and its state is polled.
 import type { SpotifySdk } from "../global";
 import { isRateLimited } from "../lib/apiGate";
+import { API_BASE } from "../lib/spotifyLimit";
 import * as api from "../lib/spotify";
 import { createStore } from "../lib/store";
 import { notify } from "../lib/ui";
@@ -145,7 +146,7 @@ function schedulePoll(delay = pollDelay(playback.get(), localActive)): void {
 
 async function poll(): Promise<void> {
   // hidden, or Spotify asked to wait: asking anyway would only lengthen the wait
-  if (document.hidden || isRateLimited()) return;
+  if (document.hidden || isRateLimited(`${API_BASE}/me/player`)) return;
   try {
     const remote = await api.playerState();
     const localId = playback.get().localDeviceId;

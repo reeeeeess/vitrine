@@ -23,8 +23,10 @@ const RANGES: { value: Range; label: string }[] = [
 export function Stats() {
   const [range, setRange] = useState<Range>("short_term");
   const { data, error, loading } = useAsync(async () => {
-    const [tracks, artists] = await Promise.all([api.topTracks(range, 20), api.topArtists(range, 12)]);
-    return { tracks, artists };
+    // one of the two may be paused by Spotify (Too many requests): show the other
+    const [tracks, artists] = await Promise.allSettled([api.topTracks(range, 20), api.topArtists(range, 12)]);
+    if (tracks.status === "rejected" && artists.status === "rejected") throw tracks.reason;
+    return { tracks: tracks.status === "fulfilled" ? tracks.value : [], artists: artists.status === "fulfilled" ? artists.value : [] };
   }, [range]);
   const [sharing, setSharing] = useState(false);
 

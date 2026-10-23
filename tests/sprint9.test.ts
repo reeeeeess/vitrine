@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Gate, pauseLength, pauseMessage, rateLimit, ShortCache } from "../src/renderer/lib/apiGate";
+import { Gate, isRateLimited, rateLimit, ShortCache } from "../src/renderer/lib/apiGate";
+import { areaName, areaOf, formatWait, PauseBook, pauseLength, pauseMessage } from "../src/renderer/lib/spotifyLimit";
 import * as api from "../src/renderer/lib/spotify";
 import { pollDelay } from "../src/renderer/player/engine";
 
@@ -12,10 +13,27 @@ describe("Spotify's pause after too many requests", () => {
     expect(pauseLength(null, 9)).toBe(120_000);
   });
 
-  it("tells the person when it ends, in French", () => {
+  it("tells the person which part waits and when it ends, in French", () => {
     const now = new Date(2026, 9, 23, 14, 0).getTime();
-    expect(pauseMessage(now + 30_000, now)).toMatch(/quelques secondes/);
-    expect(pauseMessage(now + 25 * 60_000, now)).toBe("Spotify limite les demandes de Vitrine pour l'instant : reprise automatique vers 14:25 (dans 25 min).");
+    expect(pauseMessage(now + 30_000, "/me/playlists", now)).toMatch(/vos playlists.*quelques secondes/);
+    expect(pauseMessage(now + 25 * 60_000, "/me/playlists", now)).toBe(
+      "Spotify bloque vos playlists pour Vitrine (trop de demandes) : reprise automatique à 14:25 (dans 25 min).",
+    );
+    expect(formatWait(66_000_000)).toBe("18 h 20");
+  });
+
+  it("keeps a pause per part of the API: Spotify may block one and not the others", () => {
+    expect(areaOf("https://api.spotify.com/v1/me/playlists?limit=50&offset=50")).toBe("/me/playlists");
+    expect(areaOf("/artists/0TnOYISbd1XYRBk9myaseg/albums?include_groups=album")).toBe("/artists/{id}/albums");
+    expect(areaOf("/me/player/recently-played?limit=50")).toBe("/me/player/recently-played");
+    expect(areaName("/artists/{id}/albums")).toBe("les pages d'artiste");
+    const book = new PauseBook({}, 0);
+    expect(book.set("/me/playlists?limit=50", 5000)).toBe(true);
+    expect(book.set("https://api.spotify.com/v1/me/playlists", 4000)).toBe(false);
+    expect(book.get("/me/playlists?offset=50", 1000)).toBe(5000);
+    expect(book.get("/me/albums", 1000)).toBe(0);
+    expect(book.get("/me/playlists", 6000)).toBe(0);
+    expect(new PauseBook({ "/me/top/tracks": 9000, "/search": 10 }, 100).active(100)).toEqual([["/me/top/tracks", 9000]]);
   });
 });
 
@@ -114,11 +132,24 @@ describe("the Web API client under Spotify's limit", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("does not ask during a long pause, and says when it ends", async () => {
-    fetchMock.mockResolvedValueOnce(reply(429, {}, { "retry-after": "3600" }));
-    await expect(api.topTracks("short_term", 11)).rejects.toThrow(/reprise automatique vers/);
-    expect(rateLimit.get().until).toBeGreaterThan(Date.now() + 3_500_000);
-    await expect(api.topTracks("short_term", 12)).rejects.toMatchObject({ status: 429 });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  it("does not ask a part Spotify blocks, keeps asking the others, and shows the last known answer", async () => {
+    fetchMock.mockImplementation(async () => reply(200, { items: [] }));
+    await api.topTracks("short_term", 13);
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(reply(429, {}, { "retry-after": "66000" }));
+    // the reading is asked again after a minute; Spotify blocks the part: the last answer stays
+    vi.setSystemTime(Date.now() + 61_000);
+    expect(await api.topTracks("short_term", 13)).toEqual([]);
+    vi.useRealTimers();
+    expect(isRateLimited("/me/top/tracks")).toBe(true);
+    expect(rateLimit.get().paused[0]).toEqual(["/me/top/tracks", expect.any(Number)]);
+    // nothing known for this one: says why, without asking Spotify
+    const asked = fetchMock.mock.calls.length;
+    await expect(api.topTracks("short_term", 14)).rejects.toThrow(/vos tops pour Vitrine.*dans 18 h/);
+    expect(fetchMock.mock.calls.length).toBe(asked);
+    // another part still goes
+    fetchMock.mockResolvedValue(reply(200, { items: [] }));
+    await api.savedAlbums(10);
+    expect(fetchMock.mock.calls.length).toBe(asked + 1);
   });
 });

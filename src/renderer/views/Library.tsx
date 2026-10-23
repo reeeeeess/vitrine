@@ -14,12 +14,13 @@ type Tab = "playlists" | "albums";
 
 export function Library() {
   const [tab, setTab] = useState<Tab>("playlists");
-  const { data, error, loading } = useAsync(async () => {
-    const [playlists, albums] = await Promise.all([api.myPlaylists(), api.savedAlbums()]);
-    return { playlists, albums };
-  }, []);
+  // each tab on its own: Spotify may make one wait (Too many requests) and not the other
+  const playlists = useAsync(() => api.myPlaylists(), []);
+  const albums = useAsync(() => api.savedAlbums(), []);
+  const current = tab === "playlists" ? playlists : albums;
+  const { error, loading } = current;
 
-  const items = data ? data[tab] : [];
+  const items = current.data ?? [];
   return (
     <div className="animate-skeleton-fade">
       <div className="flex items-end justify-between gap-4 px-1">
@@ -41,15 +42,15 @@ export function Library() {
               onClick={() => setTab(value)}
               className={cn("rounded-xl px-4 py-1.5 text-sm font-medium transition-colors", tab === value ? "accent-bg" : "text-gray-400 hover:text-white")}
             >
-              {value === "playlists" ? `Playlists${data ? ` · ${data.playlists.length}` : ""}` : `Albums${data ? ` · ${data.albums.length}` : ""}`}
+              {value === "playlists" ? `Playlists${playlists.data ? ` · ${playlists.data.length}` : ""}` : `Albums${albums.data ? ` · ${albums.data.length}` : ""}`}
             </button>
           ))}
         </div>
       </div>
-      {loading && !data && <Spinner className="py-40" />}
+      {loading && !current.data && <Spinner className="py-40" />}
       {error && <ErrorNote text={error} />}
       <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-2">
-        {tab === "playlists" && data && (
+        {tab === "playlists" && (playlists.data || error) && (
           <MediaCard title="Titres likés" subtitle="Playlist" cover={<LikedCover />} onOpen={() => navigate({ name: "liked" })} onPlay={() => playAllLiked()} />
         )}
         {items.map((collection, index) => (
@@ -64,7 +65,7 @@ export function Library() {
           />
         ))}
       </div>
-      {data && items.length === 0 && <p className="mt-6 text-gray-400">Rien ici pour l'instant.</p>}
+      {current.data && items.length === 0 && <p className="mt-6 text-gray-400">Rien ici pour l'instant.</p>}
     </div>
   );
 }

@@ -1,11 +1,13 @@
-import { BarChart3, Download, Home, Library, LogOut, Palette, Search, Settings, Sparkles, X } from "lucide-react";
+import { BarChart3, Download, Home, Hourglass, Library, LogOut, Palette, Search, Settings, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { rateLimit } from "../lib/apiGate";
 import { cn } from "../lib/cn";
 import type { Profile } from "../lib/spotify";
+import { formatWait, pauseMessage } from "../lib/spotifyLimit";
 import { useStore } from "../lib/store";
 import { setTheme, theme } from "../lib/theme";
 import { updates } from "../lib/updates";
-import { navigate, ui, type Route } from "../lib/ui";
+import { navigate, notify, ui, type Route } from "../lib/ui";
 
 const LINKS: { label: string; route: Route; icon: typeof Home }[] = [
   { label: "Accueil", route: { name: "home" }, icon: Home },
@@ -42,6 +44,61 @@ export function ThemeToggle() {
       <Palette className="h-4 w-4" />
       {current === "mystic" ? "Mystic" : "Movix"}
     </button>
+  );
+}
+
+/** short pauses are waited out quietly; longer ones are said here, for as long as they last */
+const LONG_PAUSE_MS = 20_000;
+
+/**
+ * Spotify's long pauses (Too many requests), which can last hours: a pill that counts down, the details
+ * on click, and a toast the first time a part is paused.
+ */
+function PausePill() {
+  const paused = useStore(rateLimit, (s) => s.paused);
+  const [now, setNow] = useState(Date.now());
+  const [open, setOpen] = useState(false);
+  const told = useRef(new Set<string>());
+  useEffect(() => {
+    setNow(Date.now());
+    if (paused.length === 0) return;
+    const timer = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(timer);
+  }, [paused]);
+  const long = paused.filter(([, until]) => until - now >= LONG_PAUSE_MS);
+  useEffect(() => {
+    for (const [area, until] of long) {
+      if (told.current.has(`${area}${until}`)) continue;
+      told.current.add(`${area}${until}`);
+      notify(pauseMessage(until, area));
+    }
+  }, [long.map(([area, until]) => `${area}${until}`).join()]);
+  if (long.length === 0) return null;
+  const longest = long[0][1];
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 whitespace-nowrap rounded-btn border border-amber-400/40 bg-amber-400/10 px-2.5 py-2 font-mono text-xs text-amber-200 transition-colors hover:bg-amber-400/20"
+        title="Spotify fait patienter Vitrine (trop de demandes) : cliquez pour le détail"
+        aria-label={`Pause Spotify : ${formatWait(longest - now)}`}
+        aria-expanded={open}
+      >
+        <Hourglass className="h-4 w-4" />
+        {formatWait(longest - now)}
+      </button>
+      {open && (
+        <div className="glass absolute right-0 top-full z-50 mt-2 w-[380px] space-y-2 rounded-xl border-amber-400/30 p-4 text-sm text-amber-50" role="status">
+          {long.map(([area, until]) => (
+            <p key={area}>{pauseMessage(until, area, now)}</p>
+          ))}
+          <p className="text-xs text-white/60">
+            Vitrine n'envoie plus rien à ces parties de Spotify d'ici là (insister prolongerait l'attente) et affiche la dernière version connue. Le reste de
+            Vitrine et l'appli Spotify officielle fonctionnent normalement.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -137,6 +194,7 @@ export function Header({ profile, scrolled, onLogout }: { profile?: Profile; scr
         )}
       </div>
 
+      <PausePill />
       <UpdatePill />
       <ThemeToggle />
       <button
